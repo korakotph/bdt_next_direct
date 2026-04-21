@@ -1,0 +1,6 @@
+@use './variable' as *;
+
+#footer{
+    background-color: $color-brand-500;
+    color: $color-white;
+}

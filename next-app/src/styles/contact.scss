@@ -1,0 +1,9 @@
+@use './variable' as *;
+
+#contact{
+    background-color: $color-brand-900;
+    color: $color-white;
+    .link{
+        color:$color-brand-300;
+    }
+}

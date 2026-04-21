@@ -1,0 +1,54 @@
+@font-face {
+    font-family: 'SILPAKORN70yr';
+    src: url('SILPAKORN70yr-Italic.woff2') format('woff2'),
+        url('SILPAKORN70yr-Italic.woff') format('woff');
+    font-weight: normal;
+    font-style: italic;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'SILPAKORN70NEW Shadow';
+    src: url('SILPAKORN70NEWShadow-Italic.woff2') format('woff2'),
+        url('SILPAKORN70NEWShadow-Italic.woff') format('woff');
+    font-weight: 500;
+    font-style: italic;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'SILPAKORN70yr';
+    src: url('SILPAKORN70yr.woff2') format('woff2'),
+        url('SILPAKORN70yr.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'SILPAKORN70NEW';
+    src: url('SILPAKORN70NEW.woff2') format('woff2'),
+        url('SILPAKORN70NEW.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'SILPAKORN70NEW Shadow';
+    src: url('SILPAKORN70NEWShadow.woff2') format('woff2'),
+        url('SILPAKORN70NEWShadow.woff') format('woff');
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'SILPAKORN70NEW';
+    src: url('SILPAKORN70NEW-Italic.woff2') format('woff2'),
+        url('SILPAKORN70NEW-Italic.woff') format('woff');
+    font-weight: normal;
+    font-style: italic;
+    font-display: swap;
+}
+

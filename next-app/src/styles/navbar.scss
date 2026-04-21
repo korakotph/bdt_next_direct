@@ -1,0 +1,33 @@
+@use './variable' as *;
+
+#navbar{
+    background-color: $color-brand-900;
+    color: $color-white;
+}
+#mobile-menu{
+    // z-index: 60;
+    transform: translateY(calc(-100vh - 100px));
+    &.open{
+        transform: translateY(0);
+    }
+    &::after{
+        content: '';
+        width: 100vh;
+        display: block;
+        height: 100px;
+        bottom: -50px;
+        position: absolute;
+        background: linear-gradient(180deg, $color-brand-900 50%, rgba($color-brand-900, 0) 90%);
+    }
+}
+
+@media (max-width: 767px) {
+  nav {
+    .logo {
+      margin-left: 10px;
+    }
+    .menu-btn {
+      margin-right: 10px;
+    }
+  }
+}

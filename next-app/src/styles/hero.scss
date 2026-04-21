@@ -1,0 +1,53 @@
+@use './variable' as *;
+
+.hero{
+    position: relative;
+    .swiper{
+        .swiper-slide{
+            &.slide-fade{
+                &::before{
+                    content:"";
+                    width: 100%;
+                    height: 400px;
+                    position: absolute;
+                    top: 0;
+                    background: #001714;
+                    background: linear-gradient(180deg, $color-brand-900 10%, rgba($color-brand-900,0) 90%);
+                    z-index: 2;
+                    left:0;
+                }
+            }
+            // &::after{
+            //     content:"";
+            //     width: 100%;
+            //     height: 400px;
+            //     position: absolute;
+            //     bottom: 0;
+            //     background: #001714;
+            //     background: linear-gradient(0deg, $color-brand-900 10%, rgba($color-brand-900,0) 90%);
+            //     z-index: 2;
+            //     left:0;
+            // }
+        }
+        .swiper-horizontal>.swiper-pagination-bullets,
+        .swiper-pagination-bullets.swiper-pagination-horizontal,
+        .swiper-pagination-custom, .swiper-pagination-fraction{
+            bottom: 50px;
+        }
+        .swiper-pagination-bullet {
+            width: 8px;
+            height: 8px;
+            background: $color-brand-300;
+            opacity: 1;
+            border-radius: 9999px;
+            transition: all 0.3s ease;
+            margin: 0 4px;
+            z-index: 3;
+
+        }
+        .swiper-pagination-bullet-active {
+            width: 24px; /* ทำให้ปุ่มยาวขึ้น */
+            background-color: $color-brand-300;
+        }
+    }
+}

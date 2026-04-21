@@ -1,0 +1,116 @@
+/* globals.css */
+@import "tailwindcss";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* You can import other global SCSS or CSS here too */
+/* @import './your-custom.scss'; */
+.font-silpakorn-70{
+    font-family: 'Prompt', Arial, sans-serif;
+}
+.font-silpakorn-new{
+    font-family: 'Prompt', Arial, sans-serif;
+}
+.font-prompt{
+    font-family: 'Prompt', Arial, sans-serif;
+}
+body{
+    font-family: 'Prompt', Arial, sans-serif;
+}
+.mt-0\! {
+  margin-top: 0 !important;
+}
+
+/* ปลดล็อก overflow */
+/* .popup-swiper .swiper,
+.popup-swiper .swiper-wrapper {
+  overflow: visible !important;
+} */
+
+/* pagination dot */
+.popup-swiper .swiper-pagination-bullet-active {
+  background-color: #308E85;
+}
+
+/* ปุ่มลูกศร */
+.popup-swiper .swiper-button-prev,
+.popup-swiper .swiper-button-next {
+  color: #308E85;
+  width: 44px;
+  height: 44px;
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 999px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 30; /* 🔥 สำคัญมาก */
+}
+
+/* hover */
+.popup-swiper .swiper-button-prev:hover,
+.popup-swiper .swiper-button-next:hover {
+  color: #60A8A2;
+  background: rgba(0, 0, 0, 0.7);
+}
+
+/* icon ข้างใน */
+.popup-swiper .swiper-button-prev::after,
+.popup-swiper .swiper-button-next::after {
+  font-size: 20px;
+  font-weight: bold;
+}
+
+/* disabled */
+.popup-swiper .swiper-button-disabled {
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+/* mobile */
+@media (max-width: 768px) {
+  .popup-swiper .swiper-button-prev,
+  .popup-swiper .swiper-button-next {
+    display: none;
+  }
+}
+/* ปุ่มลูกศร */
+.custom-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 50;
+
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  background: rgba(0,0,0,0.6);
+  color: #308E85;
+  font-size: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.custom-nav:hover {
+  color: #60A8A2 ;
+}
+
+/* ซ้าย */
+.swiper-prev {
+  left: -50px;
+}
+
+/* ขวา */
+.swiper-next {
+  right: -50px;
+}
+
+/* มือถือซ่อน */
+@media (max-width: 768px) {
+  .custom-nav {
+    display: none;
+  }
+}

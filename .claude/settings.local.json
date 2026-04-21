@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(wc -l /www/ita/next-app/src/**/*.jsx)",
+      "Bash(grep -r \"href=.*dangerously\\\\|innerHTML.*href\\\\|eval\\\\|Function\\\\\\(\" /www/ita/next-app/src --include=*.jsx --include=*.js)",
+      "Bash(docker compose:*)",
+      "Bash(sudo docker:*)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3012)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:8056/server/health)",
+      "Bash(pg_isready -h localhost -p 5433)",
+      "Bash(curl -s http://localhost:8056/server/health)",
+      "Bash(python3 -m json.tool)",
+      "Bash(pg_dump --version)",
+      "Bash(chmod +x /www/ita/next-app/node_modules/.bin/next)",
+      "Bash(chmod +x /www/ita/next-app/node_modules/.bin/*)",
+      "Bash(sudo chown:*)",
+      "Bash(curl -sv http://localhost:8056/server/info)",
+      "Bash(curl -s \"http://localhost:8056/server/health?details=true\")",
+      "Bash(curl -s -X POST http://localhost:8056/auth/login -H \"Content-Type: application/json\" -d '{\"email\":\"admin@example.com\",\"password\":\"admin123\"}')",
+      "Bash(curl -s \"http://localhost:8056/server/health\")"
+    ]
+  }
+}

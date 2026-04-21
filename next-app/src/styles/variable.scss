@@ -1,0 +1,156 @@
+$color-white: #ffffff;
+$color-brand-50: #f2f8f7;
+// $color-brand-100: #C1DDDA;
+// $color-brand-300: #60A8A1;
+// $color-brand-500: #007468;
+// $color-brand-700: #00453E;
+// $color-brand-900: #001714;
+$color-brand-100: #C1DDDA;
+$color-brand-300: #60A8A2;
+$color-brand-500: #308E85;
+$color-brand-700: #007469;
+$color-brand-900: #005152;
+$color-system-50: #F4F5F6;
+$color-system-100: #CCD0D5;
+$color-system-300: #7c8792;
+$color-system-500: #2C3E50;
+
+.bg-brand-50, .hover\:bg-brand-50:hover{
+    background-color: $color-brand-50;
+}
+.bg-brand-100, .hover\:bg-brand-100:hover{
+    background-color: $color-brand-100;
+}
+.bg-brand-300, .hover\:bg-brand-300:hover{
+    background-color: $color-brand-300;
+}
+.bg-brand-500, .hover\:bg-brand-500:hover{
+    background-color: $color-brand-500;
+}
+.bg-brand-700, .hover\:bg-brand-700:hover{
+    background-color: $color-brand-700;
+}
+.bg-brand-900, .hover\:bg-brand-900:hover{
+    background-color: $color-brand-900;
+}
+.bg-system-50, .hover\:bg-system-50:hover{
+    background-color: $color-system-50;
+}
+.bg-system-100, .hover\:bg-system-100:hover{
+    background-color: $color-system-100;
+}
+.bg-system-300, .hover\:bg-system-300:hover{
+    background-color: $color-system-300;
+}
+.bg-system-500, .hover\:bg-system-500:hover{
+    background-color: $color-system-500;
+}
+
+.bg-gradient-brand-300, .hover\:bg-gradient-brand-300:hover{
+    background: linear-gradient(180deg, $color-brand-300 0%, rgba(#C1DDDB,60%) 100%);
+}
+.bg-gradient-brand-500, .hover\:bg-gradient-brand-500:hover{
+    background: linear-gradient(180deg, $color-brand-300 0%, rgba(#60A8A2,60%) 100%);
+}
+.bg-gradient-brand-700, .hover\:bg-gradient-brand-700:hover{
+    background: linear-gradient(180deg, $color-brand-700 0%, rgba(#007469,60%) 100%);
+}
+.bg-gradient-brand-900, .hover\:bg-gradient-brand-900-50:hover{
+    background: linear-gradient(180deg, $color-brand-900 0%, rgba(#00453F,60%) 100%);
+}
+.bg-gradient-sky-100, .hover\:bg-gradient-brand-900-50:hover{
+    background: linear-gradient(90deg, $color-white 0%, rgba(#2398FE,100%) 100%);
+}
+.bg-gradient-sky-300, .hover\:bg-gradient-brand-900-50:hover{
+    background: linear-gradient(90deg, rgba(#007FDF,100%) 0%, rgba(#2442A5,100%) 100%);
+}
+
+.text-brand-50, .hover\:text-brand-50:hover{
+    color: $color-brand-50;
+}
+.text-brand-100, .hover\:text-brand-100:hover{
+    color: $color-brand-100;
+}
+.text-brand-300, .hover\:text-brand-300:hover{
+    color: $color-brand-300;
+}
+.text-brand-500, .hover\:text-brand-500:hover{
+    color: $color-brand-500;
+}
+.text-brand-700, .hover\:text-brand-700:hover{
+    color: $color-brand-700;
+}
+.text-brand-900, .hover\:text-brand-900:hover{
+    color: $color-brand-900;
+}
+.text-system-50, .hover\:text-system-50:hover{
+    color: $color-system-50;
+}
+.text-system-100, .hover\:text-system-100:hover{
+    color: $color-system-100;
+}
+.text-system-300, .hover\:text-system-300:hover{
+    color: $color-system-300;
+}
+.text-system-500, .hover\:text-system-500:hover{
+    color: $color-system-500;
+}
+
+.border-brand-50, .hover\:border-brand-50:hover{
+    border-color: $color-brand-50;
+}
+.border-brand-100, .hover\:border-brand-100:hover{
+    border-color: $color-brand-100;
+}
+.border-brand-300, .hover\:border-brand-300:hover{
+    border-color: $color-brand-300;
+}
+.border-brand-500, .hover\:border-brand-500:hover{
+    border-color: $color-brand-500;
+}
+.border-brand-700, .hover\:border-brand-700:hover{
+    border-color: $color-brand-700;
+}
+.border-brand-900, .hover\:border-brand-900:hover{
+    border-color: $color-brand-900;
+}
+.border-system-50, .hover\:border-system-50:hover{
+    border-color: $color-system-50;
+}
+.border-system-100, .hover\:border-system-100:hover{
+    border-color: $color-system-100;
+}
+.border-system-300, .hover\:border-system-300:hover{
+    border-color: $color-system-300;
+}
+.border-system-500, .hover\:border-system-500:hover{
+    border-color: $color-system-500;
+}
+
+.triangle {
+    width: 0;
+    height: 0;
+    border-left: 70px solid transparent;
+    border-right: 70px solid transparent;
+    border-bottom: 120px solid $color-brand-500;
+    margin: 0 auto;
+    position: relative;
+    .triangle-content {
+        position: absolute;
+        top: 82px;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        text-align: center;
+    }
+}
+
+@media (min-width: 768px) {
+    .triangle {
+        border-left: 96px solid transparent;
+        border-right: 96px solid transparent;
+        border-bottom: 166px solid $color-brand-500;
+        .triangle-content {
+            top: 100px;
+        }
+    }
+}
