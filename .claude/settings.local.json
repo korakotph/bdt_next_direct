@@ -1,4 +1,19 @@
 {
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "if": "Bash(git commit*)",
+            "command": "echo '{\"hookSpecificOutput\": {\"hookEventName\": \"PostToolUse\", \"additionalContext\": \"README.md อัพเดตแล้วหรือยัง? ถ้าการเปลี่ยนแปลงนี้กระทบเนื้อหาใน README.md กรุณาอัพเดตด้วย\"}}'",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  },
   "permissions": {
     "allow": [
       "Bash(wc -l /www/ita/next-app/src/**/*.jsx)",

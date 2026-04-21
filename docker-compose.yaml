@@ -60,15 +60,15 @@ services:
       args:
         # ส่ง NEXT_PUBLIC_* เข้า Docker build เพื่อ bake ลง client bundle
         NEXT_PUBLIC_DIRECTUS_URL: https://smile.su.ac.th/ita-admin
-        NEXT_PUBLIC_BASE_PATH: /ita
+        NEXT_PUBLIC_BASE_PATH: ""
     container_name: nextjs_ita
     restart: unless-stopped
     ports:
-      - "3012:3000"
+      - "3012:3012"
     environment:
       DIRECTUS_INTERNAL_URL: http://directus:8055
       NEXT_PUBLIC_DIRECTUS_URL: https://smile.su.ac.th/ita-admin
-      NEXT_PUBLIC_BASE_PATH: /ita
+      NEXT_PUBLIC_BASE_PATH: ""
     depends_on:
       - directus
 
