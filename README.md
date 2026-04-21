@@ -45,7 +45,7 @@ docker compose up -d
 
 | Service | URL |
 |---|---|
-| Next.js (Frontend) | http://localhost:3012/ita |
+| Next.js (Frontend) | http://localhost:3012 |
 | Directus (Admin) | http://localhost:8056 |
 | PostgreSQL | localhost:5433 |
 
@@ -142,9 +142,6 @@ docker compose logs -f directus
 
 **Next.js build fail บน Docker**
 > ตรวจสอบว่า `NEXT_PUBLIC_DIRECTUS_URL` ใน `docker-compose.yaml` ถูกต้อง เพราะค่านี้จะถูก bake เข้า bundle ตอน build
-
-**ไม่เห็นหน้าเว็บที่ `/ita`**
-> เมื่อรันด้วย Docker ต้องเข้าที่ `http://localhost:3012/ita` ไม่ใช่ `http://localhost:3012`
 
 ---
 
