@@ -9,7 +9,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="th">
       <head>
-        <link rel="stylesheet" href="/ita/fonts.css" />
+        <link rel="stylesheet" href="/fonts.css" />
       </head>
       <body>
         {children}
