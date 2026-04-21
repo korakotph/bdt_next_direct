@@ -80,15 +80,13 @@ DIRECTUS_INTERNAL_URL=http://localhost:8056
 NEXT_PUBLIC_BASE_PATH=
 ```
 
-> **หมายเหตุ:** เซ็ต `NEXT_PUBLIC_BASE_PATH` เป็นค่าว่างเพื่อให้เข้าถึงได้ที่ `http://localhost:3000` โดยตรง
-
 จากนั้นรัน dev server:
 
 ```bash
 npm run dev
 ```
 
-เปิดเบราว์เซอร์ที่ http://localhost:3000
+เปิดเบราว์เซอร์ที่ http://localhost:3012
 
 ---
 
