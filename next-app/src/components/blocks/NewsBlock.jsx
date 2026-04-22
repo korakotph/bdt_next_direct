@@ -28,7 +28,7 @@ export default function NewsBlock({ item, lang }) {
   }
 
   const url_news = BASE_URL
-  ? `${BASE_URL}/items/news?filter[status][_eq]=published&limit=${limit}`
+  ? `${BASE_URL}/items/news?filter[status][_eq]=published&limit=${limit}&sort=-date_updated`
   : null
 
   useEffect(() => {
