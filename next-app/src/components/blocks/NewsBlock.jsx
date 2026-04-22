@@ -53,8 +53,8 @@ export default function NewsBlock({ item, lang }) {
 
   return (
     <section 
-      className={`${item?.padding || ''} ${item?.padding_y || ''} 
-        ${item?.padding_x || ''} ${item?.align || ''} ${item?.max_w || ''} ${item?.gap || ''}`}
+      className={`${item?.padding || ''} ${item?.padding_y || ''} mx-auto
+        ${item?.padding_x || ''} ${item?.align || ''} max-w-${item?.max_w || ''} ${item?.gap || ''}`}
         style={item?.background_color ? { backgroundColor: item.background_color } : {}}
     >
       {/* title / content จาก block */}
