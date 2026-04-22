@@ -50,7 +50,7 @@ services:
       ADMIN_PASSWORD: admin123
 
       # URL สาธารณะของ Directus — ใช้สำหรับ generate asset URL ให้ถูกต้อง
-      PUBLIC_URL: https://smile.su.ac.th/ita-admin
+      PUBLIC_URL: http://localhost:8056
     volumes:
       - ./directus/uploads:/directus/uploads
 
@@ -59,7 +59,7 @@ services:
       context: ./next-app
       args:
         # ส่ง NEXT_PUBLIC_* เข้า Docker build เพื่อ bake ลง client bundle
-        NEXT_PUBLIC_DIRECTUS_URL: https://smile.su.ac.th/ita-admin
+        NEXT_PUBLIC_DIRECTUS_URL: http://localhost:8056
         NEXT_PUBLIC_BASE_PATH: ""
     container_name: bdt_nextjs
     restart: unless-stopped
@@ -67,7 +67,7 @@ services:
       - "3012:3000"
     environment:
       DIRECTUS_INTERNAL_URL: http://directus:8055
-      NEXT_PUBLIC_DIRECTUS_URL: https://smile.su.ac.th/ita-admin
+      NEXT_PUBLIC_DIRECTUS_URL: http://localhost:8056
       NEXT_PUBLIC_BASE_PATH: ""
     depends_on:
       - directus
