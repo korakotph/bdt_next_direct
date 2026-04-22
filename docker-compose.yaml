@@ -64,7 +64,7 @@ services:
     container_name: bdt_nextjs
     restart: unless-stopped
     ports:
-      - "3012:3012"
+      - "3012:3000"
     environment:
       DIRECTUS_INTERNAL_URL: http://directus:8055
       NEXT_PUBLIC_DIRECTUS_URL: https://smile.su.ac.th/ita-admin
