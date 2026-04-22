@@ -23,8 +23,8 @@
 ### 1. Clone โปรเจกต์
 
 ```bash
-git clone <repository-url>
-cd next_direct
+git clone https://github.com/korakotph/bdt_next_direct.git
+cd bdt_next_direct
 ```
 
 ---
