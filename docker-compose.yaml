@@ -3,7 +3,7 @@ version: "3.9"
 services:
   postgres:
     image: postgres:16
-    container_name: directus_db_ita
+    container_name: bdt_directus_db
     restart: unless-stopped
     environment:
       POSTGRES_USER: directus
@@ -16,7 +16,7 @@ services:
 
   directus:
     image: directus/directus:latest
-    container_name: directus_ita
+    container_name: bdt_directus
     restart: unless-stopped
     depends_on:
       - postgres
@@ -61,7 +61,7 @@ services:
         # ส่ง NEXT_PUBLIC_* เข้า Docker build เพื่อ bake ลง client bundle
         NEXT_PUBLIC_DIRECTUS_URL: https://smile.su.ac.th/ita-admin
         NEXT_PUBLIC_BASE_PATH: ""
-    container_name: nextjs_ita
+    container_name: bdt_nextjs
     restart: unless-stopped
     ports:
       - "3012:3012"
