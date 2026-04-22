@@ -36,11 +36,13 @@ export default function NavbarClient({ settings, menu}) {
           className='flex jusify-center items-center'
           style={{ color: settings?.text_color }}
         >
-          <img
-            src={`${process.env.NEXT_PUBLIC_DIRECTUS_URL}/assets/${settings.logo}`}
-            alt={settings.site_name}
-            className="h-10"
-          />
+          {settings?.logo && (
+            <img
+              src={`${process.env.NEXT_PUBLIC_DIRECTUS_URL}/assets/${settings.logo}`}
+              alt={settings?.site_name}
+              className="h-10"
+            />
+          )}
           <span className="ml-4 font-medium">{settings.site_name}</span>
         </Link>
 
