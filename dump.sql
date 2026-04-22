@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict 7dBsqBOxIOR7pzxrOcukGE0iwiY81lwRACGgCRTFv8wYQ7iuwJuEg2ZPxO10wxh
+\restrict E9HpgUzrbykfhdiaGGwPj5u2UrUvefodssye7uIrvahch2uKVJJiH4Sg4nZBMeD
 
 -- Dumped from database version 16.13 (Debian 16.13-1.pgdg13+1)
 -- Dumped by pg_dump version 16.13 (Debian 16.13-1.pgdg13+1)
@@ -18,17 +18,193 @@ SET xmloption = content;
 SET client_min_messages = warning;
 SET row_security = off;
 
+ALTER TABLE IF EXISTS ONLY public."Site_Settings" DROP CONSTRAINT IF EXISTS site_settings_user_updated_foreign;
+ALTER TABLE IF EXISTS ONLY public."Site_Settings" DROP CONSTRAINT IF EXISTS site_settings_user_created_foreign;
+ALTER TABLE IF EXISTS ONLY public."Site_Settings" DROP CONSTRAINT IF EXISTS site_settings_logo_foreign;
+ALTER TABLE IF EXISTS ONLY public.pages DROP CONSTRAINT IF EXISTS pages_user_updated_foreign;
+ALTER TABLE IF EXISTS ONLY public.pages DROP CONSTRAINT IF EXISTS pages_user_created_foreign;
+ALTER TABLE IF EXISTS ONLY public.pages DROP CONSTRAINT IF EXISTS pages_parent_foreign;
+ALTER TABLE IF EXISTS ONLY public.directus_versions DROP CONSTRAINT IF EXISTS directus_versions_user_updated_foreign;
+ALTER TABLE IF EXISTS ONLY public.directus_versions DROP CONSTRAINT IF EXISTS directus_versions_user_created_foreign;
+ALTER TABLE IF EXISTS ONLY public.directus_versions DROP CONSTRAINT IF EXISTS directus_versions_collection_foreign;
+ALTER TABLE IF EXISTS ONLY public.directus_users DROP CONSTRAINT IF EXISTS directus_users_role_foreign;
+ALTER TABLE IF EXISTS ONLY public.directus_shares DROP CONSTRAINT IF EXISTS directus_shares_user_created_foreign;
+ALTER TABLE IF EXISTS ONLY public.directus_shares DROP CONSTRAINT IF EXISTS directus_shares_role_foreign;
+ALTER TABLE IF EXISTS ONLY public.directus_shares DROP CONSTRAINT IF EXISTS directus_shares_collection_foreign;
+ALTER TABLE IF EXISTS ONLY public.directus_settings DROP CONSTRAINT IF EXISTS directus_settings_storage_default_folder_foreign;
+ALTER TABLE IF EXISTS ONLY public.directus_settings DROP CONSTRAINT IF EXISTS directus_settings_public_registration_role_foreign;
+ALTER TABLE IF EXISTS ONLY public.directus_settings DROP CONSTRAINT IF EXISTS directus_settings_public_foreground_foreign;
+ALTER TABLE IF EXISTS ONLY public.directus_settings DROP CONSTRAINT IF EXISTS directus_settings_public_favicon_foreign;
+ALTER TABLE IF EXISTS ONLY public.directus_settings DROP CONSTRAINT IF EXISTS directus_settings_public_background_foreign;
+ALTER TABLE IF EXISTS ONLY public.directus_settings DROP CONSTRAINT IF EXISTS directus_settings_project_logo_foreign;
+ALTER TABLE IF EXISTS ONLY public.directus_sessions DROP CONSTRAINT IF EXISTS directus_sessions_user_foreign;
+ALTER TABLE IF EXISTS ONLY public.directus_sessions DROP CONSTRAINT IF EXISTS directus_sessions_share_foreign;
+ALTER TABLE IF EXISTS ONLY public.directus_roles DROP CONSTRAINT IF EXISTS directus_roles_parent_foreign;
+ALTER TABLE IF EXISTS ONLY public.directus_revisions DROP CONSTRAINT IF EXISTS directus_revisions_version_foreign;
+ALTER TABLE IF EXISTS ONLY public.directus_revisions DROP CONSTRAINT IF EXISTS directus_revisions_parent_foreign;
+ALTER TABLE IF EXISTS ONLY public.directus_revisions DROP CONSTRAINT IF EXISTS directus_revisions_activity_foreign;
+ALTER TABLE IF EXISTS ONLY public.directus_presets DROP CONSTRAINT IF EXISTS directus_presets_user_foreign;
+ALTER TABLE IF EXISTS ONLY public.directus_presets DROP CONSTRAINT IF EXISTS directus_presets_role_foreign;
+ALTER TABLE IF EXISTS ONLY public.directus_permissions DROP CONSTRAINT IF EXISTS directus_permissions_policy_foreign;
+ALTER TABLE IF EXISTS ONLY public.directus_panels DROP CONSTRAINT IF EXISTS directus_panels_user_created_foreign;
+ALTER TABLE IF EXISTS ONLY public.directus_panels DROP CONSTRAINT IF EXISTS directus_panels_dashboard_foreign;
+ALTER TABLE IF EXISTS ONLY public.directus_operations DROP CONSTRAINT IF EXISTS directus_operations_user_created_foreign;
+ALTER TABLE IF EXISTS ONLY public.directus_operations DROP CONSTRAINT IF EXISTS directus_operations_resolve_foreign;
+ALTER TABLE IF EXISTS ONLY public.directus_operations DROP CONSTRAINT IF EXISTS directus_operations_reject_foreign;
+ALTER TABLE IF EXISTS ONLY public.directus_operations DROP CONSTRAINT IF EXISTS directus_operations_flow_foreign;
+ALTER TABLE IF EXISTS ONLY public.directus_notifications DROP CONSTRAINT IF EXISTS directus_notifications_sender_foreign;
+ALTER TABLE IF EXISTS ONLY public.directus_notifications DROP CONSTRAINT IF EXISTS directus_notifications_recipient_foreign;
+ALTER TABLE IF EXISTS ONLY public.directus_folders DROP CONSTRAINT IF EXISTS directus_folders_parent_foreign;
+ALTER TABLE IF EXISTS ONLY public.directus_flows DROP CONSTRAINT IF EXISTS directus_flows_user_created_foreign;
+ALTER TABLE IF EXISTS ONLY public.directus_files DROP CONSTRAINT IF EXISTS directus_files_uploaded_by_foreign;
+ALTER TABLE IF EXISTS ONLY public.directus_files DROP CONSTRAINT IF EXISTS directus_files_modified_by_foreign;
+ALTER TABLE IF EXISTS ONLY public.directus_files DROP CONSTRAINT IF EXISTS directus_files_folder_foreign;
+ALTER TABLE IF EXISTS ONLY public.directus_deployments DROP CONSTRAINT IF EXISTS directus_deployments_user_created_foreign;
+ALTER TABLE IF EXISTS ONLY public.directus_deployment_runs DROP CONSTRAINT IF EXISTS directus_deployment_runs_user_created_foreign;
+ALTER TABLE IF EXISTS ONLY public.directus_deployment_runs DROP CONSTRAINT IF EXISTS directus_deployment_runs_project_foreign;
+ALTER TABLE IF EXISTS ONLY public.directus_deployment_projects DROP CONSTRAINT IF EXISTS directus_deployment_projects_user_created_foreign;
+ALTER TABLE IF EXISTS ONLY public.directus_deployment_projects DROP CONSTRAINT IF EXISTS directus_deployment_projects_deployment_foreign;
+ALTER TABLE IF EXISTS ONLY public.directus_dashboards DROP CONSTRAINT IF EXISTS directus_dashboards_user_created_foreign;
+ALTER TABLE IF EXISTS ONLY public.directus_comments DROP CONSTRAINT IF EXISTS directus_comments_user_updated_foreign;
+ALTER TABLE IF EXISTS ONLY public.directus_comments DROP CONSTRAINT IF EXISTS directus_comments_user_created_foreign;
+ALTER TABLE IF EXISTS ONLY public.directus_collections DROP CONSTRAINT IF EXISTS directus_collections_group_foreign;
+ALTER TABLE IF EXISTS ONLY public.directus_access DROP CONSTRAINT IF EXISTS directus_access_user_foreign;
+ALTER TABLE IF EXISTS ONLY public.directus_access DROP CONSTRAINT IF EXISTS directus_access_role_foreign;
+ALTER TABLE IF EXISTS ONLY public.directus_access DROP CONSTRAINT IF EXISTS directus_access_policy_foreign;
+ALTER TABLE IF EXISTS ONLY public.contact DROP CONSTRAINT IF EXISTS contact_user_updated_foreign;
+ALTER TABLE IF EXISTS ONLY public.contact DROP CONSTRAINT IF EXISTS contact_user_created_foreign;
+ALTER TABLE IF EXISTS ONLY public.contact DROP CONSTRAINT IF EXISTS contact_image_foreign;
+ALTER TABLE IF EXISTS ONLY public.block_types DROP CONSTRAINT IF EXISTS block_types_user_updated_foreign;
+ALTER TABLE IF EXISTS ONLY public.block_types DROP CONSTRAINT IF EXISTS block_types_user_created_foreign;
+ALTER TABLE IF EXISTS ONLY public.block_items DROP CONSTRAINT IF EXISTS block_items_user_updated_foreign;
+ALTER TABLE IF EXISTS ONLY public.block_items DROP CONSTRAINT IF EXISTS block_items_user_created_foreign;
+ALTER TABLE IF EXISTS ONLY public.block_items DROP CONSTRAINT IF EXISTS block_items_type_foreign;
+ALTER TABLE IF EXISTS ONLY public.block_items DROP CONSTRAINT IF EXISTS block_items_pdf_foreign;
+ALTER TABLE IF EXISTS ONLY public.block_items DROP CONSTRAINT IF EXISTS block_items_page_foreign;
+ALTER TABLE IF EXISTS ONLY public.block_items DROP CONSTRAINT IF EXISTS block_items_image_foreign;
+ALTER TABLE IF EXISTS ONLY public.block_items DROP CONSTRAINT IF EXISTS block_items_excel_foreign;
+ALTER TABLE IF EXISTS ONLY public.banner DROP CONSTRAINT IF EXISTS banner_user_updated_foreign;
+ALTER TABLE IF EXISTS ONLY public.banner DROP CONSTRAINT IF EXISTS banner_user_created_foreign;
+ALTER TABLE IF EXISTS ONLY public.banner DROP CONSTRAINT IF EXISTS banner_image_foreign;
+DROP INDEX IF EXISTS public.directus_revisions_parent_index;
+DROP INDEX IF EXISTS public.directus_revisions_activity_index;
+DROP INDEX IF EXISTS public.directus_activity_timestamp_index;
+ALTER TABLE IF EXISTS ONLY public.pages DROP CONSTRAINT IF EXISTS pages_pkey;
+ALTER TABLE IF EXISTS ONLY public.directus_versions DROP CONSTRAINT IF EXISTS directus_versions_pkey;
+ALTER TABLE IF EXISTS ONLY public.directus_users DROP CONSTRAINT IF EXISTS directus_users_token_unique;
+ALTER TABLE IF EXISTS ONLY public.directus_users DROP CONSTRAINT IF EXISTS directus_users_pkey;
+ALTER TABLE IF EXISTS ONLY public.directus_users DROP CONSTRAINT IF EXISTS directus_users_external_identifier_unique;
+ALTER TABLE IF EXISTS ONLY public.directus_users DROP CONSTRAINT IF EXISTS directus_users_email_unique;
+ALTER TABLE IF EXISTS ONLY public.directus_translations DROP CONSTRAINT IF EXISTS directus_translations_pkey;
+ALTER TABLE IF EXISTS ONLY public.directus_shares DROP CONSTRAINT IF EXISTS directus_shares_pkey;
+ALTER TABLE IF EXISTS ONLY public.directus_settings DROP CONSTRAINT IF EXISTS directus_settings_pkey;
+ALTER TABLE IF EXISTS ONLY public.directus_sessions DROP CONSTRAINT IF EXISTS directus_sessions_pkey;
+ALTER TABLE IF EXISTS ONLY public.directus_roles DROP CONSTRAINT IF EXISTS directus_roles_pkey;
+ALTER TABLE IF EXISTS ONLY public.directus_revisions DROP CONSTRAINT IF EXISTS directus_revisions_pkey;
+ALTER TABLE IF EXISTS ONLY public.directus_relations DROP CONSTRAINT IF EXISTS directus_relations_pkey;
+ALTER TABLE IF EXISTS ONLY public.directus_presets DROP CONSTRAINT IF EXISTS directus_presets_pkey;
+ALTER TABLE IF EXISTS ONLY public.directus_policies DROP CONSTRAINT IF EXISTS directus_policies_pkey;
+ALTER TABLE IF EXISTS ONLY public.directus_permissions DROP CONSTRAINT IF EXISTS directus_permissions_pkey;
+ALTER TABLE IF EXISTS ONLY public.directus_panels DROP CONSTRAINT IF EXISTS directus_panels_pkey;
+ALTER TABLE IF EXISTS ONLY public.directus_operations DROP CONSTRAINT IF EXISTS directus_operations_resolve_unique;
+ALTER TABLE IF EXISTS ONLY public.directus_operations DROP CONSTRAINT IF EXISTS directus_operations_reject_unique;
+ALTER TABLE IF EXISTS ONLY public.directus_operations DROP CONSTRAINT IF EXISTS directus_operations_pkey;
+ALTER TABLE IF EXISTS ONLY public.directus_notifications DROP CONSTRAINT IF EXISTS directus_notifications_pkey;
+ALTER TABLE IF EXISTS ONLY public.directus_migrations DROP CONSTRAINT IF EXISTS directus_migrations_pkey;
+ALTER TABLE IF EXISTS ONLY public.directus_folders DROP CONSTRAINT IF EXISTS directus_folders_pkey;
+ALTER TABLE IF EXISTS ONLY public.directus_flows DROP CONSTRAINT IF EXISTS directus_flows_pkey;
+ALTER TABLE IF EXISTS ONLY public.directus_flows DROP CONSTRAINT IF EXISTS directus_flows_operation_unique;
+ALTER TABLE IF EXISTS ONLY public.directus_files DROP CONSTRAINT IF EXISTS directus_files_pkey;
+ALTER TABLE IF EXISTS ONLY public.directus_fields DROP CONSTRAINT IF EXISTS directus_fields_pkey;
+ALTER TABLE IF EXISTS ONLY public.directus_extensions DROP CONSTRAINT IF EXISTS directus_extensions_pkey;
+ALTER TABLE IF EXISTS ONLY public.directus_deployments DROP CONSTRAINT IF EXISTS directus_deployments_provider_unique;
+ALTER TABLE IF EXISTS ONLY public.directus_deployments DROP CONSTRAINT IF EXISTS directus_deployments_pkey;
+ALTER TABLE IF EXISTS ONLY public.directus_deployment_runs DROP CONSTRAINT IF EXISTS directus_deployment_runs_pkey;
+ALTER TABLE IF EXISTS ONLY public.directus_deployment_projects DROP CONSTRAINT IF EXISTS directus_deployment_projects_pkey;
+ALTER TABLE IF EXISTS ONLY public.directus_deployment_projects DROP CONSTRAINT IF EXISTS directus_deployment_projects_deployment_external_id_unique;
+ALTER TABLE IF EXISTS ONLY public.directus_dashboards DROP CONSTRAINT IF EXISTS directus_dashboards_pkey;
+ALTER TABLE IF EXISTS ONLY public.directus_comments DROP CONSTRAINT IF EXISTS directus_comments_pkey;
+ALTER TABLE IF EXISTS ONLY public.directus_collections DROP CONSTRAINT IF EXISTS directus_collections_pkey;
+ALTER TABLE IF EXISTS ONLY public.directus_activity DROP CONSTRAINT IF EXISTS directus_activity_pkey;
+ALTER TABLE IF EXISTS ONLY public.directus_access DROP CONSTRAINT IF EXISTS directus_access_pkey;
+ALTER TABLE IF EXISTS ONLY public.contact DROP CONSTRAINT IF EXISTS contact_pkey;
+ALTER TABLE IF EXISTS ONLY public.block_types DROP CONSTRAINT IF EXISTS block_types_pkey;
+ALTER TABLE IF EXISTS ONLY public.block_items DROP CONSTRAINT IF EXISTS block_items_pkey;
+ALTER TABLE IF EXISTS ONLY public.banner DROP CONSTRAINT IF EXISTS banner_pkey;
+ALTER TABLE IF EXISTS ONLY public."Site_Settings" DROP CONSTRAINT IF EXISTS "Site_Settings_pkey";
+ALTER TABLE IF EXISTS public.pages ALTER COLUMN id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.directus_settings ALTER COLUMN id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.directus_revisions ALTER COLUMN id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.directus_relations ALTER COLUMN id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.directus_presets ALTER COLUMN id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.directus_permissions ALTER COLUMN id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.directus_notifications ALTER COLUMN id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.directus_fields ALTER COLUMN id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.directus_activity ALTER COLUMN id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.contact ALTER COLUMN id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.block_types ALTER COLUMN id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.block_items ALTER COLUMN id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.banner ALTER COLUMN id DROP DEFAULT;
+ALTER TABLE IF EXISTS public."Site_Settings" ALTER COLUMN id DROP DEFAULT;
+DROP SEQUENCE IF EXISTS public.pages_id_seq;
+DROP TABLE IF EXISTS public.pages;
+DROP TABLE IF EXISTS public.directus_versions;
+DROP TABLE IF EXISTS public.directus_users;
+DROP TABLE IF EXISTS public.directus_translations;
+DROP TABLE IF EXISTS public.directus_shares;
+DROP SEQUENCE IF EXISTS public.directus_settings_id_seq;
+DROP TABLE IF EXISTS public.directus_settings;
+DROP TABLE IF EXISTS public.directus_sessions;
+DROP TABLE IF EXISTS public.directus_roles;
+DROP SEQUENCE IF EXISTS public.directus_revisions_id_seq;
+DROP TABLE IF EXISTS public.directus_revisions;
+DROP SEQUENCE IF EXISTS public.directus_relations_id_seq;
+DROP TABLE IF EXISTS public.directus_relations;
+DROP SEQUENCE IF EXISTS public.directus_presets_id_seq;
+DROP TABLE IF EXISTS public.directus_presets;
+DROP TABLE IF EXISTS public.directus_policies;
+DROP SEQUENCE IF EXISTS public.directus_permissions_id_seq;
+DROP TABLE IF EXISTS public.directus_permissions;
+DROP TABLE IF EXISTS public.directus_panels;
+DROP TABLE IF EXISTS public.directus_operations;
+DROP SEQUENCE IF EXISTS public.directus_notifications_id_seq;
+DROP TABLE IF EXISTS public.directus_notifications;
+DROP TABLE IF EXISTS public.directus_migrations;
+DROP TABLE IF EXISTS public.directus_folders;
+DROP TABLE IF EXISTS public.directus_flows;
+DROP TABLE IF EXISTS public.directus_files;
+DROP SEQUENCE IF EXISTS public.directus_fields_id_seq;
+DROP TABLE IF EXISTS public.directus_fields;
+DROP TABLE IF EXISTS public.directus_extensions;
+DROP TABLE IF EXISTS public.directus_deployments;
+DROP TABLE IF EXISTS public.directus_deployment_runs;
+DROP TABLE IF EXISTS public.directus_deployment_projects;
+DROP TABLE IF EXISTS public.directus_dashboards;
+DROP TABLE IF EXISTS public.directus_comments;
+DROP TABLE IF EXISTS public.directus_collections;
+DROP SEQUENCE IF EXISTS public.directus_activity_id_seq;
+DROP TABLE IF EXISTS public.directus_activity;
+DROP TABLE IF EXISTS public.directus_access;
+DROP SEQUENCE IF EXISTS public.contact_id_seq;
+DROP TABLE IF EXISTS public.contact;
+DROP SEQUENCE IF EXISTS public.block_types_id_seq;
+DROP TABLE IF EXISTS public.block_types;
+DROP SEQUENCE IF EXISTS public.block_items_id_seq;
+DROP TABLE IF EXISTS public.block_items;
+DROP SEQUENCE IF EXISTS public.banner_id_seq;
+DROP TABLE IF EXISTS public.banner;
+DROP SEQUENCE IF EXISTS public."Site_Settings_id_seq";
+DROP TABLE IF EXISTS public."Site_Settings";
+-- *not* dropping schema, since initdb creates it
 --
--- Name: public; Type: SCHEMA; Schema: -; Owner: directus
+-- Name: public; Type: SCHEMA; Schema: -; Owner: -
 --
 
 -- *not* creating schema, since initdb creates it
 
 
-ALTER SCHEMA public OWNER TO directus;
-
 --
--- Name: SCHEMA public; Type: COMMENT; Schema: -; Owner: directus
+-- Name: SCHEMA public; Type: COMMENT; Schema: -; Owner: -
 --
 
 COMMENT ON SCHEMA public IS '';
@@ -39,7 +215,7 @@ SET default_tablespace = '';
 SET default_table_access_method = heap;
 
 --
--- Name: Site_Settings; Type: TABLE; Schema: public; Owner: directus
+-- Name: Site_Settings; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public."Site_Settings" (
@@ -65,10 +241,8 @@ CREATE TABLE public."Site_Settings" (
 );
 
 
-ALTER TABLE public."Site_Settings" OWNER TO directus;
-
 --
--- Name: Site_Settings_id_seq; Type: SEQUENCE; Schema: public; Owner: directus
+-- Name: Site_Settings_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
 CREATE SEQUENCE public."Site_Settings_id_seq"
@@ -80,17 +254,15 @@ CREATE SEQUENCE public."Site_Settings_id_seq"
     CACHE 1;
 
 
-ALTER SEQUENCE public."Site_Settings_id_seq" OWNER TO directus;
-
 --
--- Name: Site_Settings_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: directus
+-- Name: Site_Settings_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public."Site_Settings_id_seq" OWNED BY public."Site_Settings".id;
 
 
 --
--- Name: banner; Type: TABLE; Schema: public; Owner: directus
+-- Name: banner; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.banner (
@@ -106,10 +278,8 @@ CREATE TABLE public.banner (
 );
 
 
-ALTER TABLE public.banner OWNER TO directus;
-
 --
--- Name: banner_id_seq; Type: SEQUENCE; Schema: public; Owner: directus
+-- Name: banner_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
 CREATE SEQUENCE public.banner_id_seq
@@ -121,17 +291,15 @@ CREATE SEQUENCE public.banner_id_seq
     CACHE 1;
 
 
-ALTER SEQUENCE public.banner_id_seq OWNER TO directus;
-
 --
--- Name: banner_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: directus
+-- Name: banner_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.banner_id_seq OWNED BY public.banner.id;
 
 
 --
--- Name: block_items; Type: TABLE; Schema: public; Owner: directus
+-- Name: block_items; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.block_items (
@@ -188,10 +356,8 @@ CREATE TABLE public.block_items (
 );
 
 
-ALTER TABLE public.block_items OWNER TO directus;
-
 --
--- Name: block_items_id_seq; Type: SEQUENCE; Schema: public; Owner: directus
+-- Name: block_items_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
 CREATE SEQUENCE public.block_items_id_seq
@@ -203,17 +369,15 @@ CREATE SEQUENCE public.block_items_id_seq
     CACHE 1;
 
 
-ALTER SEQUENCE public.block_items_id_seq OWNER TO directus;
-
 --
--- Name: block_items_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: directus
+-- Name: block_items_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.block_items_id_seq OWNED BY public.block_items.id;
 
 
 --
--- Name: block_types; Type: TABLE; Schema: public; Owner: directus
+-- Name: block_types; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.block_types (
@@ -229,10 +393,8 @@ CREATE TABLE public.block_types (
 );
 
 
-ALTER TABLE public.block_types OWNER TO directus;
-
 --
--- Name: block_types_id_seq; Type: SEQUENCE; Schema: public; Owner: directus
+-- Name: block_types_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
 CREATE SEQUENCE public.block_types_id_seq
@@ -244,17 +406,15 @@ CREATE SEQUENCE public.block_types_id_seq
     CACHE 1;
 
 
-ALTER SEQUENCE public.block_types_id_seq OWNER TO directus;
-
 --
--- Name: block_types_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: directus
+-- Name: block_types_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.block_types_id_seq OWNED BY public.block_types.id;
 
 
 --
--- Name: contact; Type: TABLE; Schema: public; Owner: directus
+-- Name: contact; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.contact (
@@ -273,10 +433,8 @@ CREATE TABLE public.contact (
 );
 
 
-ALTER TABLE public.contact OWNER TO directus;
-
 --
--- Name: contact_id_seq; Type: SEQUENCE; Schema: public; Owner: directus
+-- Name: contact_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
 CREATE SEQUENCE public.contact_id_seq
@@ -288,17 +446,15 @@ CREATE SEQUENCE public.contact_id_seq
     CACHE 1;
 
 
-ALTER SEQUENCE public.contact_id_seq OWNER TO directus;
-
 --
--- Name: contact_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: directus
+-- Name: contact_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.contact_id_seq OWNED BY public.contact.id;
 
 
 --
--- Name: directus_access; Type: TABLE; Schema: public; Owner: directus
+-- Name: directus_access; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.directus_access (
@@ -310,10 +466,8 @@ CREATE TABLE public.directus_access (
 );
 
 
-ALTER TABLE public.directus_access OWNER TO directus;
-
 --
--- Name: directus_activity; Type: TABLE; Schema: public; Owner: directus
+-- Name: directus_activity; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.directus_activity (
@@ -329,10 +483,8 @@ CREATE TABLE public.directus_activity (
 );
 
 
-ALTER TABLE public.directus_activity OWNER TO directus;
-
 --
--- Name: directus_activity_id_seq; Type: SEQUENCE; Schema: public; Owner: directus
+-- Name: directus_activity_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
 CREATE SEQUENCE public.directus_activity_id_seq
@@ -344,17 +496,15 @@ CREATE SEQUENCE public.directus_activity_id_seq
     CACHE 1;
 
 
-ALTER SEQUENCE public.directus_activity_id_seq OWNER TO directus;
-
 --
--- Name: directus_activity_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: directus
+-- Name: directus_activity_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.directus_activity_id_seq OWNED BY public.directus_activity.id;
 
 
 --
--- Name: directus_collections; Type: TABLE; Schema: public; Owner: directus
+-- Name: directus_collections; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.directus_collections (
@@ -381,10 +531,8 @@ CREATE TABLE public.directus_collections (
 );
 
 
-ALTER TABLE public.directus_collections OWNER TO directus;
-
 --
--- Name: directus_comments; Type: TABLE; Schema: public; Owner: directus
+-- Name: directus_comments; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.directus_comments (
@@ -399,10 +547,8 @@ CREATE TABLE public.directus_comments (
 );
 
 
-ALTER TABLE public.directus_comments OWNER TO directus;
-
 --
--- Name: directus_dashboards; Type: TABLE; Schema: public; Owner: directus
+-- Name: directus_dashboards; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.directus_dashboards (
@@ -416,10 +562,8 @@ CREATE TABLE public.directus_dashboards (
 );
 
 
-ALTER TABLE public.directus_dashboards OWNER TO directus;
-
 --
--- Name: directus_deployment_projects; Type: TABLE; Schema: public; Owner: directus
+-- Name: directus_deployment_projects; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.directus_deployment_projects (
@@ -435,10 +579,8 @@ CREATE TABLE public.directus_deployment_projects (
 );
 
 
-ALTER TABLE public.directus_deployment_projects OWNER TO directus;
-
 --
--- Name: directus_deployment_runs; Type: TABLE; Schema: public; Owner: directus
+-- Name: directus_deployment_runs; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.directus_deployment_runs (
@@ -455,10 +597,8 @@ CREATE TABLE public.directus_deployment_runs (
 );
 
 
-ALTER TABLE public.directus_deployment_runs OWNER TO directus;
-
 --
--- Name: directus_deployments; Type: TABLE; Schema: public; Owner: directus
+-- Name: directus_deployments; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.directus_deployments (
@@ -474,10 +614,8 @@ CREATE TABLE public.directus_deployments (
 );
 
 
-ALTER TABLE public.directus_deployments OWNER TO directus;
-
 --
--- Name: directus_extensions; Type: TABLE; Schema: public; Owner: directus
+-- Name: directus_extensions; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.directus_extensions (
@@ -489,10 +627,8 @@ CREATE TABLE public.directus_extensions (
 );
 
 
-ALTER TABLE public.directus_extensions OWNER TO directus;
-
 --
--- Name: directus_fields; Type: TABLE; Schema: public; Owner: directus
+-- Name: directus_fields; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.directus_fields (
@@ -519,10 +655,8 @@ CREATE TABLE public.directus_fields (
 );
 
 
-ALTER TABLE public.directus_fields OWNER TO directus;
-
 --
--- Name: directus_fields_id_seq; Type: SEQUENCE; Schema: public; Owner: directus
+-- Name: directus_fields_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
 CREATE SEQUENCE public.directus_fields_id_seq
@@ -534,17 +668,15 @@ CREATE SEQUENCE public.directus_fields_id_seq
     CACHE 1;
 
 
-ALTER SEQUENCE public.directus_fields_id_seq OWNER TO directus;
-
 --
--- Name: directus_fields_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: directus
+-- Name: directus_fields_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.directus_fields_id_seq OWNED BY public.directus_fields.id;
 
 
 --
--- Name: directus_files; Type: TABLE; Schema: public; Owner: directus
+-- Name: directus_files; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.directus_files (
@@ -577,10 +709,8 @@ CREATE TABLE public.directus_files (
 );
 
 
-ALTER TABLE public.directus_files OWNER TO directus;
-
 --
--- Name: directus_flows; Type: TABLE; Schema: public; Owner: directus
+-- Name: directus_flows; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.directus_flows (
@@ -599,10 +729,8 @@ CREATE TABLE public.directus_flows (
 );
 
 
-ALTER TABLE public.directus_flows OWNER TO directus;
-
 --
--- Name: directus_folders; Type: TABLE; Schema: public; Owner: directus
+-- Name: directus_folders; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.directus_folders (
@@ -612,10 +740,8 @@ CREATE TABLE public.directus_folders (
 );
 
 
-ALTER TABLE public.directus_folders OWNER TO directus;
-
 --
--- Name: directus_migrations; Type: TABLE; Schema: public; Owner: directus
+-- Name: directus_migrations; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.directus_migrations (
@@ -625,10 +751,8 @@ CREATE TABLE public.directus_migrations (
 );
 
 
-ALTER TABLE public.directus_migrations OWNER TO directus;
-
 --
--- Name: directus_notifications; Type: TABLE; Schema: public; Owner: directus
+-- Name: directus_notifications; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.directus_notifications (
@@ -644,10 +768,8 @@ CREATE TABLE public.directus_notifications (
 );
 
 
-ALTER TABLE public.directus_notifications OWNER TO directus;
-
 --
--- Name: directus_notifications_id_seq; Type: SEQUENCE; Schema: public; Owner: directus
+-- Name: directus_notifications_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
 CREATE SEQUENCE public.directus_notifications_id_seq
@@ -659,17 +781,15 @@ CREATE SEQUENCE public.directus_notifications_id_seq
     CACHE 1;
 
 
-ALTER SEQUENCE public.directus_notifications_id_seq OWNER TO directus;
-
 --
--- Name: directus_notifications_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: directus
+-- Name: directus_notifications_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.directus_notifications_id_seq OWNED BY public.directus_notifications.id;
 
 
 --
--- Name: directus_operations; Type: TABLE; Schema: public; Owner: directus
+-- Name: directus_operations; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.directus_operations (
@@ -688,10 +808,8 @@ CREATE TABLE public.directus_operations (
 );
 
 
-ALTER TABLE public.directus_operations OWNER TO directus;
-
 --
--- Name: directus_panels; Type: TABLE; Schema: public; Owner: directus
+-- Name: directus_panels; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.directus_panels (
@@ -713,10 +831,8 @@ CREATE TABLE public.directus_panels (
 );
 
 
-ALTER TABLE public.directus_panels OWNER TO directus;
-
 --
--- Name: directus_permissions; Type: TABLE; Schema: public; Owner: directus
+-- Name: directus_permissions; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.directus_permissions (
@@ -731,10 +847,8 @@ CREATE TABLE public.directus_permissions (
 );
 
 
-ALTER TABLE public.directus_permissions OWNER TO directus;
-
 --
--- Name: directus_permissions_id_seq; Type: SEQUENCE; Schema: public; Owner: directus
+-- Name: directus_permissions_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
 CREATE SEQUENCE public.directus_permissions_id_seq
@@ -746,17 +860,15 @@ CREATE SEQUENCE public.directus_permissions_id_seq
     CACHE 1;
 
 
-ALTER SEQUENCE public.directus_permissions_id_seq OWNER TO directus;
-
 --
--- Name: directus_permissions_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: directus
+-- Name: directus_permissions_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.directus_permissions_id_seq OWNED BY public.directus_permissions.id;
 
 
 --
--- Name: directus_policies; Type: TABLE; Schema: public; Owner: directus
+-- Name: directus_policies; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.directus_policies (
@@ -771,10 +883,8 @@ CREATE TABLE public.directus_policies (
 );
 
 
-ALTER TABLE public.directus_policies OWNER TO directus;
-
 --
--- Name: directus_presets; Type: TABLE; Schema: public; Owner: directus
+-- Name: directus_presets; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.directus_presets (
@@ -794,10 +904,8 @@ CREATE TABLE public.directus_presets (
 );
 
 
-ALTER TABLE public.directus_presets OWNER TO directus;
-
 --
--- Name: directus_presets_id_seq; Type: SEQUENCE; Schema: public; Owner: directus
+-- Name: directus_presets_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
 CREATE SEQUENCE public.directus_presets_id_seq
@@ -809,17 +917,15 @@ CREATE SEQUENCE public.directus_presets_id_seq
     CACHE 1;
 
 
-ALTER SEQUENCE public.directus_presets_id_seq OWNER TO directus;
-
 --
--- Name: directus_presets_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: directus
+-- Name: directus_presets_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.directus_presets_id_seq OWNED BY public.directus_presets.id;
 
 
 --
--- Name: directus_relations; Type: TABLE; Schema: public; Owner: directus
+-- Name: directus_relations; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.directus_relations (
@@ -836,10 +942,8 @@ CREATE TABLE public.directus_relations (
 );
 
 
-ALTER TABLE public.directus_relations OWNER TO directus;
-
 --
--- Name: directus_relations_id_seq; Type: SEQUENCE; Schema: public; Owner: directus
+-- Name: directus_relations_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
 CREATE SEQUENCE public.directus_relations_id_seq
@@ -851,17 +955,15 @@ CREATE SEQUENCE public.directus_relations_id_seq
     CACHE 1;
 
 
-ALTER SEQUENCE public.directus_relations_id_seq OWNER TO directus;
-
 --
--- Name: directus_relations_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: directus
+-- Name: directus_relations_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.directus_relations_id_seq OWNED BY public.directus_relations.id;
 
 
 --
--- Name: directus_revisions; Type: TABLE; Schema: public; Owner: directus
+-- Name: directus_revisions; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.directus_revisions (
@@ -876,10 +978,8 @@ CREATE TABLE public.directus_revisions (
 );
 
 
-ALTER TABLE public.directus_revisions OWNER TO directus;
-
 --
--- Name: directus_revisions_id_seq; Type: SEQUENCE; Schema: public; Owner: directus
+-- Name: directus_revisions_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
 CREATE SEQUENCE public.directus_revisions_id_seq
@@ -891,17 +991,15 @@ CREATE SEQUENCE public.directus_revisions_id_seq
     CACHE 1;
 
 
-ALTER SEQUENCE public.directus_revisions_id_seq OWNER TO directus;
-
 --
--- Name: directus_revisions_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: directus
+-- Name: directus_revisions_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.directus_revisions_id_seq OWNED BY public.directus_revisions.id;
 
 
 --
--- Name: directus_roles; Type: TABLE; Schema: public; Owner: directus
+-- Name: directus_roles; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.directus_roles (
@@ -913,10 +1011,8 @@ CREATE TABLE public.directus_roles (
 );
 
 
-ALTER TABLE public.directus_roles OWNER TO directus;
-
 --
--- Name: directus_sessions; Type: TABLE; Schema: public; Owner: directus
+-- Name: directus_sessions; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.directus_sessions (
@@ -931,10 +1027,8 @@ CREATE TABLE public.directus_sessions (
 );
 
 
-ALTER TABLE public.directus_sessions OWNER TO directus;
-
 --
--- Name: directus_settings; Type: TABLE; Schema: public; Owner: directus
+-- Name: directus_settings; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.directus_settings (
@@ -999,10 +1093,8 @@ CREATE TABLE public.directus_settings (
 );
 
 
-ALTER TABLE public.directus_settings OWNER TO directus;
-
 --
--- Name: directus_settings_id_seq; Type: SEQUENCE; Schema: public; Owner: directus
+-- Name: directus_settings_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
 CREATE SEQUENCE public.directus_settings_id_seq
@@ -1014,17 +1106,15 @@ CREATE SEQUENCE public.directus_settings_id_seq
     CACHE 1;
 
 
-ALTER SEQUENCE public.directus_settings_id_seq OWNER TO directus;
-
 --
--- Name: directus_settings_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: directus
+-- Name: directus_settings_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.directus_settings_id_seq OWNED BY public.directus_settings.id;
 
 
 --
--- Name: directus_shares; Type: TABLE; Schema: public; Owner: directus
+-- Name: directus_shares; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.directus_shares (
@@ -1043,10 +1133,8 @@ CREATE TABLE public.directus_shares (
 );
 
 
-ALTER TABLE public.directus_shares OWNER TO directus;
-
 --
--- Name: directus_translations; Type: TABLE; Schema: public; Owner: directus
+-- Name: directus_translations; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.directus_translations (
@@ -1057,10 +1145,8 @@ CREATE TABLE public.directus_translations (
 );
 
 
-ALTER TABLE public.directus_translations OWNER TO directus;
-
 --
--- Name: directus_users; Type: TABLE; Schema: public; Owner: directus
+-- Name: directus_users; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.directus_users (
@@ -1094,10 +1180,8 @@ CREATE TABLE public.directus_users (
 );
 
 
-ALTER TABLE public.directus_users OWNER TO directus;
-
 --
--- Name: directus_versions; Type: TABLE; Schema: public; Owner: directus
+-- Name: directus_versions; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.directus_versions (
@@ -1115,10 +1199,8 @@ CREATE TABLE public.directus_versions (
 );
 
 
-ALTER TABLE public.directus_versions OWNER TO directus;
-
 --
--- Name: pages; Type: TABLE; Schema: public; Owner: directus
+-- Name: pages; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.pages (
@@ -1137,10 +1219,8 @@ CREATE TABLE public.pages (
 );
 
 
-ALTER TABLE public.pages OWNER TO directus;
-
 --
--- Name: pages_id_seq; Type: SEQUENCE; Schema: public; Owner: directus
+-- Name: pages_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
 CREATE SEQUENCE public.pages_id_seq
@@ -1152,115 +1232,113 @@ CREATE SEQUENCE public.pages_id_seq
     CACHE 1;
 
 
-ALTER SEQUENCE public.pages_id_seq OWNER TO directus;
-
 --
--- Name: pages_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: directus
+-- Name: pages_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.pages_id_seq OWNED BY public.pages.id;
 
 
 --
--- Name: Site_Settings id; Type: DEFAULT; Schema: public; Owner: directus
+-- Name: Site_Settings id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public."Site_Settings" ALTER COLUMN id SET DEFAULT nextval('public."Site_Settings_id_seq"'::regclass);
 
 
 --
--- Name: banner id; Type: DEFAULT; Schema: public; Owner: directus
+-- Name: banner id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.banner ALTER COLUMN id SET DEFAULT nextval('public.banner_id_seq'::regclass);
 
 
 --
--- Name: block_items id; Type: DEFAULT; Schema: public; Owner: directus
+-- Name: block_items id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.block_items ALTER COLUMN id SET DEFAULT nextval('public.block_items_id_seq'::regclass);
 
 
 --
--- Name: block_types id; Type: DEFAULT; Schema: public; Owner: directus
+-- Name: block_types id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.block_types ALTER COLUMN id SET DEFAULT nextval('public.block_types_id_seq'::regclass);
 
 
 --
--- Name: contact id; Type: DEFAULT; Schema: public; Owner: directus
+-- Name: contact id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.contact ALTER COLUMN id SET DEFAULT nextval('public.contact_id_seq'::regclass);
 
 
 --
--- Name: directus_activity id; Type: DEFAULT; Schema: public; Owner: directus
+-- Name: directus_activity id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.directus_activity ALTER COLUMN id SET DEFAULT nextval('public.directus_activity_id_seq'::regclass);
 
 
 --
--- Name: directus_fields id; Type: DEFAULT; Schema: public; Owner: directus
+-- Name: directus_fields id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.directus_fields ALTER COLUMN id SET DEFAULT nextval('public.directus_fields_id_seq'::regclass);
 
 
 --
--- Name: directus_notifications id; Type: DEFAULT; Schema: public; Owner: directus
+-- Name: directus_notifications id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.directus_notifications ALTER COLUMN id SET DEFAULT nextval('public.directus_notifications_id_seq'::regclass);
 
 
 --
--- Name: directus_permissions id; Type: DEFAULT; Schema: public; Owner: directus
+-- Name: directus_permissions id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.directus_permissions ALTER COLUMN id SET DEFAULT nextval('public.directus_permissions_id_seq'::regclass);
 
 
 --
--- Name: directus_presets id; Type: DEFAULT; Schema: public; Owner: directus
+-- Name: directus_presets id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.directus_presets ALTER COLUMN id SET DEFAULT nextval('public.directus_presets_id_seq'::regclass);
 
 
 --
--- Name: directus_relations id; Type: DEFAULT; Schema: public; Owner: directus
+-- Name: directus_relations id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.directus_relations ALTER COLUMN id SET DEFAULT nextval('public.directus_relations_id_seq'::regclass);
 
 
 --
--- Name: directus_revisions id; Type: DEFAULT; Schema: public; Owner: directus
+-- Name: directus_revisions id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.directus_revisions ALTER COLUMN id SET DEFAULT nextval('public.directus_revisions_id_seq'::regclass);
 
 
 --
--- Name: directus_settings id; Type: DEFAULT; Schema: public; Owner: directus
+-- Name: directus_settings id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.directus_settings ALTER COLUMN id SET DEFAULT nextval('public.directus_settings_id_seq'::regclass);
 
 
 --
--- Name: pages id; Type: DEFAULT; Schema: public; Owner: directus
+-- Name: pages id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.pages ALTER COLUMN id SET DEFAULT nextval('public.pages_id_seq'::regclass);
 
 
 --
--- Data for Name: Site_Settings; Type: TABLE DATA; Schema: public; Owner: directus
+-- Data for Name: Site_Settings; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY public."Site_Settings" (id, status, user_created, date_created, user_updated, date_updated, site_name, site_description, footer_color, max_w_footer, navbar_color, max_w_navbar, logo, footer_name, text_color, text_color_hover, footer_text_color, footer_text_color_hover, first_page) FROM stdin;
@@ -1269,7 +1347,7 @@ COPY public."Site_Settings" (id, status, user_created, date_created, user_update
 
 
 --
--- Data for Name: banner; Type: TABLE DATA; Schema: public; Owner: directus
+-- Data for Name: banner; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY public.banner (id, status, sort, user_created, date_created, user_updated, date_updated, image, title) FROM stdin;
@@ -1281,7 +1359,7 @@ COPY public.banner (id, status, sort, user_created, date_created, user_updated, 
 
 
 --
--- Data for Name: block_items; Type: TABLE DATA; Schema: public; Owner: directus
+-- Data for Name: block_items; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY public.block_items (id, status, sort, user_created, date_created, user_updated, date_updated, type, max_w, "column", font_weight, align, font_decorate, text_color, text_indent, image, rounded, background_color, left_box, right_box, gap, collection, page, content, collection_gap, pdf, excel, header, target, href, padding, padding_x, padding_y, "limit", news_column, round_news, news_gap, hover_color, hover_underline, header_rounded, border_color, border_left, border_right, border_top, border_bottom, box_1, box_2, box_3, gap_3, box) FROM stdin;
@@ -1401,7 +1479,7 @@ COPY public.block_items (id, status, sort, user_created, date_created, user_upda
 
 
 --
--- Data for Name: block_types; Type: TABLE DATA; Schema: public; Owner: directus
+-- Data for Name: block_types; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY public.block_types (id, status, sort, user_created, date_created, user_updated, date_updated, type, code) FROM stdin;
@@ -1428,7 +1506,7 @@ COPY public.block_types (id, status, sort, user_created, date_created, user_upda
 
 
 --
--- Data for Name: contact; Type: TABLE DATA; Schema: public; Owner: directus
+-- Data for Name: contact; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY public.contact (id, status, sort, user_created, date_created, user_updated, date_updated, image, title, text_align, width, link) FROM stdin;
@@ -1441,7 +1519,7 @@ COPY public.contact (id, status, sort, user_created, date_created, user_updated,
 
 
 --
--- Data for Name: directus_access; Type: TABLE DATA; Schema: public; Owner: directus
+-- Data for Name: directus_access; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY public.directus_access (id, role, "user", policy, sort) FROM stdin;
@@ -1453,7 +1531,7 @@ e079ebd0-e040-4cf5-84eb-d5244f5a46e1	\N	\N	abf8a154-5b1c-4a46-ac9c-7300570f4f17	
 
 
 --
--- Data for Name: directus_activity; Type: TABLE DATA; Schema: public; Owner: directus
+-- Data for Name: directus_activity; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY public.directus_activity (id, action, "user", "timestamp", ip, user_agent, collection, item, origin) FROM stdin;
@@ -4564,7 +4642,7 @@ COPY public.directus_activity (id, action, "user", "timestamp", ip, user_agent, 
 
 
 --
--- Data for Name: directus_collections; Type: TABLE DATA; Schema: public; Owner: directus
+-- Data for Name: directus_collections; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY public.directus_collections (collection, icon, note, display_template, hidden, singleton, translations, archive_field, archive_app_filter, archive_value, unarchive_value, sort_field, accountability, color, item_duplication_fields, sort, "group", collapse, preview_url, versioning) FROM stdin;
@@ -4580,7 +4658,7 @@ contact	\N	\N	\N	f	f	[{"language":"th-TH","translation":"ช่องทาง�
 
 
 --
--- Data for Name: directus_comments; Type: TABLE DATA; Schema: public; Owner: directus
+-- Data for Name: directus_comments; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY public.directus_comments (id, collection, item, comment, date_created, date_updated, user_created, user_updated) FROM stdin;
@@ -4588,7 +4666,7 @@ COPY public.directus_comments (id, collection, item, comment, date_created, date
 
 
 --
--- Data for Name: directus_dashboards; Type: TABLE DATA; Schema: public; Owner: directus
+-- Data for Name: directus_dashboards; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY public.directus_dashboards (id, name, icon, note, date_created, user_created, color) FROM stdin;
@@ -4596,7 +4674,7 @@ COPY public.directus_dashboards (id, name, icon, note, date_created, user_create
 
 
 --
--- Data for Name: directus_deployment_projects; Type: TABLE DATA; Schema: public; Owner: directus
+-- Data for Name: directus_deployment_projects; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY public.directus_deployment_projects (id, deployment, external_id, name, date_created, user_created, url, framework, deployable) FROM stdin;
@@ -4604,7 +4682,7 @@ COPY public.directus_deployment_projects (id, deployment, external_id, name, dat
 
 
 --
--- Data for Name: directus_deployment_runs; Type: TABLE DATA; Schema: public; Owner: directus
+-- Data for Name: directus_deployment_runs; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY public.directus_deployment_runs (id, project, external_id, target, date_created, user_created, status, url, started_at, completed_at) FROM stdin;
@@ -4612,7 +4690,7 @@ COPY public.directus_deployment_runs (id, project, external_id, target, date_cre
 
 
 --
--- Data for Name: directus_deployments; Type: TABLE DATA; Schema: public; Owner: directus
+-- Data for Name: directus_deployments; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY public.directus_deployments (id, provider, credentials, options, date_created, user_created, webhook_ids, webhook_secret, last_synced_at) FROM stdin;
@@ -4620,7 +4698,7 @@ COPY public.directus_deployments (id, provider, credentials, options, date_creat
 
 
 --
--- Data for Name: directus_extensions; Type: TABLE DATA; Schema: public; Owner: directus
+-- Data for Name: directus_extensions; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY public.directus_extensions (enabled, id, folder, source, bundle) FROM stdin;
@@ -4631,7 +4709,7 @@ t	4271dc2e-bc6e-45d8-9439-4227b6523c12	43c34dfd-ae87-43ab-a6dd-0f5e8b6680ee	regi
 
 
 --
--- Data for Name: directus_fields; Type: TABLE DATA; Schema: public; Owner: directus
+-- Data for Name: directus_fields; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY public.directus_fields (id, collection, field, special, interface, options, display, display_options, readonly, hidden, sort, width, translations, note, conditions, required, "group", validation, validation_message, searchable) FROM stdin;
@@ -4768,7 +4846,7 @@ COPY public.directus_fields (id, collection, field, special, interface, options,
 
 
 --
--- Data for Name: directus_files; Type: TABLE DATA; Schema: public; Owner: directus
+-- Data for Name: directus_files; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY public.directus_files (id, storage, filename_disk, filename_download, title, type, folder, uploaded_by, created_on, modified_by, modified_on, charset, filesize, width, height, duration, embed, description, location, tags, metadata, focal_point_x, focal_point_y, tus_id, tus_data, uploaded_on) FROM stdin;
@@ -4858,7 +4936,7 @@ d1b8a1d8-be78-48fb-8458-5647ccdf949c	local	d1b8a1d8-be78-48fb-8458-5647ccdf949c.
 
 
 --
--- Data for Name: directus_flows; Type: TABLE DATA; Schema: public; Owner: directus
+-- Data for Name: directus_flows; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY public.directus_flows (id, name, icon, color, description, status, trigger, accountability, options, operation, date_created, user_created) FROM stdin;
@@ -4866,7 +4944,7 @@ COPY public.directus_flows (id, name, icon, color, description, status, trigger,
 
 
 --
--- Data for Name: directus_folders; Type: TABLE DATA; Schema: public; Owner: directus
+-- Data for Name: directus_folders; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY public.directus_folders (id, name, parent) FROM stdin;
@@ -4874,7 +4952,7 @@ COPY public.directus_folders (id, name, parent) FROM stdin;
 
 
 --
--- Data for Name: directus_migrations; Type: TABLE DATA; Schema: public; Owner: directus
+-- Data for Name: directus_migrations; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY public.directus_migrations (version, name, "timestamp") FROM stdin;
@@ -4983,7 +5061,7 @@ COPY public.directus_migrations (version, name, "timestamp") FROM stdin;
 
 
 --
--- Data for Name: directus_notifications; Type: TABLE DATA; Schema: public; Owner: directus
+-- Data for Name: directus_notifications; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY public.directus_notifications (id, "timestamp", status, recipient, sender, subject, message, collection, item) FROM stdin;
@@ -4991,7 +5069,7 @@ COPY public.directus_notifications (id, "timestamp", status, recipient, sender, 
 
 
 --
--- Data for Name: directus_operations; Type: TABLE DATA; Schema: public; Owner: directus
+-- Data for Name: directus_operations; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY public.directus_operations (id, name, key, type, position_x, position_y, options, resolve, reject, flow, date_created, user_created) FROM stdin;
@@ -4999,7 +5077,7 @@ COPY public.directus_operations (id, name, key, type, position_x, position_y, op
 
 
 --
--- Data for Name: directus_panels; Type: TABLE DATA; Schema: public; Owner: directus
+-- Data for Name: directus_panels; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY public.directus_panels (id, dashboard, name, icon, color, show_header, note, type, position_x, position_y, width, height, options, date_created, user_created) FROM stdin;
@@ -5007,7 +5085,7 @@ COPY public.directus_panels (id, dashboard, name, icon, color, show_header, note
 
 
 --
--- Data for Name: directus_permissions; Type: TABLE DATA; Schema: public; Owner: directus
+-- Data for Name: directus_permissions; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY public.directus_permissions (id, collection, action, permissions, validation, presets, fields, policy) FROM stdin;
@@ -5022,7 +5100,7 @@ COPY public.directus_permissions (id, collection, action, permissions, validatio
 
 
 --
--- Data for Name: directus_policies; Type: TABLE DATA; Schema: public; Owner: directus
+-- Data for Name: directus_policies; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY public.directus_policies (id, name, icon, description, ip_access, enforce_tfa, admin_access, app_access) FROM stdin;
@@ -5032,7 +5110,7 @@ c9ad807d-bf7f-4ed4-ad69-ea7516e2ac12	Administrator	verified	$t:admin_description
 
 
 --
--- Data for Name: directus_presets; Type: TABLE DATA; Schema: public; Owner: directus
+-- Data for Name: directus_presets; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY public.directus_presets (id, bookmark, "user", role, collection, search, layout, layout_query, layout_options, refresh_interval, filter, icon, color) FROM stdin;
@@ -5049,7 +5127,7 @@ COPY public.directus_presets (id, bookmark, "user", role, collection, search, la
 
 
 --
--- Data for Name: directus_relations; Type: TABLE DATA; Schema: public; Owner: directus
+-- Data for Name: directus_relations; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY public.directus_relations (id, many_collection, many_field, one_collection, one_field, one_collection_field, one_allowed_collections, junction_field, sort_field, one_deselect_action) FROM stdin;
@@ -5078,7 +5156,7 @@ COPY public.directus_relations (id, many_collection, many_field, one_collection,
 
 
 --
--- Data for Name: directus_revisions; Type: TABLE DATA; Schema: public; Owner: directus
+-- Data for Name: directus_revisions; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY public.directus_revisions (id, activity, collection, item, data, delta, parent, version) FROM stdin;
@@ -8088,7 +8166,7 @@ COPY public.directus_revisions (id, activity, collection, item, data, delta, par
 
 
 --
--- Data for Name: directus_roles; Type: TABLE DATA; Schema: public; Owner: directus
+-- Data for Name: directus_roles; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY public.directus_roles (id, name, icon, description, parent) FROM stdin;
@@ -8097,7 +8175,7 @@ COPY public.directus_roles (id, name, icon, description, parent) FROM stdin;
 
 
 --
--- Data for Name: directus_sessions; Type: TABLE DATA; Schema: public; Owner: directus
+-- Data for Name: directus_sessions; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY public.directus_sessions (token, "user", expires, ip, user_agent, share, origin, next_token) FROM stdin;
@@ -8108,7 +8186,7 @@ Owl7jxxUKwMnKOYZwYl9R4fmoDBo6k3dw1h8iRaiutFiQL5u4RvW8P5hSvcaKSMs	45726bfd-c98c-4
 
 
 --
--- Data for Name: directus_settings; Type: TABLE DATA; Schema: public; Owner: directus
+-- Data for Name: directus_settings; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY public.directus_settings (id, project_name, project_url, project_color, project_logo, public_foreground, public_background, public_note, auth_login_attempts, auth_password_policy, storage_asset_transform, storage_asset_presets, custom_css, storage_default_folder, basemaps, mapbox_key, module_bar, project_descriptor, default_language, custom_aspect_ratios, public_favicon, default_appearance, default_theme_light, theme_light_overrides, default_theme_dark, theme_dark_overrides, report_error_url, report_bug_url, report_feature_url, public_registration, public_registration_verify_email, public_registration_role, public_registration_email_filter, visual_editor_urls, project_id, mcp_enabled, mcp_allow_deletes, mcp_prompts_collection, mcp_system_prompt_enabled, mcp_system_prompt, project_owner, project_usage, org_name, product_updates, project_status, ai_openai_api_key, ai_anthropic_api_key, ai_system_prompt, ai_google_api_key, ai_openai_compatible_api_key, ai_openai_compatible_base_url, ai_openai_compatible_name, ai_openai_compatible_models, ai_openai_compatible_headers, ai_openai_allowed_models, ai_anthropic_allowed_models, ai_google_allowed_models, collaborative_editing_enabled) FROM stdin;
@@ -8117,7 +8195,7 @@ COPY public.directus_settings (id, project_name, project_url, project_color, pro
 
 
 --
--- Data for Name: directus_shares; Type: TABLE DATA; Schema: public; Owner: directus
+-- Data for Name: directus_shares; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY public.directus_shares (id, name, collection, item, role, password, user_created, date_created, date_start, date_end, times_used, max_uses) FROM stdin;
@@ -8125,7 +8203,7 @@ COPY public.directus_shares (id, name, collection, item, role, password, user_cr
 
 
 --
--- Data for Name: directus_translations; Type: TABLE DATA; Schema: public; Owner: directus
+-- Data for Name: directus_translations; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY public.directus_translations (id, language, key, value) FROM stdin;
@@ -8134,7 +8212,7 @@ COPY public.directus_translations (id, language, key, value) FROM stdin;
 
 
 --
--- Data for Name: directus_users; Type: TABLE DATA; Schema: public; Owner: directus
+-- Data for Name: directus_users; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY public.directus_users (id, first_name, last_name, email, password, location, title, description, tags, avatar, language, tfa_secret, status, role, token, last_access, last_page, provider, external_identifier, auth_data, email_notifications, appearance, theme_dark, theme_light, theme_light_overrides, theme_dark_overrides, text_direction) FROM stdin;
@@ -8144,7 +8222,7 @@ COPY public.directus_users (id, first_name, last_name, email, password, location
 
 
 --
--- Data for Name: directus_versions; Type: TABLE DATA; Schema: public; Owner: directus
+-- Data for Name: directus_versions; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY public.directus_versions (id, key, name, collection, item, hash, date_created, date_updated, user_created, user_updated, delta) FROM stdin;
@@ -8152,7 +8230,7 @@ COPY public.directus_versions (id, key, name, collection, item, hash, date_creat
 
 
 --
--- Data for Name: pages; Type: TABLE DATA; Schema: public; Owner: directus
+-- Data for Name: pages; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY public.pages (id, status, sort, user_created, date_created, user_updated, date_updated, slug, show_in_menu, parent, title, first_page) FROM stdin;
@@ -8171,105 +8249,105 @@ COPY public.pages (id, status, sort, user_created, date_created, user_updated, d
 
 
 --
--- Name: Site_Settings_id_seq; Type: SEQUENCE SET; Schema: public; Owner: directus
+-- Name: Site_Settings_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
 SELECT pg_catalog.setval('public."Site_Settings_id_seq"', 1, true);
 
 
 --
--- Name: banner_id_seq; Type: SEQUENCE SET; Schema: public; Owner: directus
+-- Name: banner_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
 SELECT pg_catalog.setval('public.banner_id_seq', 4, true);
 
 
 --
--- Name: block_items_id_seq; Type: SEQUENCE SET; Schema: public; Owner: directus
+-- Name: block_items_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
 SELECT pg_catalog.setval('public.block_items_id_seq', 123, true);
 
 
 --
--- Name: block_types_id_seq; Type: SEQUENCE SET; Schema: public; Owner: directus
+-- Name: block_types_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
 SELECT pg_catalog.setval('public.block_types_id_seq', 19, true);
 
 
 --
--- Name: contact_id_seq; Type: SEQUENCE SET; Schema: public; Owner: directus
+-- Name: contact_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
 SELECT pg_catalog.setval('public.contact_id_seq', 5, true);
 
 
 --
--- Name: directus_activity_id_seq; Type: SEQUENCE SET; Schema: public; Owner: directus
+-- Name: directus_activity_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
 SELECT pg_catalog.setval('public.directus_activity_id_seq', 3122, true);
 
 
 --
--- Name: directus_fields_id_seq; Type: SEQUENCE SET; Schema: public; Owner: directus
+-- Name: directus_fields_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
 SELECT pg_catalog.setval('public.directus_fields_id_seq', 224, true);
 
 
 --
--- Name: directus_notifications_id_seq; Type: SEQUENCE SET; Schema: public; Owner: directus
+-- Name: directus_notifications_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
 SELECT pg_catalog.setval('public.directus_notifications_id_seq', 1, false);
 
 
 --
--- Name: directus_permissions_id_seq; Type: SEQUENCE SET; Schema: public; Owner: directus
+-- Name: directus_permissions_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
 SELECT pg_catalog.setval('public.directus_permissions_id_seq', 8, true);
 
 
 --
--- Name: directus_presets_id_seq; Type: SEQUENCE SET; Schema: public; Owner: directus
+-- Name: directus_presets_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
 SELECT pg_catalog.setval('public.directus_presets_id_seq', 10, true);
 
 
 --
--- Name: directus_relations_id_seq; Type: SEQUENCE SET; Schema: public; Owner: directus
+-- Name: directus_relations_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
 SELECT pg_catalog.setval('public.directus_relations_id_seq', 61, true);
 
 
 --
--- Name: directus_revisions_id_seq; Type: SEQUENCE SET; Schema: public; Owner: directus
+-- Name: directus_revisions_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
 SELECT pg_catalog.setval('public.directus_revisions_id_seq', 3028, true);
 
 
 --
--- Name: directus_settings_id_seq; Type: SEQUENCE SET; Schema: public; Owner: directus
+-- Name: directus_settings_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
 SELECT pg_catalog.setval('public.directus_settings_id_seq', 1, true);
 
 
 --
--- Name: pages_id_seq; Type: SEQUENCE SET; Schema: public; Owner: directus
+-- Name: pages_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
 SELECT pg_catalog.setval('public.pages_id_seq', 13, true);
 
 
 --
--- Name: Site_Settings Site_Settings_pkey; Type: CONSTRAINT; Schema: public; Owner: directus
+-- Name: Site_Settings Site_Settings_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public."Site_Settings"
@@ -8277,7 +8355,7 @@ ALTER TABLE ONLY public."Site_Settings"
 
 
 --
--- Name: banner banner_pkey; Type: CONSTRAINT; Schema: public; Owner: directus
+-- Name: banner banner_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.banner
@@ -8285,7 +8363,7 @@ ALTER TABLE ONLY public.banner
 
 
 --
--- Name: block_items block_items_pkey; Type: CONSTRAINT; Schema: public; Owner: directus
+-- Name: block_items block_items_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.block_items
@@ -8293,7 +8371,7 @@ ALTER TABLE ONLY public.block_items
 
 
 --
--- Name: block_types block_types_pkey; Type: CONSTRAINT; Schema: public; Owner: directus
+-- Name: block_types block_types_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.block_types
@@ -8301,7 +8379,7 @@ ALTER TABLE ONLY public.block_types
 
 
 --
--- Name: contact contact_pkey; Type: CONSTRAINT; Schema: public; Owner: directus
+-- Name: contact contact_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.contact
@@ -8309,7 +8387,7 @@ ALTER TABLE ONLY public.contact
 
 
 --
--- Name: directus_access directus_access_pkey; Type: CONSTRAINT; Schema: public; Owner: directus
+-- Name: directus_access directus_access_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.directus_access
@@ -8317,7 +8395,7 @@ ALTER TABLE ONLY public.directus_access
 
 
 --
--- Name: directus_activity directus_activity_pkey; Type: CONSTRAINT; Schema: public; Owner: directus
+-- Name: directus_activity directus_activity_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.directus_activity
@@ -8325,7 +8403,7 @@ ALTER TABLE ONLY public.directus_activity
 
 
 --
--- Name: directus_collections directus_collections_pkey; Type: CONSTRAINT; Schema: public; Owner: directus
+-- Name: directus_collections directus_collections_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.directus_collections
@@ -8333,7 +8411,7 @@ ALTER TABLE ONLY public.directus_collections
 
 
 --
--- Name: directus_comments directus_comments_pkey; Type: CONSTRAINT; Schema: public; Owner: directus
+-- Name: directus_comments directus_comments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.directus_comments
@@ -8341,7 +8419,7 @@ ALTER TABLE ONLY public.directus_comments
 
 
 --
--- Name: directus_dashboards directus_dashboards_pkey; Type: CONSTRAINT; Schema: public; Owner: directus
+-- Name: directus_dashboards directus_dashboards_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.directus_dashboards
@@ -8349,7 +8427,7 @@ ALTER TABLE ONLY public.directus_dashboards
 
 
 --
--- Name: directus_deployment_projects directus_deployment_projects_deployment_external_id_unique; Type: CONSTRAINT; Schema: public; Owner: directus
+-- Name: directus_deployment_projects directus_deployment_projects_deployment_external_id_unique; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.directus_deployment_projects
@@ -8357,7 +8435,7 @@ ALTER TABLE ONLY public.directus_deployment_projects
 
 
 --
--- Name: directus_deployment_projects directus_deployment_projects_pkey; Type: CONSTRAINT; Schema: public; Owner: directus
+-- Name: directus_deployment_projects directus_deployment_projects_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.directus_deployment_projects
@@ -8365,7 +8443,7 @@ ALTER TABLE ONLY public.directus_deployment_projects
 
 
 --
--- Name: directus_deployment_runs directus_deployment_runs_pkey; Type: CONSTRAINT; Schema: public; Owner: directus
+-- Name: directus_deployment_runs directus_deployment_runs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.directus_deployment_runs
@@ -8373,7 +8451,7 @@ ALTER TABLE ONLY public.directus_deployment_runs
 
 
 --
--- Name: directus_deployments directus_deployments_pkey; Type: CONSTRAINT; Schema: public; Owner: directus
+-- Name: directus_deployments directus_deployments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.directus_deployments
@@ -8381,7 +8459,7 @@ ALTER TABLE ONLY public.directus_deployments
 
 
 --
--- Name: directus_deployments directus_deployments_provider_unique; Type: CONSTRAINT; Schema: public; Owner: directus
+-- Name: directus_deployments directus_deployments_provider_unique; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.directus_deployments
@@ -8389,7 +8467,7 @@ ALTER TABLE ONLY public.directus_deployments
 
 
 --
--- Name: directus_extensions directus_extensions_pkey; Type: CONSTRAINT; Schema: public; Owner: directus
+-- Name: directus_extensions directus_extensions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.directus_extensions
@@ -8397,7 +8475,7 @@ ALTER TABLE ONLY public.directus_extensions
 
 
 --
--- Name: directus_fields directus_fields_pkey; Type: CONSTRAINT; Schema: public; Owner: directus
+-- Name: directus_fields directus_fields_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.directus_fields
@@ -8405,7 +8483,7 @@ ALTER TABLE ONLY public.directus_fields
 
 
 --
--- Name: directus_files directus_files_pkey; Type: CONSTRAINT; Schema: public; Owner: directus
+-- Name: directus_files directus_files_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.directus_files
@@ -8413,7 +8491,7 @@ ALTER TABLE ONLY public.directus_files
 
 
 --
--- Name: directus_flows directus_flows_operation_unique; Type: CONSTRAINT; Schema: public; Owner: directus
+-- Name: directus_flows directus_flows_operation_unique; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.directus_flows
@@ -8421,7 +8499,7 @@ ALTER TABLE ONLY public.directus_flows
 
 
 --
--- Name: directus_flows directus_flows_pkey; Type: CONSTRAINT; Schema: public; Owner: directus
+-- Name: directus_flows directus_flows_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.directus_flows
@@ -8429,7 +8507,7 @@ ALTER TABLE ONLY public.directus_flows
 
 
 --
--- Name: directus_folders directus_folders_pkey; Type: CONSTRAINT; Schema: public; Owner: directus
+-- Name: directus_folders directus_folders_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.directus_folders
@@ -8437,7 +8515,7 @@ ALTER TABLE ONLY public.directus_folders
 
 
 --
--- Name: directus_migrations directus_migrations_pkey; Type: CONSTRAINT; Schema: public; Owner: directus
+-- Name: directus_migrations directus_migrations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.directus_migrations
@@ -8445,7 +8523,7 @@ ALTER TABLE ONLY public.directus_migrations
 
 
 --
--- Name: directus_notifications directus_notifications_pkey; Type: CONSTRAINT; Schema: public; Owner: directus
+-- Name: directus_notifications directus_notifications_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.directus_notifications
@@ -8453,7 +8531,7 @@ ALTER TABLE ONLY public.directus_notifications
 
 
 --
--- Name: directus_operations directus_operations_pkey; Type: CONSTRAINT; Schema: public; Owner: directus
+-- Name: directus_operations directus_operations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.directus_operations
@@ -8461,7 +8539,7 @@ ALTER TABLE ONLY public.directus_operations
 
 
 --
--- Name: directus_operations directus_operations_reject_unique; Type: CONSTRAINT; Schema: public; Owner: directus
+-- Name: directus_operations directus_operations_reject_unique; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.directus_operations
@@ -8469,7 +8547,7 @@ ALTER TABLE ONLY public.directus_operations
 
 
 --
--- Name: directus_operations directus_operations_resolve_unique; Type: CONSTRAINT; Schema: public; Owner: directus
+-- Name: directus_operations directus_operations_resolve_unique; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.directus_operations
@@ -8477,7 +8555,7 @@ ALTER TABLE ONLY public.directus_operations
 
 
 --
--- Name: directus_panels directus_panels_pkey; Type: CONSTRAINT; Schema: public; Owner: directus
+-- Name: directus_panels directus_panels_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.directus_panels
@@ -8485,7 +8563,7 @@ ALTER TABLE ONLY public.directus_panels
 
 
 --
--- Name: directus_permissions directus_permissions_pkey; Type: CONSTRAINT; Schema: public; Owner: directus
+-- Name: directus_permissions directus_permissions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.directus_permissions
@@ -8493,7 +8571,7 @@ ALTER TABLE ONLY public.directus_permissions
 
 
 --
--- Name: directus_policies directus_policies_pkey; Type: CONSTRAINT; Schema: public; Owner: directus
+-- Name: directus_policies directus_policies_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.directus_policies
@@ -8501,7 +8579,7 @@ ALTER TABLE ONLY public.directus_policies
 
 
 --
--- Name: directus_presets directus_presets_pkey; Type: CONSTRAINT; Schema: public; Owner: directus
+-- Name: directus_presets directus_presets_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.directus_presets
@@ -8509,7 +8587,7 @@ ALTER TABLE ONLY public.directus_presets
 
 
 --
--- Name: directus_relations directus_relations_pkey; Type: CONSTRAINT; Schema: public; Owner: directus
+-- Name: directus_relations directus_relations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.directus_relations
@@ -8517,7 +8595,7 @@ ALTER TABLE ONLY public.directus_relations
 
 
 --
--- Name: directus_revisions directus_revisions_pkey; Type: CONSTRAINT; Schema: public; Owner: directus
+-- Name: directus_revisions directus_revisions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.directus_revisions
@@ -8525,7 +8603,7 @@ ALTER TABLE ONLY public.directus_revisions
 
 
 --
--- Name: directus_roles directus_roles_pkey; Type: CONSTRAINT; Schema: public; Owner: directus
+-- Name: directus_roles directus_roles_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.directus_roles
@@ -8533,7 +8611,7 @@ ALTER TABLE ONLY public.directus_roles
 
 
 --
--- Name: directus_sessions directus_sessions_pkey; Type: CONSTRAINT; Schema: public; Owner: directus
+-- Name: directus_sessions directus_sessions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.directus_sessions
@@ -8541,7 +8619,7 @@ ALTER TABLE ONLY public.directus_sessions
 
 
 --
--- Name: directus_settings directus_settings_pkey; Type: CONSTRAINT; Schema: public; Owner: directus
+-- Name: directus_settings directus_settings_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.directus_settings
@@ -8549,7 +8627,7 @@ ALTER TABLE ONLY public.directus_settings
 
 
 --
--- Name: directus_shares directus_shares_pkey; Type: CONSTRAINT; Schema: public; Owner: directus
+-- Name: directus_shares directus_shares_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.directus_shares
@@ -8557,7 +8635,7 @@ ALTER TABLE ONLY public.directus_shares
 
 
 --
--- Name: directus_translations directus_translations_pkey; Type: CONSTRAINT; Schema: public; Owner: directus
+-- Name: directus_translations directus_translations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.directus_translations
@@ -8565,7 +8643,7 @@ ALTER TABLE ONLY public.directus_translations
 
 
 --
--- Name: directus_users directus_users_email_unique; Type: CONSTRAINT; Schema: public; Owner: directus
+-- Name: directus_users directus_users_email_unique; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.directus_users
@@ -8573,7 +8651,7 @@ ALTER TABLE ONLY public.directus_users
 
 
 --
--- Name: directus_users directus_users_external_identifier_unique; Type: CONSTRAINT; Schema: public; Owner: directus
+-- Name: directus_users directus_users_external_identifier_unique; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.directus_users
@@ -8581,7 +8659,7 @@ ALTER TABLE ONLY public.directus_users
 
 
 --
--- Name: directus_users directus_users_pkey; Type: CONSTRAINT; Schema: public; Owner: directus
+-- Name: directus_users directus_users_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.directus_users
@@ -8589,7 +8667,7 @@ ALTER TABLE ONLY public.directus_users
 
 
 --
--- Name: directus_users directus_users_token_unique; Type: CONSTRAINT; Schema: public; Owner: directus
+-- Name: directus_users directus_users_token_unique; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.directus_users
@@ -8597,7 +8675,7 @@ ALTER TABLE ONLY public.directus_users
 
 
 --
--- Name: directus_versions directus_versions_pkey; Type: CONSTRAINT; Schema: public; Owner: directus
+-- Name: directus_versions directus_versions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.directus_versions
@@ -8605,7 +8683,7 @@ ALTER TABLE ONLY public.directus_versions
 
 
 --
--- Name: pages pages_pkey; Type: CONSTRAINT; Schema: public; Owner: directus
+-- Name: pages pages_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.pages
@@ -8613,28 +8691,28 @@ ALTER TABLE ONLY public.pages
 
 
 --
--- Name: directus_activity_timestamp_index; Type: INDEX; Schema: public; Owner: directus
+-- Name: directus_activity_timestamp_index; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX directus_activity_timestamp_index ON public.directus_activity USING btree ("timestamp");
 
 
 --
--- Name: directus_revisions_activity_index; Type: INDEX; Schema: public; Owner: directus
+-- Name: directus_revisions_activity_index; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX directus_revisions_activity_index ON public.directus_revisions USING btree (activity);
 
 
 --
--- Name: directus_revisions_parent_index; Type: INDEX; Schema: public; Owner: directus
+-- Name: directus_revisions_parent_index; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX directus_revisions_parent_index ON public.directus_revisions USING btree (parent);
 
 
 --
--- Name: banner banner_image_foreign; Type: FK CONSTRAINT; Schema: public; Owner: directus
+-- Name: banner banner_image_foreign; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.banner
@@ -8642,7 +8720,7 @@ ALTER TABLE ONLY public.banner
 
 
 --
--- Name: banner banner_user_created_foreign; Type: FK CONSTRAINT; Schema: public; Owner: directus
+-- Name: banner banner_user_created_foreign; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.banner
@@ -8650,7 +8728,7 @@ ALTER TABLE ONLY public.banner
 
 
 --
--- Name: banner banner_user_updated_foreign; Type: FK CONSTRAINT; Schema: public; Owner: directus
+-- Name: banner banner_user_updated_foreign; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.banner
@@ -8658,7 +8736,7 @@ ALTER TABLE ONLY public.banner
 
 
 --
--- Name: block_items block_items_excel_foreign; Type: FK CONSTRAINT; Schema: public; Owner: directus
+-- Name: block_items block_items_excel_foreign; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.block_items
@@ -8666,7 +8744,7 @@ ALTER TABLE ONLY public.block_items
 
 
 --
--- Name: block_items block_items_image_foreign; Type: FK CONSTRAINT; Schema: public; Owner: directus
+-- Name: block_items block_items_image_foreign; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.block_items
@@ -8674,7 +8752,7 @@ ALTER TABLE ONLY public.block_items
 
 
 --
--- Name: block_items block_items_page_foreign; Type: FK CONSTRAINT; Schema: public; Owner: directus
+-- Name: block_items block_items_page_foreign; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.block_items
@@ -8682,7 +8760,7 @@ ALTER TABLE ONLY public.block_items
 
 
 --
--- Name: block_items block_items_pdf_foreign; Type: FK CONSTRAINT; Schema: public; Owner: directus
+-- Name: block_items block_items_pdf_foreign; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.block_items
@@ -8690,7 +8768,7 @@ ALTER TABLE ONLY public.block_items
 
 
 --
--- Name: block_items block_items_type_foreign; Type: FK CONSTRAINT; Schema: public; Owner: directus
+-- Name: block_items block_items_type_foreign; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.block_items
@@ -8698,7 +8776,7 @@ ALTER TABLE ONLY public.block_items
 
 
 --
--- Name: block_items block_items_user_created_foreign; Type: FK CONSTRAINT; Schema: public; Owner: directus
+-- Name: block_items block_items_user_created_foreign; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.block_items
@@ -8706,7 +8784,7 @@ ALTER TABLE ONLY public.block_items
 
 
 --
--- Name: block_items block_items_user_updated_foreign; Type: FK CONSTRAINT; Schema: public; Owner: directus
+-- Name: block_items block_items_user_updated_foreign; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.block_items
@@ -8714,7 +8792,7 @@ ALTER TABLE ONLY public.block_items
 
 
 --
--- Name: block_types block_types_user_created_foreign; Type: FK CONSTRAINT; Schema: public; Owner: directus
+-- Name: block_types block_types_user_created_foreign; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.block_types
@@ -8722,7 +8800,7 @@ ALTER TABLE ONLY public.block_types
 
 
 --
--- Name: block_types block_types_user_updated_foreign; Type: FK CONSTRAINT; Schema: public; Owner: directus
+-- Name: block_types block_types_user_updated_foreign; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.block_types
@@ -8730,7 +8808,7 @@ ALTER TABLE ONLY public.block_types
 
 
 --
--- Name: contact contact_image_foreign; Type: FK CONSTRAINT; Schema: public; Owner: directus
+-- Name: contact contact_image_foreign; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.contact
@@ -8738,7 +8816,7 @@ ALTER TABLE ONLY public.contact
 
 
 --
--- Name: contact contact_user_created_foreign; Type: FK CONSTRAINT; Schema: public; Owner: directus
+-- Name: contact contact_user_created_foreign; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.contact
@@ -8746,7 +8824,7 @@ ALTER TABLE ONLY public.contact
 
 
 --
--- Name: contact contact_user_updated_foreign; Type: FK CONSTRAINT; Schema: public; Owner: directus
+-- Name: contact contact_user_updated_foreign; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.contact
@@ -8754,7 +8832,7 @@ ALTER TABLE ONLY public.contact
 
 
 --
--- Name: directus_access directus_access_policy_foreign; Type: FK CONSTRAINT; Schema: public; Owner: directus
+-- Name: directus_access directus_access_policy_foreign; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.directus_access
@@ -8762,7 +8840,7 @@ ALTER TABLE ONLY public.directus_access
 
 
 --
--- Name: directus_access directus_access_role_foreign; Type: FK CONSTRAINT; Schema: public; Owner: directus
+-- Name: directus_access directus_access_role_foreign; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.directus_access
@@ -8770,7 +8848,7 @@ ALTER TABLE ONLY public.directus_access
 
 
 --
--- Name: directus_access directus_access_user_foreign; Type: FK CONSTRAINT; Schema: public; Owner: directus
+-- Name: directus_access directus_access_user_foreign; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.directus_access
@@ -8778,7 +8856,7 @@ ALTER TABLE ONLY public.directus_access
 
 
 --
--- Name: directus_collections directus_collections_group_foreign; Type: FK CONSTRAINT; Schema: public; Owner: directus
+-- Name: directus_collections directus_collections_group_foreign; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.directus_collections
@@ -8786,7 +8864,7 @@ ALTER TABLE ONLY public.directus_collections
 
 
 --
--- Name: directus_comments directus_comments_user_created_foreign; Type: FK CONSTRAINT; Schema: public; Owner: directus
+-- Name: directus_comments directus_comments_user_created_foreign; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.directus_comments
@@ -8794,7 +8872,7 @@ ALTER TABLE ONLY public.directus_comments
 
 
 --
--- Name: directus_comments directus_comments_user_updated_foreign; Type: FK CONSTRAINT; Schema: public; Owner: directus
+-- Name: directus_comments directus_comments_user_updated_foreign; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.directus_comments
@@ -8802,7 +8880,7 @@ ALTER TABLE ONLY public.directus_comments
 
 
 --
--- Name: directus_dashboards directus_dashboards_user_created_foreign; Type: FK CONSTRAINT; Schema: public; Owner: directus
+-- Name: directus_dashboards directus_dashboards_user_created_foreign; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.directus_dashboards
@@ -8810,7 +8888,7 @@ ALTER TABLE ONLY public.directus_dashboards
 
 
 --
--- Name: directus_deployment_projects directus_deployment_projects_deployment_foreign; Type: FK CONSTRAINT; Schema: public; Owner: directus
+-- Name: directus_deployment_projects directus_deployment_projects_deployment_foreign; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.directus_deployment_projects
@@ -8818,7 +8896,7 @@ ALTER TABLE ONLY public.directus_deployment_projects
 
 
 --
--- Name: directus_deployment_projects directus_deployment_projects_user_created_foreign; Type: FK CONSTRAINT; Schema: public; Owner: directus
+-- Name: directus_deployment_projects directus_deployment_projects_user_created_foreign; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.directus_deployment_projects
@@ -8826,7 +8904,7 @@ ALTER TABLE ONLY public.directus_deployment_projects
 
 
 --
--- Name: directus_deployment_runs directus_deployment_runs_project_foreign; Type: FK CONSTRAINT; Schema: public; Owner: directus
+-- Name: directus_deployment_runs directus_deployment_runs_project_foreign; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.directus_deployment_runs
@@ -8834,7 +8912,7 @@ ALTER TABLE ONLY public.directus_deployment_runs
 
 
 --
--- Name: directus_deployment_runs directus_deployment_runs_user_created_foreign; Type: FK CONSTRAINT; Schema: public; Owner: directus
+-- Name: directus_deployment_runs directus_deployment_runs_user_created_foreign; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.directus_deployment_runs
@@ -8842,7 +8920,7 @@ ALTER TABLE ONLY public.directus_deployment_runs
 
 
 --
--- Name: directus_deployments directus_deployments_user_created_foreign; Type: FK CONSTRAINT; Schema: public; Owner: directus
+-- Name: directus_deployments directus_deployments_user_created_foreign; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.directus_deployments
@@ -8850,7 +8928,7 @@ ALTER TABLE ONLY public.directus_deployments
 
 
 --
--- Name: directus_files directus_files_folder_foreign; Type: FK CONSTRAINT; Schema: public; Owner: directus
+-- Name: directus_files directus_files_folder_foreign; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.directus_files
@@ -8858,7 +8936,7 @@ ALTER TABLE ONLY public.directus_files
 
 
 --
--- Name: directus_files directus_files_modified_by_foreign; Type: FK CONSTRAINT; Schema: public; Owner: directus
+-- Name: directus_files directus_files_modified_by_foreign; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.directus_files
@@ -8866,7 +8944,7 @@ ALTER TABLE ONLY public.directus_files
 
 
 --
--- Name: directus_files directus_files_uploaded_by_foreign; Type: FK CONSTRAINT; Schema: public; Owner: directus
+-- Name: directus_files directus_files_uploaded_by_foreign; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.directus_files
@@ -8874,7 +8952,7 @@ ALTER TABLE ONLY public.directus_files
 
 
 --
--- Name: directus_flows directus_flows_user_created_foreign; Type: FK CONSTRAINT; Schema: public; Owner: directus
+-- Name: directus_flows directus_flows_user_created_foreign; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.directus_flows
@@ -8882,7 +8960,7 @@ ALTER TABLE ONLY public.directus_flows
 
 
 --
--- Name: directus_folders directus_folders_parent_foreign; Type: FK CONSTRAINT; Schema: public; Owner: directus
+-- Name: directus_folders directus_folders_parent_foreign; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.directus_folders
@@ -8890,7 +8968,7 @@ ALTER TABLE ONLY public.directus_folders
 
 
 --
--- Name: directus_notifications directus_notifications_recipient_foreign; Type: FK CONSTRAINT; Schema: public; Owner: directus
+-- Name: directus_notifications directus_notifications_recipient_foreign; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.directus_notifications
@@ -8898,7 +8976,7 @@ ALTER TABLE ONLY public.directus_notifications
 
 
 --
--- Name: directus_notifications directus_notifications_sender_foreign; Type: FK CONSTRAINT; Schema: public; Owner: directus
+-- Name: directus_notifications directus_notifications_sender_foreign; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.directus_notifications
@@ -8906,7 +8984,7 @@ ALTER TABLE ONLY public.directus_notifications
 
 
 --
--- Name: directus_operations directus_operations_flow_foreign; Type: FK CONSTRAINT; Schema: public; Owner: directus
+-- Name: directus_operations directus_operations_flow_foreign; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.directus_operations
@@ -8914,7 +8992,7 @@ ALTER TABLE ONLY public.directus_operations
 
 
 --
--- Name: directus_operations directus_operations_reject_foreign; Type: FK CONSTRAINT; Schema: public; Owner: directus
+-- Name: directus_operations directus_operations_reject_foreign; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.directus_operations
@@ -8922,7 +9000,7 @@ ALTER TABLE ONLY public.directus_operations
 
 
 --
--- Name: directus_operations directus_operations_resolve_foreign; Type: FK CONSTRAINT; Schema: public; Owner: directus
+-- Name: directus_operations directus_operations_resolve_foreign; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.directus_operations
@@ -8930,7 +9008,7 @@ ALTER TABLE ONLY public.directus_operations
 
 
 --
--- Name: directus_operations directus_operations_user_created_foreign; Type: FK CONSTRAINT; Schema: public; Owner: directus
+-- Name: directus_operations directus_operations_user_created_foreign; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.directus_operations
@@ -8938,7 +9016,7 @@ ALTER TABLE ONLY public.directus_operations
 
 
 --
--- Name: directus_panels directus_panels_dashboard_foreign; Type: FK CONSTRAINT; Schema: public; Owner: directus
+-- Name: directus_panels directus_panels_dashboard_foreign; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.directus_panels
@@ -8946,7 +9024,7 @@ ALTER TABLE ONLY public.directus_panels
 
 
 --
--- Name: directus_panels directus_panels_user_created_foreign; Type: FK CONSTRAINT; Schema: public; Owner: directus
+-- Name: directus_panels directus_panels_user_created_foreign; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.directus_panels
@@ -8954,7 +9032,7 @@ ALTER TABLE ONLY public.directus_panels
 
 
 --
--- Name: directus_permissions directus_permissions_policy_foreign; Type: FK CONSTRAINT; Schema: public; Owner: directus
+-- Name: directus_permissions directus_permissions_policy_foreign; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.directus_permissions
@@ -8962,7 +9040,7 @@ ALTER TABLE ONLY public.directus_permissions
 
 
 --
--- Name: directus_presets directus_presets_role_foreign; Type: FK CONSTRAINT; Schema: public; Owner: directus
+-- Name: directus_presets directus_presets_role_foreign; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.directus_presets
@@ -8970,7 +9048,7 @@ ALTER TABLE ONLY public.directus_presets
 
 
 --
--- Name: directus_presets directus_presets_user_foreign; Type: FK CONSTRAINT; Schema: public; Owner: directus
+-- Name: directus_presets directus_presets_user_foreign; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.directus_presets
@@ -8978,7 +9056,7 @@ ALTER TABLE ONLY public.directus_presets
 
 
 --
--- Name: directus_revisions directus_revisions_activity_foreign; Type: FK CONSTRAINT; Schema: public; Owner: directus
+-- Name: directus_revisions directus_revisions_activity_foreign; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.directus_revisions
@@ -8986,7 +9064,7 @@ ALTER TABLE ONLY public.directus_revisions
 
 
 --
--- Name: directus_revisions directus_revisions_parent_foreign; Type: FK CONSTRAINT; Schema: public; Owner: directus
+-- Name: directus_revisions directus_revisions_parent_foreign; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.directus_revisions
@@ -8994,7 +9072,7 @@ ALTER TABLE ONLY public.directus_revisions
 
 
 --
--- Name: directus_revisions directus_revisions_version_foreign; Type: FK CONSTRAINT; Schema: public; Owner: directus
+-- Name: directus_revisions directus_revisions_version_foreign; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.directus_revisions
@@ -9002,7 +9080,7 @@ ALTER TABLE ONLY public.directus_revisions
 
 
 --
--- Name: directus_roles directus_roles_parent_foreign; Type: FK CONSTRAINT; Schema: public; Owner: directus
+-- Name: directus_roles directus_roles_parent_foreign; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.directus_roles
@@ -9010,7 +9088,7 @@ ALTER TABLE ONLY public.directus_roles
 
 
 --
--- Name: directus_sessions directus_sessions_share_foreign; Type: FK CONSTRAINT; Schema: public; Owner: directus
+-- Name: directus_sessions directus_sessions_share_foreign; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.directus_sessions
@@ -9018,7 +9096,7 @@ ALTER TABLE ONLY public.directus_sessions
 
 
 --
--- Name: directus_sessions directus_sessions_user_foreign; Type: FK CONSTRAINT; Schema: public; Owner: directus
+-- Name: directus_sessions directus_sessions_user_foreign; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.directus_sessions
@@ -9026,7 +9104,7 @@ ALTER TABLE ONLY public.directus_sessions
 
 
 --
--- Name: directus_settings directus_settings_project_logo_foreign; Type: FK CONSTRAINT; Schema: public; Owner: directus
+-- Name: directus_settings directus_settings_project_logo_foreign; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.directus_settings
@@ -9034,7 +9112,7 @@ ALTER TABLE ONLY public.directus_settings
 
 
 --
--- Name: directus_settings directus_settings_public_background_foreign; Type: FK CONSTRAINT; Schema: public; Owner: directus
+-- Name: directus_settings directus_settings_public_background_foreign; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.directus_settings
@@ -9042,7 +9120,7 @@ ALTER TABLE ONLY public.directus_settings
 
 
 --
--- Name: directus_settings directus_settings_public_favicon_foreign; Type: FK CONSTRAINT; Schema: public; Owner: directus
+-- Name: directus_settings directus_settings_public_favicon_foreign; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.directus_settings
@@ -9050,7 +9128,7 @@ ALTER TABLE ONLY public.directus_settings
 
 
 --
--- Name: directus_settings directus_settings_public_foreground_foreign; Type: FK CONSTRAINT; Schema: public; Owner: directus
+-- Name: directus_settings directus_settings_public_foreground_foreign; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.directus_settings
@@ -9058,7 +9136,7 @@ ALTER TABLE ONLY public.directus_settings
 
 
 --
--- Name: directus_settings directus_settings_public_registration_role_foreign; Type: FK CONSTRAINT; Schema: public; Owner: directus
+-- Name: directus_settings directus_settings_public_registration_role_foreign; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.directus_settings
@@ -9066,7 +9144,7 @@ ALTER TABLE ONLY public.directus_settings
 
 
 --
--- Name: directus_settings directus_settings_storage_default_folder_foreign; Type: FK CONSTRAINT; Schema: public; Owner: directus
+-- Name: directus_settings directus_settings_storage_default_folder_foreign; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.directus_settings
@@ -9074,7 +9152,7 @@ ALTER TABLE ONLY public.directus_settings
 
 
 --
--- Name: directus_shares directus_shares_collection_foreign; Type: FK CONSTRAINT; Schema: public; Owner: directus
+-- Name: directus_shares directus_shares_collection_foreign; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.directus_shares
@@ -9082,7 +9160,7 @@ ALTER TABLE ONLY public.directus_shares
 
 
 --
--- Name: directus_shares directus_shares_role_foreign; Type: FK CONSTRAINT; Schema: public; Owner: directus
+-- Name: directus_shares directus_shares_role_foreign; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.directus_shares
@@ -9090,7 +9168,7 @@ ALTER TABLE ONLY public.directus_shares
 
 
 --
--- Name: directus_shares directus_shares_user_created_foreign; Type: FK CONSTRAINT; Schema: public; Owner: directus
+-- Name: directus_shares directus_shares_user_created_foreign; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.directus_shares
@@ -9098,7 +9176,7 @@ ALTER TABLE ONLY public.directus_shares
 
 
 --
--- Name: directus_users directus_users_role_foreign; Type: FK CONSTRAINT; Schema: public; Owner: directus
+-- Name: directus_users directus_users_role_foreign; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.directus_users
@@ -9106,7 +9184,7 @@ ALTER TABLE ONLY public.directus_users
 
 
 --
--- Name: directus_versions directus_versions_collection_foreign; Type: FK CONSTRAINT; Schema: public; Owner: directus
+-- Name: directus_versions directus_versions_collection_foreign; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.directus_versions
@@ -9114,7 +9192,7 @@ ALTER TABLE ONLY public.directus_versions
 
 
 --
--- Name: directus_versions directus_versions_user_created_foreign; Type: FK CONSTRAINT; Schema: public; Owner: directus
+-- Name: directus_versions directus_versions_user_created_foreign; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.directus_versions
@@ -9122,7 +9200,7 @@ ALTER TABLE ONLY public.directus_versions
 
 
 --
--- Name: directus_versions directus_versions_user_updated_foreign; Type: FK CONSTRAINT; Schema: public; Owner: directus
+-- Name: directus_versions directus_versions_user_updated_foreign; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.directus_versions
@@ -9130,7 +9208,7 @@ ALTER TABLE ONLY public.directus_versions
 
 
 --
--- Name: pages pages_parent_foreign; Type: FK CONSTRAINT; Schema: public; Owner: directus
+-- Name: pages pages_parent_foreign; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.pages
@@ -9138,7 +9216,7 @@ ALTER TABLE ONLY public.pages
 
 
 --
--- Name: pages pages_user_created_foreign; Type: FK CONSTRAINT; Schema: public; Owner: directus
+-- Name: pages pages_user_created_foreign; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.pages
@@ -9146,7 +9224,7 @@ ALTER TABLE ONLY public.pages
 
 
 --
--- Name: pages pages_user_updated_foreign; Type: FK CONSTRAINT; Schema: public; Owner: directus
+-- Name: pages pages_user_updated_foreign; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.pages
@@ -9154,7 +9232,7 @@ ALTER TABLE ONLY public.pages
 
 
 --
--- Name: Site_Settings site_settings_logo_foreign; Type: FK CONSTRAINT; Schema: public; Owner: directus
+-- Name: Site_Settings site_settings_logo_foreign; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public."Site_Settings"
@@ -9162,7 +9240,7 @@ ALTER TABLE ONLY public."Site_Settings"
 
 
 --
--- Name: Site_Settings site_settings_user_created_foreign; Type: FK CONSTRAINT; Schema: public; Owner: directus
+-- Name: Site_Settings site_settings_user_created_foreign; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public."Site_Settings"
@@ -9170,7 +9248,7 @@ ALTER TABLE ONLY public."Site_Settings"
 
 
 --
--- Name: Site_Settings site_settings_user_updated_foreign; Type: FK CONSTRAINT; Schema: public; Owner: directus
+-- Name: Site_Settings site_settings_user_updated_foreign; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public."Site_Settings"
@@ -9178,15 +9256,8 @@ ALTER TABLE ONLY public."Site_Settings"
 
 
 --
--- Name: SCHEMA public; Type: ACL; Schema: -; Owner: directus
---
-
-REVOKE USAGE ON SCHEMA public FROM PUBLIC;
-
-
---
 -- PostgreSQL database dump complete
 --
 
-\unrestrict 7dBsqBOxIOR7pzxrOcukGE0iwiY81lwRACGgCRTFv8wYQ7iuwJuEg2ZPxO10wxh
+\unrestrict E9HpgUzrbykfhdiaGGwPj5u2UrUvefodssye7uIrvahch2uKVJJiH4Sg4nZBMeD
 
