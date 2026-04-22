@@ -141,12 +141,19 @@ docker compose logs -f directus
 **Next.js build fail บน Docker**
 > ตรวจสอบว่า `NEXT_PUBLIC_DIRECTUS_URL` ใน `docker-compose.yaml` ถูกต้อง เพราะค่านี้จะถูก bake เข้า bundle ตอน build
 
+**เปิด http://localhost:3012 ไม่ได้หลัง `docker compose up`**
+> ต้อง rebuild image ใหม่เมื่อมีการเปลี่ยนแปลงโค้ดหรือ config:
+> ```bash
+> docker compose down
+> docker compose up -d --build
+> ```
+
 ---
 
 ## โครงสร้างโปรเจกต์
 
 ```
-next_direct/
+bdt_next_direct/
 ├── docker-compose.yaml   # config รัน service ทั้งหมด
 ├── dump.sql              # ข้อมูลตั้งต้นของฐานข้อมูล
 ├── directus/
