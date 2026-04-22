@@ -79,7 +79,7 @@ export default function NewsBlock({ item, lang }) {
           {news.map(n => (
             <Link
               key={n.id ?? n.slug}
-              href={`/${lang}/news/${n.id}`}
+              href={`/news/${n.id}`}
               className="block hover:shadow-lg transition-shadow duration-200"
             >
               <div key={n.id} className={`${item?.rounded_news || ''} shadow`}>
