@@ -94,6 +94,15 @@ export default function NewsBlock({ item, lang }) {
                 <h4 className="text-base px-2 pb-2 text-gray-600 px-4">
                   {n.subtitle}
                 </h4>
+                {n.date_updated && (
+                  <p className="text-sm text-gray-400 px-4 pb-3">
+                    {new Date(n.date_updated).toLocaleDateString('th-TH', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric',
+                    })}
+                  </p>
+                )}
               </div>
             </Link>
           ))}
