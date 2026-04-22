@@ -95,7 +95,7 @@ npm run dev
 หากมีไฟล์ `dump.sql` ให้นำเข้าหลัง container รันแล้ว:
 
 ```bash
-docker exec -i directus_db_ita psql -U directus -d directus < dump.sql
+docker exec -i directus_db psql -U directus -d directus < dump.sql
 ```
 
 ---
