@@ -92,10 +92,23 @@ npm run dev
 
 ## นำเข้าข้อมูลเริ่มต้น (Database Seed)
 
-หากมีไฟล์ `dump.sql` ให้นำเข้าหลัง container รันแล้ว:
+ไฟล์ `dump.sql` อยู่ในโฟลเดอร์หลักของโปรเจกต์แล้ว ให้นำเข้าหลัง container รันแล้ว:
 
+#### ขั้นตอน
+
+**1. ตรวจสอบว่า container รันอยู่**
+```bash
+docker compose ps
+```
+
+**2. Import dump.sql**
 ```bash
 docker exec -i bdt_directus_db psql -U directus -d directus < dump.sql
+```
+
+**3. Restart container เพื่อให้ Directus โหลด schema ใหม่**
+```bash
+docker compose restart directus
 ```
 
 ---
