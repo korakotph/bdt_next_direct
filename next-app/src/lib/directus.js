@@ -1,4 +1,4 @@
-import { readItems } from '@directus/sdk'
+import { readItem, readItems } from '@directus/sdk'
 import { getDirectusClient } from './directus-client'
 
 export async function getPageBySlug(slug) {
@@ -97,45 +97,41 @@ export async function getFirstPageSlug() {
   return slug ? `/${slug}` : '/'
 }
 
-async function getNewsParentId(newsid) {
-  const id = Number(newsid)
+export async function getNewsDetailBySlug(slug) {
+  const id = Number(slug)
   if (!Number.isInteger(id)) return null
 
   const client = getDirectusClient()
+
+  // ดึง news โดยตรงด้วย single-item endpoint (GET /items/news/:id)
+  let newsItem
   try {
-    const news = await client.request(
-      readItems('news', {
-        filter: { id: { _eq: id } },
-      })
-    )
-    return news?.[0] ?? null
+    newsItem = await client.request(readItem('news', id))
   } catch {
     return null
   }
-}
+  if (!newsItem) return null
 
-export async function getNewsDetailBySlug(slug) {
-  const parent = await getNewsParentId(slug)
-  if (!parent?.id) return null
-
-  const client = getDirectusClient()
+  // ลองดึง content จาก news_detail ก่อน ถ้าไม่มีค่อย fallback ไปใช้ news.content
+  let content = newsItem.content ?? null
   try {
     const details = await client.request(
       readItems('news_detail', {
-        filter: { news_id: { _eq: parent.id } },
+        filter: { news_id: { _eq: id } },
+        limit: 1,
       })
     )
-
-    const page = details?.[0]
-    if (!page) return null
-
-    return {
-      id: page.id,
-      slug,
-      content: page.content,
-      parent: parent || null,
+    if (details?.[0]?.content) {
+      content = details[0].content
     }
   } catch {
-    return null
+    // news_detail ไม่มีอยู่หรือไม่มี record ให้ใช้ news.content แทน
+  }
+
+  return {
+    id: newsItem.id,
+    slug,
+    content,
+    parent: newsItem,
   }
 }
