@@ -4,32 +4,33 @@
    Tailwind v4 does static analysis only — template literals like
    `max-w-${item.max_w}` or `grid-cols-${item.column}` are invisible at
    build time. @source inline forces these utilities to be generated.
+   Written as explicit lists (not brace expansion) for guaranteed compatibility.
 ──────────────────────────────────────────────────────────────────────────── */
 
-/* max-w — item.max_w */
-@source inline("max-w-{xs,sm,md,lg,xl,2xl,3xl,4xl,5xl,6xl,7xl,full,screen,none,fit,min,max,prose}");
+/* max-w */
+@source inline("max-w-xs max-w-sm max-w-md max-w-lg max-w-xl max-w-2xl max-w-3xl max-w-4xl max-w-5xl max-w-6xl max-w-7xl max-w-full max-w-screen max-w-none max-w-fit max-w-min max-w-max max-w-prose");
 
-/* grid-cols — item.column / item.news_column */
-@source inline("grid-cols-{1,2,3,4,5,6,7,8,9,10,11,12}");
-@source inline("md:grid-cols-{1,2,3,4,5,6,7,8,9,10,11,12}");
-@source inline("lg:grid-cols-{1,2,3,4,5,6,7,8,9,10,11,12}");
+/* grid-cols */
+@source inline("grid-cols-1 grid-cols-2 grid-cols-3 grid-cols-4 grid-cols-5 grid-cols-6 grid-cols-7 grid-cols-8 grid-cols-9 grid-cols-10 grid-cols-11 grid-cols-12");
+@source inline("md:grid-cols-1 md:grid-cols-2 md:grid-cols-3 md:grid-cols-4 md:grid-cols-5 md:grid-cols-6 md:grid-cols-7 md:grid-cols-8 md:grid-cols-9 md:grid-cols-10 md:grid-cols-11 md:grid-cols-12");
+@source inline("lg:grid-cols-1 lg:grid-cols-2 lg:grid-cols-3 lg:grid-cols-4 lg:grid-cols-5 lg:grid-cols-6 lg:grid-cols-7 lg:grid-cols-8 lg:grid-cols-9 lg:grid-cols-10 lg:grid-cols-11 lg:grid-cols-12");
 
-/* gap — item.gap / item.news_gap / item.collection_gap / item.gap_3 */
-@source inline("gap-{0,1,2,3,4,5,6,7,8,9,10,11,12,14,16,20,24}");
-@source inline("gap-x-{0,1,2,3,4,5,6,7,8,9,10,11,12,14,16,20,24}");
-@source inline("gap-y-{0,1,2,3,4,5,6,7,8,9,10,11,12,14,16,20,24}");
+/* gap */
+@source inline("gap-0 gap-1 gap-2 gap-3 gap-4 gap-5 gap-6 gap-7 gap-8 gap-9 gap-10 gap-11 gap-12 gap-14 gap-16 gap-20 gap-24");
+@source inline("gap-x-0 gap-x-1 gap-x-2 gap-x-3 gap-x-4 gap-x-5 gap-x-6 gap-x-7 gap-x-8 gap-x-9 gap-x-10 gap-x-11 gap-x-12 gap-x-14 gap-x-16 gap-x-20 gap-x-24");
+@source inline("gap-y-0 gap-y-1 gap-y-2 gap-y-3 gap-y-4 gap-y-5 gap-y-6 gap-y-7 gap-y-8 gap-y-9 gap-y-10 gap-y-11 gap-y-12 gap-y-14 gap-y-16 gap-y-20 gap-y-24");
 
-/* padding — item.padding / item.padding_x / item.padding_y */
-@source inline("p-{0,1,2,3,4,5,6,7,8,9,10,11,12,14,16,20,24,28,32}");
-@source inline("px-{0,1,2,3,4,5,6,7,8,9,10,11,12,14,16,20,24,28,32}");
-@source inline("py-{0,1,2,3,4,5,6,7,8,9,10,11,12,14,16,20,24,28,32}");
+/* padding */
+@source inline("p-0 p-1 p-2 p-3 p-4 p-5 p-6 p-7 p-8 p-9 p-10 p-11 p-12 p-14 p-16 p-20 p-24 p-28 p-32");
+@source inline("px-0 px-1 px-2 px-3 px-4 px-5 px-6 px-7 px-8 px-9 px-10 px-11 px-12 px-14 px-16 px-20 px-24 px-28 px-32");
+@source inline("py-0 py-1 py-2 py-3 py-4 py-5 py-6 py-7 py-8 py-9 py-10 py-11 py-12 py-14 py-16 py-20 py-24 py-28 py-32");
 
-/* text alignment — item.align */
-@source inline("text-{left,center,right,justify}");
+/* text alignment */
+@source inline("text-left text-center text-right text-justify");
 
-/* rounded — item.rounded / item.rounded_news */
-@source inline("rounded-{none,sm,md,lg,xl,2xl,3xl,full}");
-@source inline("rounded-t-{none,sm,md,lg,xl,2xl,3xl,full}");
+/* rounded */
+@source inline("rounded-none rounded-sm rounded-md rounded-lg rounded-xl rounded-2xl rounded-3xl rounded-full");
+@source inline("rounded-t-none rounded-t-sm rounded-t-md rounded-t-lg rounded-t-xl rounded-t-2xl rounded-t-3xl rounded-t-full");
 
 :root {
   --background: #ffffff;
