@@ -114,6 +114,20 @@ export default function NewsBlock({ item, lang }) {
       {!loading && news.length === 0 && (
         <p>ยังไม่มีข่าว</p>
       )}
+
+      {/* ปุ่มดูข่าวทั้งหมด */}
+      {!loading && item?.href && (
+        <div className="flex justify-center mt-8">
+          <Link
+            href={item.href}
+            target={item.target || '_self'}
+            className="inline-block px-8 py-3 rounded-lg font-medium text-white transition hover:opacity-80"
+            style={{ backgroundColor: item?.background_color || '#308E85' }}
+          >
+            ดูข่าวทั้งหมด
+          </Link>
+        </div>
+      )}
     </section>
   )
 }
