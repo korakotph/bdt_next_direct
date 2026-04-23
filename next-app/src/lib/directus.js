@@ -1,4 +1,3 @@
-import { notFound } from 'next/navigation'
 import { readItems } from '@directus/sdk'
 import { getDirectusClient } from './directus-client'
 
@@ -100,19 +99,19 @@ export async function getFirstPageSlug() {
 
 async function getNewsParentId(newsid) {
   const id = Number(newsid)
-  if (!Number.isInteger(id)) {
-    return notFound()
-  }
+  if (!Number.isInteger(id)) return null
 
   const client = getDirectusClient()
-
-  const news = await client.request(
-    readItems('news', {
-      filter: { id: { _eq: id } },
-    })
-  )
-
-  return news?.[0] ?? null
+  try {
+    const news = await client.request(
+      readItems('news', {
+        filter: { id: { _eq: id } },
+      })
+    )
+    return news?.[0] ?? null
+  } catch {
+    return null
+  }
 }
 
 export async function getNewsDetailBySlug(slug) {
@@ -120,20 +119,23 @@ export async function getNewsDetailBySlug(slug) {
   if (!parent?.id) return null
 
   const client = getDirectusClient()
+  try {
+    const details = await client.request(
+      readItems('news_detail', {
+        filter: { news_id: { _eq: parent.id } },
+      })
+    )
 
-  const details = await client.request(
-    readItems('news_detail', {
-      filter: { news_id: { _eq: parent.id } },
-    })
-  )
+    const page = details?.[0]
+    if (!page) return null
 
-  const page = details?.[0]
-  if (!page) return null
-
-  return {
-    id: page.id,
-    slug,
-    content: page.content,
-    parent: parent || null,
+    return {
+      id: page.id,
+      slug,
+      content: page.content,
+      parent: parent || null,
+    }
+  } catch {
+    return null
   }
 }
