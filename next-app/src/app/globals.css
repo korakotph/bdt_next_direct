@@ -1,5 +1,36 @@
 @import "tailwindcss";
 
+/* ─── Safelist: dynamic classes built from CMS fields ─────────────────────
+   Tailwind v4 does static analysis only — template literals like
+   `max-w-${item.max_w}` or `grid-cols-${item.column}` are invisible at
+   build time. @source inline forces these utilities to be generated.
+──────────────────────────────────────────────────────────────────────────── */
+
+/* max-w — item.max_w */
+@source inline("max-w-{xs,sm,md,lg,xl,2xl,3xl,4xl,5xl,6xl,7xl,full,screen,none,fit,min,max,prose}");
+
+/* grid-cols — item.column / item.news_column */
+@source inline("grid-cols-{1,2,3,4,5,6,7,8,9,10,11,12}");
+@source inline("md:grid-cols-{1,2,3,4,5,6,7,8,9,10,11,12}");
+@source inline("lg:grid-cols-{1,2,3,4,5,6,7,8,9,10,11,12}");
+
+/* gap — item.gap / item.news_gap / item.collection_gap / item.gap_3 */
+@source inline("gap-{0,1,2,3,4,5,6,7,8,9,10,11,12,14,16,20,24}");
+@source inline("gap-x-{0,1,2,3,4,5,6,7,8,9,10,11,12,14,16,20,24}");
+@source inline("gap-y-{0,1,2,3,4,5,6,7,8,9,10,11,12,14,16,20,24}");
+
+/* padding — item.padding / item.padding_x / item.padding_y */
+@source inline("p-{0,1,2,3,4,5,6,7,8,9,10,11,12,14,16,20,24,28,32}");
+@source inline("px-{0,1,2,3,4,5,6,7,8,9,10,11,12,14,16,20,24,28,32}");
+@source inline("py-{0,1,2,3,4,5,6,7,8,9,10,11,12,14,16,20,24,28,32}");
+
+/* text alignment — item.align */
+@source inline("text-{left,center,right,justify}");
+
+/* rounded — item.rounded / item.rounded_news */
+@source inline("rounded-{none,sm,md,lg,xl,2xl,3xl,full}");
+@source inline("rounded-t-{none,sm,md,lg,xl,2xl,3xl,full}");
+
 :root {
   --background: #ffffff;
   --foreground: #171717;
