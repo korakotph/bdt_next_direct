@@ -161,6 +161,13 @@ docker compose logs -f directus
 > docker compose up -d --build
 > ```
 
+**Tailwind CSS class บางอันไม่แสดงผล**
+> Tailwind v4 สแกน class จาก source file แบบ static ดังนั้น class ที่สร้างแบบ dynamic (เช่น จาก CMS field) อาจหายไป
+> แก้ไขโดยเพิ่ม class ลงในไฟล์ `next-app/src/lib/tailwind-safelist.js` เป็น string ตรงๆ แล้ว rebuild:
+> ```bash
+> docker compose up -d --build
+> ```
+
 ---
 
 ## โครงสร้างโปรเจกต์
@@ -177,6 +184,7 @@ bdt_next_direct/
     │   ├── app/          # Next.js App Router pages
     │   ├── components/   # React components
     │   ├── lib/          # utility / API clients
+    │   │   └── tailwind-safelist.js  # safelist สำหรับ Tailwind class ที่มาจาก CMS
     │   └── styles/
     └── package.json
 ```
