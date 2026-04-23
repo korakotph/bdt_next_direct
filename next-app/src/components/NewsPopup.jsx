@@ -54,7 +54,7 @@ export default function PopupNews({ enabled }) {
       <div className="popup-swiper relative max-w-4xl w-full rounded-lg">
 
         <button
-          className="absolute -top-8 right-0 md:-right-8 text-white text-xl z-20"
+          className="absolute -top-8 right-0 md:-right-8 text-white text-xl z-20 cursor-pointer"
           onClick={() => setVisible(false)}
         >
           ✕
