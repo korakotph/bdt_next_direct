@@ -8,6 +8,8 @@ import 'swiper/css'
 import 'swiper/css/navigation'
 import 'swiper/css/pagination'
 
+const BASE_URL = process.env.NEXT_PUBLIC_DIRECTUS_URL
+
 export default function PopupNews() {
   const [newsList, setNewsList] = useState([]);
   const [current, setCurrent] = useState(0);
@@ -30,7 +32,7 @@ export default function PopupNews() {
   useEffect(() => {
     if (!shouldShow()) return;
 
-    fetch('https://dev-app-bdt.su.ac.th/suadmin/items/landing_page?filter[status][_eq]=published')
+    fetch(`${BASE_URL}/items/landing_page?filter[status][_eq]=published`)
       .then(res => res.json())
       .then(data => {
         const today = dayjs();
@@ -79,7 +81,7 @@ export default function PopupNews() {
             <SwiperSlide key={index} className="">
               <div>
                 <img
-                  src={`https://dev-app-bdt.su.ac.th/suadmin/assets/${item.image}`}
+                  src={`${BASE_URL}/assets/${item.image}`}
                   alt={item.title == '' || item.title == null ? item.image : item.title}
                   className="w-full rounded-lg"
                   width={960}
