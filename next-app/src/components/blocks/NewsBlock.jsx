@@ -28,7 +28,7 @@ export default function NewsBlock({ item, lang }) {
   }
 
   const url_news = BASE_URL
-  ? `${BASE_URL}/items/news?filter[status][_eq]=published&limit=${limit}`
+  ? `${BASE_URL}/items/news?filter[status][_eq]=published&limit=${limit}&sort=-date_updated`
   : null
 
   useEffect(() => {
@@ -53,8 +53,8 @@ export default function NewsBlock({ item, lang }) {
 
   return (
     <section 
-      className={`${item?.padding || ''} ${item?.padding_y || ''} 
-        ${item?.padding_x || ''} ${item?.align || ''} ${item?.max_w || ''} ${item?.gap || ''}`}
+      className={`${item?.padding || ''} ${item?.padding_y || ''} mx-auto
+        ${item?.padding_x || ''} ${item?.align || ''} max-w-${item?.max_w || ''} ${item?.gap || ''}`}
         style={item?.background_color ? { backgroundColor: item.background_color } : {}}
     >
       {/* title / content จาก block */}
@@ -79,21 +79,32 @@ export default function NewsBlock({ item, lang }) {
           {news.map(n => (
             <Link
               key={n.id ?? n.slug}
-              href={`/${lang}/news/${n.id}`}
-              className="block hover:shadow-lg transition-shadow duration-200"
+              href={`/news/${n.id}`}
+              className="block hover:shadow-lg transition-shadow duration-200 h-full"
             >
-              <div key={n.id} className={`${item?.rounded_news || ''} shadow`}>
+              <div key={n.id} className={`${item?.rounded_news || ''} shadow flex flex-col h-full`}>
                 <img
                   src={`${BASE_URL}/assets/${n.image}`}
                   alt={n.title}
                   className={`w-full h-48 object-cover mb-2 ${img_news_rounded || ''}`}
                 />
-                <h4 className="text-xl font-medium mb-2 py-2 px-4">
-                  {n.title}
-                </h4>
-                <h4 className="text-base px-2 pb-2 text-gray-600 px-4">
-                  {n.subtitle}
-                </h4>
+                <div className="flex flex-col flex-1 px-4 py-2">
+                  <h4 className="text-xl font-medium mb-2 line-clamp-2">
+                    {n.title}
+                  </h4>
+                  <h4 className="text-base pb-2 text-gray-600 line-clamp-3 flex-1">
+                    {n.subtitle}
+                  </h4>
+                  {n.date_updated && (
+                    <p className="text-sm text-gray-400 pb-3 mt-auto">
+                      {new Date(n.date_updated).toLocaleDateString('th-TH', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                      })}
+                    </p>
+                  )}
+                </div>
               </div>
             </Link>
           ))}
