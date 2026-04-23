@@ -116,11 +116,10 @@ export default function NewsBlock({ item, lang }) {
       )}
 
       {/* ปุ่มดูข่าวทั้งหมด */}
-      {!loading && item?.href && (
+      {!loading && (
         <div className="flex justify-center mt-8">
           <Link
-            href={item.href}
-            target={item.target || '_self'}
+            href="/news"
             className="inline-block px-8 py-3 rounded-lg font-medium text-white transition hover:opacity-80"
             style={{ backgroundColor: item?.background_color || '#308E85' }}
           >
