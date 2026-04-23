@@ -102,36 +102,16 @@ export async function getNewsDetailBySlug(slug) {
   if (!Number.isInteger(id)) return null
 
   const client = getDirectusClient()
-
-  // ดึง news โดยตรงด้วย single-item endpoint (GET /items/news/:id)
-  let newsItem
   try {
-    newsItem = await client.request(readItem('news', id))
-  } catch {
-    return null
-  }
-  if (!newsItem) return null
-
-  // ลองดึง content จาก news_detail ก่อน ถ้าไม่มีค่อย fallback ไปใช้ news.content
-  let content = newsItem.content ?? null
-  try {
-    const details = await client.request(
-      readItems('news_detail', {
-        filter: { news_id: { _eq: id } },
-        limit: 1,
-      })
-    )
-    if (details?.[0]?.content) {
-      content = details[0].content
+    const newsItem = await client.request(readItem('news', id))
+    if (!newsItem) return null
+    return {
+      id: newsItem.id,
+      slug,
+      content: newsItem.content ?? null,
+      parent: newsItem,
     }
   } catch {
-    // news_detail ไม่มีอยู่หรือไม่มี record ให้ใช้ news.content แทน
-  }
-
-  return {
-    id: newsItem.id,
-    slug,
-    content,
-    parent: newsItem,
+    return null
   }
 }
