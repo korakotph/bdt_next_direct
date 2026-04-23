@@ -1,11 +1,14 @@
-// app/layout.js
 import "@/styles/globals.css";
+import { getSiteSettings } from "@/lib/site-settings";
+import PopupNews from "@/components/NewsPopup";
 
 export const metadata = {
   charset: 'utf-8',
 }
 
-export default function RootLayout({ children }) {
+export default async function RootLayout({ children }) {
+  const setting = await getSiteSettings();
+
   return (
     <html lang="th">
       <head>
@@ -13,6 +16,7 @@ export default function RootLayout({ children }) {
       </head>
       <body>
         {children}
+        <PopupNews enabled={!!setting?.landing} />
       </body>
     </html>
   );
