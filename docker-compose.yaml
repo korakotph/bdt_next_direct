@@ -53,6 +53,7 @@ services:
       PUBLIC_URL: http://localhost:8056
     volumes:
       - ./directus/uploads:/directus/uploads
+      - ./directus/migrations:/directus/migrations
 
   nextjs:
     build:
