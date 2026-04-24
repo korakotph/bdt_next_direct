@@ -1,6 +1,5 @@
--- Migration: fix ALL FK constraints pointing to directus_users -> ON DELETE SET NULL
--- Uses pg_constraint (more reliable than information_schema for all FK types).
--- Covers both custom tables and Directus internal tables (directus_files etc.)
+-- Migration v2: re-run FK fix using pg_constraint (catches directus_files etc.)
+-- The previous migration used information_schema which missed some internal tables.
 
 DO $$
 DECLARE
