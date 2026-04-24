@@ -50,7 +50,9 @@ export default function MenuItem({ item, buildUrl, isActive, settings }) {
         {/* Parent Link */}
         <Link
             href={buildUrl(item.slug)}
-            className="px-4 py-2 hover:opacity-80 flex items-center gap-1 hover:underline underline-offset-6"
+            className={`px-4 py-2 hover:opacity-80 flex items-center gap-1 hover:underline underline-offset-6 ${
+                isActive(item.slug) ? 'font-medium' : 'font-light'
+            }`}
             style={{ color: settings?.text_color }}
             onMouseEnter={e => (e.target.style.color = settings?.text_color_hover)}
             onMouseLeave={e => (e.target.style.color = settings?.text_color)}
