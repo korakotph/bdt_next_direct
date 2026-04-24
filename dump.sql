@@ -9547,7 +9547,7 @@ ALTER TABLE ONLY public.banner
 --
 
 ALTER TABLE ONLY public.banner
-    ADD CONSTRAINT banner_user_created_foreign FOREIGN KEY (user_created) REFERENCES public.directus_users(id);
+    ADD CONSTRAINT banner_user_created_foreign FOREIGN KEY (user_created) REFERENCES public.directus_users(id) ON DELETE SET NULL;
 
 
 --
@@ -9555,7 +9555,7 @@ ALTER TABLE ONLY public.banner
 --
 
 ALTER TABLE ONLY public.banner
-    ADD CONSTRAINT banner_user_updated_foreign FOREIGN KEY (user_updated) REFERENCES public.directus_users(id);
+    ADD CONSTRAINT banner_user_updated_foreign FOREIGN KEY (user_updated) REFERENCES public.directus_users(id) ON DELETE SET NULL;
 
 
 --
@@ -9603,7 +9603,7 @@ ALTER TABLE ONLY public.block_items
 --
 
 ALTER TABLE ONLY public.block_items
-    ADD CONSTRAINT block_items_user_created_foreign FOREIGN KEY (user_created) REFERENCES public.directus_users(id);
+    ADD CONSTRAINT block_items_user_created_foreign FOREIGN KEY (user_created) REFERENCES public.directus_users(id) ON DELETE SET NULL;
 
 
 --
@@ -9611,7 +9611,7 @@ ALTER TABLE ONLY public.block_items
 --
 
 ALTER TABLE ONLY public.block_items
-    ADD CONSTRAINT block_items_user_updated_foreign FOREIGN KEY (user_updated) REFERENCES public.directus_users(id);
+    ADD CONSTRAINT block_items_user_updated_foreign FOREIGN KEY (user_updated) REFERENCES public.directus_users(id) ON DELETE SET NULL;
 
 
 --
@@ -9619,7 +9619,7 @@ ALTER TABLE ONLY public.block_items
 --
 
 ALTER TABLE ONLY public.block_types
-    ADD CONSTRAINT block_types_user_created_foreign FOREIGN KEY (user_created) REFERENCES public.directus_users(id);
+    ADD CONSTRAINT block_types_user_created_foreign FOREIGN KEY (user_created) REFERENCES public.directus_users(id) ON DELETE SET NULL;
 
 
 --
@@ -9627,7 +9627,7 @@ ALTER TABLE ONLY public.block_types
 --
 
 ALTER TABLE ONLY public.block_types
-    ADD CONSTRAINT block_types_user_updated_foreign FOREIGN KEY (user_updated) REFERENCES public.directus_users(id);
+    ADD CONSTRAINT block_types_user_updated_foreign FOREIGN KEY (user_updated) REFERENCES public.directus_users(id) ON DELETE SET NULL;
 
 
 --
@@ -9675,7 +9675,7 @@ ALTER TABLE ONLY public.directus_comments
 --
 
 ALTER TABLE ONLY public.directus_comments
-    ADD CONSTRAINT directus_comments_user_updated_foreign FOREIGN KEY (user_updated) REFERENCES public.directus_users(id);
+    ADD CONSTRAINT directus_comments_user_updated_foreign FOREIGN KEY (user_updated) REFERENCES public.directus_users(id) ON DELETE SET NULL;
 
 
 --
@@ -9739,7 +9739,7 @@ ALTER TABLE ONLY public.directus_files
 --
 
 ALTER TABLE ONLY public.directus_files
-    ADD CONSTRAINT directus_files_modified_by_foreign FOREIGN KEY (modified_by) REFERENCES public.directus_users(id);
+    ADD CONSTRAINT directus_files_modified_by_foreign FOREIGN KEY (modified_by) REFERENCES public.directus_users(id) ON DELETE SET NULL;
 
 
 --
@@ -9747,7 +9747,7 @@ ALTER TABLE ONLY public.directus_files
 --
 
 ALTER TABLE ONLY public.directus_files
-    ADD CONSTRAINT directus_files_uploaded_by_foreign FOREIGN KEY (uploaded_by) REFERENCES public.directus_users(id);
+    ADD CONSTRAINT directus_files_uploaded_by_foreign FOREIGN KEY (uploaded_by) REFERENCES public.directus_users(id) ON DELETE SET NULL;
 
 
 --
@@ -9779,7 +9779,7 @@ ALTER TABLE ONLY public.directus_notifications
 --
 
 ALTER TABLE ONLY public.directus_notifications
-    ADD CONSTRAINT directus_notifications_sender_foreign FOREIGN KEY (sender) REFERENCES public.directus_users(id);
+    ADD CONSTRAINT directus_notifications_sender_foreign FOREIGN KEY (sender) REFERENCES public.directus_users(id) ON DELETE SET NULL;
 
 
 --
@@ -10003,7 +10003,7 @@ ALTER TABLE ONLY public.directus_versions
 --
 
 ALTER TABLE ONLY public.directus_versions
-    ADD CONSTRAINT directus_versions_user_updated_foreign FOREIGN KEY (user_updated) REFERENCES public.directus_users(id);
+    ADD CONSTRAINT directus_versions_user_updated_foreign FOREIGN KEY (user_updated) REFERENCES public.directus_users(id) ON DELETE SET NULL;
 
 
 --
@@ -10019,7 +10019,7 @@ ALTER TABLE ONLY public.landing_page
 --
 
 ALTER TABLE ONLY public.landing_page
-    ADD CONSTRAINT landing_page_user_created_foreign FOREIGN KEY (user_created) REFERENCES public.directus_users(id);
+    ADD CONSTRAINT landing_page_user_created_foreign FOREIGN KEY (user_created) REFERENCES public.directus_users(id) ON DELETE SET NULL;
 
 
 --
@@ -10027,7 +10027,7 @@ ALTER TABLE ONLY public.landing_page
 --
 
 ALTER TABLE ONLY public.landing_page
-    ADD CONSTRAINT landing_page_user_updated_foreign FOREIGN KEY (user_updated) REFERENCES public.directus_users(id);
+    ADD CONSTRAINT landing_page_user_updated_foreign FOREIGN KEY (user_updated) REFERENCES public.directus_users(id) ON DELETE SET NULL;
 
 
 --
@@ -10043,7 +10043,7 @@ ALTER TABLE ONLY public.news
 --
 
 ALTER TABLE ONLY public.news
-    ADD CONSTRAINT news_user_created_foreign FOREIGN KEY (user_created) REFERENCES public.directus_users(id);
+    ADD CONSTRAINT news_user_created_foreign FOREIGN KEY (user_created) REFERENCES public.directus_users(id) ON DELETE SET NULL;
 
 
 --
@@ -10051,7 +10051,7 @@ ALTER TABLE ONLY public.news
 --
 
 ALTER TABLE ONLY public.news
-    ADD CONSTRAINT news_user_updated_foreign FOREIGN KEY (user_updated) REFERENCES public.directus_users(id);
+    ADD CONSTRAINT news_user_updated_foreign FOREIGN KEY (user_updated) REFERENCES public.directus_users(id) ON DELETE SET NULL;
 
 
 --
@@ -10067,7 +10067,7 @@ ALTER TABLE ONLY public.pages
 --
 
 ALTER TABLE ONLY public.pages
-    ADD CONSTRAINT pages_user_created_foreign FOREIGN KEY (user_created) REFERENCES public.directus_users(id);
+    ADD CONSTRAINT pages_user_created_foreign FOREIGN KEY (user_created) REFERENCES public.directus_users(id) ON DELETE SET NULL;
 
 
 --
@@ -10075,7 +10075,7 @@ ALTER TABLE ONLY public.pages
 --
 
 ALTER TABLE ONLY public.pages
-    ADD CONSTRAINT pages_user_updated_foreign FOREIGN KEY (user_updated) REFERENCES public.directus_users(id);
+    ADD CONSTRAINT pages_user_updated_foreign FOREIGN KEY (user_updated) REFERENCES public.directus_users(id) ON DELETE SET NULL;
 
 
 --
@@ -10091,7 +10091,7 @@ ALTER TABLE ONLY public.person
 --
 
 ALTER TABLE ONLY public.person
-    ADD CONSTRAINT person_user_created_foreign FOREIGN KEY (user_created) REFERENCES public.directus_users(id);
+    ADD CONSTRAINT person_user_created_foreign FOREIGN KEY (user_created) REFERENCES public.directus_users(id) ON DELETE SET NULL;
 
 
 --
@@ -10099,7 +10099,7 @@ ALTER TABLE ONLY public.person
 --
 
 ALTER TABLE ONLY public.person
-    ADD CONSTRAINT person_user_updated_foreign FOREIGN KEY (user_updated) REFERENCES public.directus_users(id);
+    ADD CONSTRAINT person_user_updated_foreign FOREIGN KEY (user_updated) REFERENCES public.directus_users(id) ON DELETE SET NULL;
 
 
 --
@@ -10115,7 +10115,7 @@ ALTER TABLE ONLY public."Site_Settings"
 --
 
 ALTER TABLE ONLY public."Site_Settings"
-    ADD CONSTRAINT site_settings_user_created_foreign FOREIGN KEY (user_created) REFERENCES public.directus_users(id);
+    ADD CONSTRAINT site_settings_user_created_foreign FOREIGN KEY (user_created) REFERENCES public.directus_users(id) ON DELETE SET NULL;
 
 
 --
@@ -10123,7 +10123,7 @@ ALTER TABLE ONLY public."Site_Settings"
 --
 
 ALTER TABLE ONLY public."Site_Settings"
-    ADD CONSTRAINT site_settings_user_updated_foreign FOREIGN KEY (user_updated) REFERENCES public.directus_users(id);
+    ADD CONSTRAINT site_settings_user_updated_foreign FOREIGN KEY (user_updated) REFERENCES public.directus_users(id) ON DELETE SET NULL;
 
 
 --
