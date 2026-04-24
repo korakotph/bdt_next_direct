@@ -23,9 +23,17 @@
 ### 1. Clone โปรเจกต์
 
 ```bash
+# clone พร้อมตั้งชื่อโฟลเดอร์เอง (แนะนำ)
+git clone https://github.com/korakotph/bdt_next_direct.git ชื่อโฟลเดอร์
+cd ชื่อโฟลเดอร์
+
+# หรือใช้ชื่อ default
 git clone https://github.com/korakotph/bdt_next_direct.git
 cd bdt_next_direct
 ```
+
+> **ชื่อโฟลเดอร์สำคัญ** — `install.exe` จะใช้ชื่อโฟลเดอร์เป็น prefix ของ container
+> เช่น โฟลเดอร์ชื่อ `mysite` → container จะเป็น `mysite_db`, `mysite_directus`, `mysite_nextjs`
 
 ---
 
