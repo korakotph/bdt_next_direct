@@ -36,50 +36,33 @@ git clone https://github.com/korakotph/bdt_next_direct.git ชื่อโฟล
 cd ชื่อโฟลเดอร์
 ```
 
-> **ชื่อโฟลเดอร์สำคัญ** — `install.exe` จะใช้ชื่อโฟลเดอร์เป็น prefix ของ container
+> **ชื่อโฟลเดอร์สำคัญ** — `install.bat` จะใช้ชื่อโฟลเดอร์เป็น prefix ของ container
 > เช่น โฟลเดอร์ชื่อ `mysite` → container จะเป็น `mysite_db`, `mysite_directus`, `mysite_nextjs`
 
 ---
 
-## วิธีติดตั้งแบบ One-Click (install.exe)
+## วิธีติดตั้งแบบ One-Click
 
-สำหรับผู้ที่ต้องการติดตั้งแบบอัตโนมัติโดยไม่ต้องแก้ไขไฟล์ใดๆ
+> ต้องการแค่ **Docker Desktop** เท่านั้น — ไม่ต้องติดตั้ง Python หรือ Node.js
 
-### ข้อกำหนด
-- Docker Desktop เปิดอยู่
-- Python 3.10+ (ใช้สำหรับ build เท่านั้น)
+### 2. Double-click `install.bat`
 
-### Build .exe ครั้งแรก
-
-```bat
-cd installer
-build.bat
-```
-
-สคริปต์จะ install PyInstaller + pyyaml แล้ว compile:
-- `install.exe` — ติดตั้งระบบอัตโนมัติ
-- `export_data.exe` — export ข้อมูลและไฟล์
-
-### ใช้งาน install.exe
-
-Double-click `install.exe` จากโฟลเดอร์โปรเจกต์ โปรแกรมจะ:
-1. ตั้งชื่อ container ตามชื่อโฟลเดอร์อัตโนมัติ
+โปรแกรมจะทำทุกอย่างอัตโนมัติ:
+1. ตั้งชื่อ container ตามชื่อโฟลเดอร์
 2. หา port ที่ว่าง (เริ่มจาก 5433 / 8056 / 3012)
 3. อัปเดต `docker-compose.yaml` และ backup เป็น `.bak`
 4. `docker compose up -d --build`
 5. Import `dump.sql` เข้า PostgreSQL
 6. Restart Directus เพื่อโหลด schema ใหม่
+7. แสดง URL และ login ที่ใช้งานได้เลย
 
-### ใช้งาน export_data.exe
+### Export ข้อมูล
 
-Double-click `export_data.exe` โปรแกรมจะ export:
+Double-click `export_data.bat` เพื่อ export:
 - `dump.sql` — database ทั้งหมด
 - `uploads/` — ไฟล์จาก Directus
 
-บีบอัดลงไฟล์ `export_YYYYMMDD_HHMMSS.zip`
-
-> **หมายเหตุ:** ไฟล์ `.exe` ไม่ได้อยู่ใน repository (อยู่ใน `.gitignore`)
-> ต้อง build เองบนเครื่อง Windows ด้วย `installer/build.bat`
+บีบอัดลงไฟล์ `export_YYYYMMDD_HHMMSS.zip` โดยอัตโนมัติ
 
 ---
 

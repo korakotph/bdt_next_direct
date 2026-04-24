@@ -1,4 +1,4 @@
-# Compiled executables (build locally via installer/build.bat)
+# Compiled executables (optional — build via installer/build.bat)
 install.exe
 export_data.exe
 
