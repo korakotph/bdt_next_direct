@@ -1,4 +1,4 @@
-# installer/export_data.ps1
+# scripts/export_data.ps1
 
 param([string]$ProjectDir = (Split-Path $PSScriptRoot -Parent))
 

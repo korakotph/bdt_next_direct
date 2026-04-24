@@ -25,8 +25,8 @@ if errorlevel 1 (
 )
 echo [OK] dependencies พร้อม
 
-:: ── output ไปที่โฟลเดอร์โปรเจกต์ (หนึ่งระดับเหนือ installer\) ──
-set OUT_DIR=%~dp0..
+:: ── output ไปที่โฟลเดอร์โปรเจกต์ (สองระดับเหนือ scripts\build\) ──
+set OUT_DIR=%~dp0..\..
 
 echo.
 echo Build install.exe ...

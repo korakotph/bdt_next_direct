@@ -1,4 +1,4 @@
-# installer/install.ps1
+# scripts/install.ps1
 
 param([string]$ProjectDir = (Split-Path $PSScriptRoot -Parent))
 
@@ -142,6 +142,10 @@ try {
 
         $dumpPath = Join-Path $ProjectDir "dump.sql"
         if (Test-Path $dumpPath) {
+            Write-Step "Resetting database schema"
+            docker exec $pgContainer psql -U directus -d directus -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public; GRANT ALL ON SCHEMA public TO directus; GRANT ALL ON SCHEMA public TO public;"
+            Write-Ok "Schema reset"
+
             Write-Step "Importing database (dump.sql)"
             cmd /c "docker exec -i $pgContainer psql -U directus -d directus < `"$dumpPath`""
             if ($LASTEXITCODE -eq 0) {

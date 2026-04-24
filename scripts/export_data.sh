@@ -1,5 +1,5 @@
 #!/bin/bash
-# installer/export_data.sh — ใช้กับ Mac / Linux
+# scripts/export_data.sh — ใช้กับ Mac / Linux
 
 set -euo pipefail
 

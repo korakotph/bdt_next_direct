@@ -2,8 +2,6 @@
 -- PostgreSQL database dump
 --
 
-\restrict FQedGnds3Ic6aVNIfJRkux79oZjMeq5ADupL5gtSNuztkN97XIE3A3M2hIcgYbM
-
 -- Dumped from database version 16.11 (Debian 16.11-1.pgdg13+1)
 -- Dumped by pg_dump version 16.11 (Debian 16.11-1.pgdg13+1)
 

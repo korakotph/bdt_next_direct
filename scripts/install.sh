@@ -1,5 +1,5 @@
 #!/bin/bash
-# installer/install.sh — ใช้กับ Mac / Linux
+# scripts/install.sh — ใช้กับ Mac / Linux
 
 set -euo pipefail
 
@@ -126,6 +126,11 @@ else
     ok "PostgreSQL พร้อมแล้ว"
 
     if [ -f "dump.sql" ]; then
+        step "Reset database schema"
+        docker exec "$PG_CONTAINER" psql -U directus -d directus \
+            -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public; GRANT ALL ON SCHEMA public TO directus; GRANT ALL ON SCHEMA public TO public;"
+        ok "Schema reset แล้ว"
+
         step "Import database (dump.sql)"
         if docker exec -i "$PG_CONTAINER" psql -U directus -d directus < dump.sql; then
             ok "Import สำเร็จ"
