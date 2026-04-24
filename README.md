@@ -45,7 +45,14 @@ cd ชื่อโฟลเดอร์
 
 > ต้องการแค่ **Docker Desktop** เท่านั้น — ไม่ต้องติดตั้ง Python หรือ Node.js
 
-### 2. Double-click `install.bat`
+### 2. Double-click ไฟล์ติดตั้ง
+
+| OS | ติดตั้ง | Export ข้อมูล |
+|---|---|---|
+| **Windows** | `install.bat` | `export_data.bat` |
+| **Mac** | `install.command` | `export_data.command` |
+
+> **Mac:** ครั้งแรกอาจต้อง Right-click → Open เพื่ออนุญาต Gatekeeper
 
 โปรแกรมจะทำทุกอย่างอัตโนมัติ:
 1. ตั้งชื่อ container ตามชื่อโฟลเดอร์
@@ -58,7 +65,7 @@ cd ชื่อโฟลเดอร์
 
 ### Export ข้อมูล
 
-Double-click `export_data.bat` เพื่อ export:
+Double-click `export_data.bat` (Windows) หรือ `export_data.command` (Mac) โปรแกรมจะ export:
 - `dump.sql` — database ทั้งหมด
 - `uploads/` — ไฟล์จาก Directus
 

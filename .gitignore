@@ -10,6 +10,9 @@ installer/build/
 export_*.zip
 _export_*/
 
+# macOS
+.DS_Store
+
 # Docker Compose backup
 docker-compose.yaml.bak
 
