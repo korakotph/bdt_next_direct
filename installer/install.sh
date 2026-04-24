@@ -99,10 +99,14 @@ perl -i -pe "s/\Q${VOL_OLD}\E/${PREFIX}_postgres_data/g" docker-compose.yaml
 ok "เสร็จแล้ว"
 PG_CONTAINER="${PREFIX}_db"
 
-# ── Build + Start ─────────────────────────────────────────────
-step "Build และ Start containers  (อาจใช้เวลาหลายนาที)"
-docker compose up -d --build || { err "docker compose up ล้มเหลว"; pause_exit; }
-ok "Containers กำลังรัน"
+# ── Build Next.js image first ─────────────────────────────────
+step "Build Next.js image (อาจใช้เวลาหลายนาที)"
+docker compose build nextjs || { err "docker compose build ล้มเหลว"; pause_exit; }
+ok "Build เสร็จแล้ว"
+
+# ── Start PostgreSQL only — import dump BEFORE Directus runs migrations ──
+step "เริ่ม PostgreSQL"
+docker compose up -d postgres || { err "ไม่สามารถเริ่ม postgres ได้"; pause_exit; }
 
 # ── Wait for PostgreSQL ───────────────────────────────────────
 step "รอ PostgreSQL พร้อม"
@@ -125,17 +129,20 @@ else
         step "Import database (dump.sql)"
         if docker exec -i "$PG_CONTAINER" psql -U directus -d directus < dump.sql; then
             ok "Import สำเร็จ"
-            step "Restart Directus เพื่อโหลด schema ใหม่"
-            docker compose restart directus &>/dev/null
-            ok "รอ 10 วินาที..."
-            sleep 10
         else
-            warn "Import อาจมีปัญหา — ตรวจสอบ: docker compose logs directus"
+            warn "Import อาจมีปัญหาบางส่วน — ดำเนินการต่อ"
         fi
     else
         warn "ไม่พบ dump.sql — ข้ามการ import"
     fi
 fi
+
+# ── Start remaining services (Directus finds DB already populated) ────
+step "เริ่ม Directus และ Next.js"
+docker compose up -d || { err "ไม่สามารถเริ่ม containers ทั้งหมดได้"; pause_exit; }
+ok "Containers ทั้งหมดกำลังรัน"
+step "รอ 15 วินาที ให้ Directus initialize..."
+sleep 15
 
 # ── Summary ───────────────────────────────────────────────────
 echo -e "\n${C_CYAN}${SEP}${C_RESET}"

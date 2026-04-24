@@ -104,20 +104,25 @@ try {
     $pgContainer = Update-Compose $composePath $prefix $pgPort $dirPort $nextPort
     Write-Ok "Done"
 
-    # build + start (retry 3x for network timeouts)
-    Write-Step "Building and starting containers (may take several minutes)"
+    # build nextjs image first (so it's ready when we start all services)
+    Write-Step "Building Next.js image (may take several minutes)"
     $built = $false
     for ($attempt = 1; $attempt -le 3; $attempt++) {
         if ($attempt -gt 1) {
             Write-Warn "Retry $attempt/3 (waiting 10s)..."
             Start-Sleep 10
         }
-        docker compose up -d --build
+        docker compose build nextjs
         if ($LASTEXITCODE -eq 0) { $built = $true; break }
         Write-Warn "Attempt $attempt failed"
     }
-    if (-not $built) { Pause-Exit "docker compose up failed after 3 attempts. Check log above." }
-    Write-Ok "Containers are running"
+    if (-not $built) { Pause-Exit "docker compose build failed after 3 attempts. Check log above." }
+    Write-Ok "Build complete"
+
+    # start postgres only — import dump BEFORE Directus runs migrations
+    Write-Step "Starting PostgreSQL"
+    docker compose up -d postgres
+    if ($LASTEXITCODE -ne 0) { Pause-Exit "Failed to start postgres container." }
 
     # wait for postgres
     Write-Step "Waiting for PostgreSQL"
@@ -141,17 +146,21 @@ try {
             cmd /c "docker exec -i $pgContainer psql -U directus -d directus < `"$dumpPath`""
             if ($LASTEXITCODE -eq 0) {
                 Write-Ok "Import successful"
-                Write-Step "Restarting Directus to reload schema"
-                docker compose restart directus | Out-Null
-                Write-Ok "Waiting 10 seconds..."
-                Start-Sleep 10
             } else {
-                Write-Warn "Import may have failed - check: docker compose logs directus"
+                Write-Warn "Import may have had errors - continuing anyway"
             }
         } else {
             Write-Warn "dump.sql not found - skipping import"
         }
     }
+
+    # now start all remaining services (Directus finds DB already populated)
+    Write-Step "Starting Directus and Next.js"
+    docker compose up -d
+    if ($LASTEXITCODE -ne 0) { Pause-Exit "Failed to start all containers." }
+    Write-Ok "All containers are running"
+    Write-Step "Waiting 15 seconds for Directus to initialize..."
+    Start-Sleep 15
 
     Write-Host ("`n" + "=" * 54) -ForegroundColor Cyan
     Write-Host "  INSTALL COMPLETE!" -ForegroundColor Green
