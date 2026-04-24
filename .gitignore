@@ -21,3 +21,5 @@ docker-compose.yaml.bak
 Thumbs.db
 *.swp
 .env.local
+install_log.txt
+export_log.txt
