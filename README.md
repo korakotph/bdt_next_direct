@@ -13,23 +13,27 @@
 |---|---|---|
 | Docker Desktop | 24+ | https://www.docker.com/products/docker-desktop |
 | Docker Compose | 2.x (มาพร้อม Docker Desktop) | — |
-| Node.js | 20+ | https://nodejs.org |
-| Git | ล่าสุด | https://git-scm.com |
 
 ---
 
 ## วิธีติดตั้ง
 
-### 1. Clone โปรเจกต์
+### 1. ดาวน์โหลดโปรเจกต์
+
+เลือกวิธีใดวิธีหนึ่ง:
+
+**วิธีที่ 1 — Download ZIP (ไม่ต้องติดตั้ง Git)**
+
+1. เปิด https://github.com/korakotph/bdt_next_direct
+2. คลิก **Code → Download ZIP**
+3. แตกไฟล์ ZIP
+4. เปลี่ยนชื่อโฟลเดอร์เป็นชื่อที่ต้องการ
+
+**วิธีที่ 2 — Git Clone (ต้องติดตั้ง [Git](https://git-scm.com) ก่อน)**
 
 ```bash
-# clone พร้อมตั้งชื่อโฟลเดอร์เอง (แนะนำ)
 git clone https://github.com/korakotph/bdt_next_direct.git ชื่อโฟลเดอร์
 cd ชื่อโฟลเดอร์
-
-# หรือใช้ชื่อ default
-git clone https://github.com/korakotph/bdt_next_direct.git
-cd bdt_next_direct
 ```
 
 > **ชื่อโฟลเดอร์สำคัญ** — `install.exe` จะใช้ชื่อโฟลเดอร์เป็น prefix ของ container
