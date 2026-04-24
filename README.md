@@ -67,7 +67,7 @@ cd ชื่อโฟลเดอร์
 
 Double-click `export_data.bat` (Windows) หรือ `export_data.command` (Mac) โปรแกรมจะ export:
 - `dump.sql` — database ทั้งหมด
-- `uploads/` — ไฟล์จาก Directus
+- `directus/uploads/` — ไฟล์จาก Directus (แตก zip ทับโฟลเดอร์โปรเจกต์ได้เลย)
 
 บีบอัดลงไฟล์ `export_YYYYMMDD_HHMMSS.zip` โดยอัตโนมัติ
 
