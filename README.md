@@ -189,8 +189,16 @@ docker compose logs -f directus
 
 ## ปัญหาที่พบบ่อย
 
+**install.bat ปิดหน้าต่างก่อนอ่าน error ทัน**
+> ดูรายละเอียด error ทั้งหมดได้ที่ไฟล์ `install_log.txt` ในโฟลเดอร์โปรเจกต์
+> หรือรัน install.bat ใหม่ — หน้าต่างจะค้างอยู่ให้อ่าน error ได้
+
+**install.bat error เรื่อง network / connection**
+> `docker compose up` อาจ timeout ขณะ pull image จาก Docker Hub
+> โปรแกรมจะลองใหม่อัตโนมัติ 3 ครั้ง ถ้ายังไม่ได้ให้ตรวจสอบ internet แล้วรัน install.bat อีกครั้ง
+
 **Port ชนกัน**
-> ถ้า port `3012`, `8056`, หรือ `5433` ถูกใช้งานแล้ว ให้แก้ไข port mapping ใน `docker-compose.yaml`
+> `install.bat` จะหา port ที่ว่างให้อัตโนมัติ ไม่ต้องแก้ไขเอง
 
 **Directus ยังไม่พร้อม**
 > Directus ต้องการเวลา initialize ฐานข้อมูลครั้งแรก รอสัก 30–60 วินาที แล้วลอง refresh
