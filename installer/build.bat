@@ -17,7 +17,7 @@ echo [OK] พบ Python
 :: ── ติดตั้ง dependencies ────────────────────────────────
 echo.
 echo ติดตั้ง dependencies...
-pip install -r "%~dp0requirements.txt" --quiet
+python -m pip install -r "%~dp0requirements.txt" --quiet
 if errorlevel 1 (
     echo [ERROR] pip install ล้มเหลว
     pause
@@ -30,7 +30,7 @@ set OUT_DIR=%~dp0..
 
 echo.
 echo Build install.exe ...
-pyinstaller --onefile --console --clean ^
+python -m PyInstaller --onefile --console --clean ^
     --name install ^
     --distpath "%OUT_DIR%" ^
     --workpath "%~dp0build\install" ^
@@ -45,7 +45,7 @@ echo [OK] install.exe สร้างสำเร็จ
 
 echo.
 echo Build export_data.exe ...
-pyinstaller --onefile --console --clean ^
+python -m PyInstaller --onefile --console --clean ^
     --name export_data ^
     --distpath "%OUT_DIR%" ^
     --workpath "%~dp0build\export_data" ^
