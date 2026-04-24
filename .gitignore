@@ -1,0 +1,20 @@
+# Compiled executables (build locally via installer/build.bat)
+install.exe
+export_data.exe
+
+# PyInstaller build cache
+installer/build/
+*.spec
+
+# Export archives
+export_*.zip
+_export_*/
+
+# Docker Compose backup
+docker-compose.yaml.bak
+
+# OS / editor
+.DS_Store
+Thumbs.db
+*.swp
+.env.local
