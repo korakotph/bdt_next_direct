@@ -83,11 +83,12 @@ try {
     Write-Step "Exporting uploads"
     $uploadsSrc = Join-Path $ProjectDir "directus\uploads"
     if (Test-Path $uploadsSrc) {
-        $uploadsDst = Join-Path $exportDir "uploads"
+        $uploadsDst = Join-Path $exportDir "directus\uploads"
+        New-Item -ItemType Directory -Path (Split-Path $uploadsDst -Parent) -Force | Out-Null
         Copy-Item $uploadsSrc $uploadsDst -Recurse
         $fc = (Get-ChildItem $uploadsDst -Recurse -File).Count
         Write-Ok "uploads/  ($fc files)"
-        $parts += 'uploads/'
+        $parts += 'directus/uploads/'
     } else {
         Write-Warn "directus\uploads\ not found - skipping"
     }

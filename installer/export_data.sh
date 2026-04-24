@@ -66,10 +66,11 @@ fi
 step "Export uploads"
 UPLOADS_SRC="$PROJECT_DIR/directus/uploads"
 if [ -d "$UPLOADS_SRC" ]; then
-    cp -r "$UPLOADS_SRC" "$EXPORT_DIR/uploads"
-    FC=$(find "$EXPORT_DIR/uploads" -type f | wc -l | tr -d ' ')
-    ok "uploads/  ($FC files)"
-    PARTS+=("uploads/")
+    mkdir -p "$EXPORT_DIR/directus"
+    cp -r "$UPLOADS_SRC" "$EXPORT_DIR/directus/uploads"
+    FC=$(find "$EXPORT_DIR/directus/uploads" -type f | wc -l | tr -d ' ')
+    ok "directus/uploads/  ($FC files)"
+    PARTS+=("directus/uploads/")
 else
     warn "ไม่พบ directus/uploads/ — ข้าม"
 fi
