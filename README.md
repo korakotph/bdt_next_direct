@@ -29,6 +29,48 @@ cd bdt_next_direct
 
 ---
 
+## วิธีติดตั้งแบบ One-Click (install.exe)
+
+สำหรับผู้ที่ต้องการติดตั้งแบบอัตโนมัติโดยไม่ต้องแก้ไขไฟล์ใดๆ
+
+### ข้อกำหนด
+- Docker Desktop เปิดอยู่
+- Python 3.10+ (ใช้สำหรับ build เท่านั้น)
+
+### Build .exe ครั้งแรก
+
+```bat
+cd installer
+build.bat
+```
+
+สคริปต์จะ install PyInstaller + pyyaml แล้ว compile:
+- `install.exe` — ติดตั้งระบบอัตโนมัติ
+- `export_data.exe` — export ข้อมูลและไฟล์
+
+### ใช้งาน install.exe
+
+Double-click `install.exe` จากโฟลเดอร์โปรเจกต์ โปรแกรมจะ:
+1. ตั้งชื่อ container ตามชื่อโฟลเดอร์อัตโนมัติ
+2. หา port ที่ว่าง (เริ่มจาก 5433 / 8056 / 3012)
+3. อัปเดต `docker-compose.yaml` และ backup เป็น `.bak`
+4. `docker compose up -d --build`
+5. Import `dump.sql` เข้า PostgreSQL
+6. Restart Directus เพื่อโหลด schema ใหม่
+
+### ใช้งาน export_data.exe
+
+Double-click `export_data.exe` โปรแกรมจะ export:
+- `dump.sql` — database ทั้งหมด
+- `uploads/` — ไฟล์จาก Directus
+
+บีบอัดลงไฟล์ `export_YYYYMMDD_HHMMSS.zip`
+
+> **หมายเหตุ:** ไฟล์ `.exe` ไม่ได้อยู่ใน repository (อยู่ใน `.gitignore`)
+> ต้อง build เองบนเครื่อง Windows ด้วย `installer/build.bat`
+
+---
+
 ## วิธีรัน — เลือกหนึ่งวิธี
 
 ---
