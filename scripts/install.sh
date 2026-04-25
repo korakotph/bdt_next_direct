@@ -157,8 +157,44 @@ fi
 step "เริ่ม Directus และ Next.js"
 docker compose up -d || { err "ไม่สามารถเริ่ม containers ทั้งหมดได้"; pause_exit; }
 ok "Containers ทั้งหมดกำลังรัน"
-step "รอ 15 วินาที ให้ Directus initialize..."
-sleep 15
+
+# ── Wait for Directus health endpoint ────────────────────────
+step "รอ Directus พร้อม"
+DIR_READY=false
+for i in $(seq 1 40); do
+    if curl -sf "http://localhost:${DIR_PORT}/server/health" &>/dev/null; then
+        DIR_READY=true; break
+    fi
+    printf "\r   รอ... (%s/40)" "$i"
+    sleep 3
+done
+echo ""
+
+# ── Update admin credentials via Directus API ─────────────────
+if [ "$DIR_READY" = true ]; then
+    ok "Directus พร้อมแล้ว"
+
+    if [ "$ADMIN_EMAIL" != "admin@example.com" ] || [ "$ADMIN_PASS" != "admin123" ]; then
+        step "อัปเดต admin credentials"
+        LOGIN_RESP=$(curl -sf -X POST "http://localhost:${DIR_PORT}/auth/login" \
+            -H "Content-Type: application/json" \
+            -d '{"email":"admin@example.com","password":"admin123"}' 2>/dev/null || true)
+        TOKEN=$(echo "$LOGIN_RESP" | grep -o '"access_token":"[^"]*"' | cut -d'"' -f4)
+
+        if [ -n "$TOKEN" ]; then
+            PATCH_BODY=$(printf '{"email":"%s","password":"%s"}' "$ADMIN_EMAIL" "$ADMIN_PASS")
+            curl -sf -X PATCH "http://localhost:${DIR_PORT}/users/me" \
+                -H "Authorization: Bearer $TOKEN" \
+                -H "Content-Type: application/json" \
+                -d "$PATCH_BODY" &>/dev/null
+            ok "อัปเดต credentials เรียบร้อย"
+        else
+            warn "Login ด้วย default credentials ไม่ได้ — กรุณาเปลี่ยน password ใน Directus admin เอง"
+        fi
+    fi
+else
+    warn "Directus ไม่ตอบสนอง — กรุณาตรวจสอบ: docker compose logs directus"
+fi
 
 # ── Summary ───────────────────────────────────────────────────
 echo -e "\n${C_CYAN}${SEP}${C_RESET}"
@@ -169,8 +205,8 @@ echo "  Frontend  :  http://localhost:$NEXT_PORT"
 echo "  Directus  :  http://localhost:$DIR_PORT"
 echo ""
 echo "  Directus login"
-echo "    Email    :  admin@example.com"
-echo "    Password :  admin123"
+echo "    Email    :  $ADMIN_EMAIL"
+echo "    Password :  $ADMIN_PASS"
 echo ""
 echo "  Container names"
 echo "    ${PREFIX}_db  /  ${PREFIX}_directus  /  ${PREFIX}_nextjs"

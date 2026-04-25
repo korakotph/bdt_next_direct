@@ -174,8 +174,49 @@ try {
     docker compose up -d
     if ($LASTEXITCODE -ne 0) { Pause-Exit "Failed to start all containers." }
     Write-Ok "All containers are running"
-    Write-Step "Waiting 15 seconds for Directus to initialize..."
-    Start-Sleep 15
+
+    # wait for Directus health endpoint
+    Write-Step "Waiting for Directus to be ready"
+    $dirReady = $false
+    for ($i = 1; $i -le 40; $i++) {
+        try {
+            $h = Invoke-WebRequest -Uri "http://localhost:${dirPort}/server/health" `
+                 -UseBasicParsing -TimeoutSec 2 -ErrorAction Stop
+            if ($h.StatusCode -eq 200) { $dirReady = $true; break }
+        } catch {}
+        Write-Host "`r   Waiting... ($i/40)" -NoNewline
+        Start-Sleep 3
+    }
+    Write-Host ""
+
+    # update admin credentials via Directus API
+    if ($dirReady) {
+        Write-Ok "Directus is ready"
+
+        if ($adminEmail -ne "admin@example.com" -or $adminPass -ne "admin123") {
+            Write-Step "Updating admin credentials"
+            try {
+                $loginBody = '{"email":"admin@example.com","password":"admin123"}'
+                $loginResp = Invoke-RestMethod -Uri "http://localhost:${dirPort}/auth/login" `
+                    -Method POST -Body $loginBody -ContentType "application/json"
+                $token = $loginResp.data.access_token
+
+                if ($token) {
+                    $patchBody = "{`"email`":`"${adminEmail}`",`"password`":`"${adminPass}`"}"
+                    Invoke-RestMethod -Uri "http://localhost:${dirPort}/users/me" `
+                        -Method PATCH -Body $patchBody -ContentType "application/json" `
+                        -Headers @{ Authorization = "Bearer $token" } | Out-Null
+                    Write-Ok "Credentials updated successfully"
+                } else {
+                    Write-Warn "Could not get token - please change password in Directus admin"
+                }
+            } catch {
+                Write-Warn "Could not update credentials via API: $_ - please change in Directus admin"
+            }
+        }
+    } else {
+        Write-Warn "Directus did not respond - check: docker compose logs directus"
+    }
 
     Write-Host ("`n" + "=" * 54) -ForegroundColor Cyan
     Write-Host "  INSTALL COMPLETE!" -ForegroundColor Green
