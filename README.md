@@ -13,19 +13,73 @@
 |---|---|---|
 | Docker Desktop | 24+ | https://www.docker.com/products/docker-desktop |
 | Docker Compose | 2.x (มาพร้อม Docker Desktop) | — |
-| Node.js | 20+ | https://nodejs.org |
-| Git | ล่าสุด | https://git-scm.com |
 
 ---
 
 ## วิธีติดตั้ง
 
-### 1. Clone โปรเจกต์
+### 1. ดาวน์โหลดโปรเจกต์
+
+เลือกวิธีใดวิธีหนึ่ง:
+
+**วิธีที่ 1 — Download ZIP (ไม่ต้องติดตั้ง Git)**
+
+1. เปิด https://github.com/korakotph/bdt_next_direct
+2. คลิก **Code → Download ZIP**
+3. แตกไฟล์ ZIP
+4. เปลี่ยนชื่อโฟลเดอร์เป็นชื่อที่ต้องการ
+
+**วิธีที่ 2 — Git Clone (ต้องติดตั้ง [Git](https://git-scm.com) ก่อน)**
 
 ```bash
-git clone https://github.com/korakotph/bdt_next_direct.git
-cd bdt_next_direct
+git clone https://github.com/korakotph/bdt_next_direct.git ชื่อโฟลเดอร์
+cd ชื่อโฟลเดอร์
 ```
+
+> **ชื่อโฟลเดอร์สำคัญ** — `install.bat` จะใช้ชื่อโฟลเดอร์เป็น prefix ของ container
+> เช่น โฟลเดอร์ชื่อ `mysite` → container จะเป็น `mysite_db`, `mysite_directus`, `mysite_nextjs`
+
+---
+
+## วิธีติดตั้งแบบ One-Click
+
+> ต้องการแค่ **Docker Desktop** เท่านั้น — ไม่ต้องติดตั้ง Python หรือ Node.js
+
+### 2. Double-click ไฟล์ติดตั้ง
+
+| OS | ติดตั้ง | Export ข้อมูล | อัปเดต dump.sql |
+|---|---|---|---|
+| **Windows** | `install.bat` | `export_data.bat` | `update_dump.bat` |
+| **Mac** | `install.command` | `export_data.command` | `update_dump.command` |
+
+> **Mac:** ครั้งแรกอาจต้อง Right-click → Open เพื่ออนุญาต Gatekeeper
+
+โปรแกรมจะทำทุกอย่างอัตโนมัติ:
+1. ตั้งชื่อ container ตามชื่อโฟลเดอร์
+2. ขอ Admin email และ password (กด Enter เพื่อใช้ค่า default)
+3. หา port ที่ว่าง (เริ่มจาก 5433 / 8056 / 3012)
+4. อัปเดต `docker-compose.yaml` และ backup เป็น `.bak`
+5. `docker compose up -d --build`
+6. Import `dump.sql` เข้า PostgreSQL
+7. Restart Directus เพื่อโหลด schema ใหม่
+8. แสดง URL และ login ที่ใช้งานได้เลย
+
+### Export ข้อมูล
+
+Double-click `export_data.bat` (Windows) หรือ `export_data.command` (Mac) โปรแกรมจะ export:
+- `dump.sql` — database ทั้งหมด
+- `directus/uploads/` — ไฟล์จาก Directus (แตก zip ทับโฟลเดอร์โปรเจกต์ได้เลย)
+
+บีบอัดลงไฟล์ `export_YYYYMMDD_HHMMSS.zip` โดยอัตโนมัติ
+
+### อัปเดต dump.sql (เมื่อข้อมูลใน database เปลี่ยน)
+
+Double-click `update_dump.bat` (Windows) หรือ `update_dump.command` (Mac) โปรแกรมจะ:
+1. Export database ปัจจุบันมาแทนที่ `dump.sql`
+2. Patch FK constraints ให้ `ON DELETE SET NULL` อัตโนมัติ
+3. Backup `dump.sql` เดิมไว้เป็น `dump.sql.bak`
+
+จากนั้น commit และ push `dump.sql` เพื่ออัปเดต repo
 
 ---
 
@@ -145,8 +199,16 @@ docker compose logs -f directus
 
 ## ปัญหาที่พบบ่อย
 
+**install.bat ปิดหน้าต่างก่อนอ่าน error ทัน**
+> ดูรายละเอียด error ทั้งหมดได้ที่ไฟล์ `install_log.txt` ในโฟลเดอร์โปรเจกต์
+> หรือรัน install.bat ใหม่ — หน้าต่างจะค้างอยู่ให้อ่าน error ได้
+
+**install.bat error เรื่อง network / connection**
+> `docker compose up` อาจ timeout ขณะ pull image จาก Docker Hub
+> โปรแกรมจะลองใหม่อัตโนมัติ 3 ครั้ง ถ้ายังไม่ได้ให้ตรวจสอบ internet แล้วรัน install.bat อีกครั้ง
+
 **Port ชนกัน**
-> ถ้า port `3012`, `8056`, หรือ `5433` ถูกใช้งานแล้ว ให้แก้ไข port mapping ใน `docker-compose.yaml`
+> `install.bat` จะหา port ที่ว่างให้อัตโนมัติ ไม่ต้องแก้ไขเอง
 
 **Directus ยังไม่พร้อม**
 > Directus ต้องการเวลา initialize ฐานข้อมูลครั้งแรก รอสัก 30–60 วินาที แล้วลอง refresh
@@ -161,6 +223,13 @@ docker compose logs -f directus
 > docker compose up -d --build
 > ```
 
+**Tailwind CSS class บางอันไม่แสดงผล**
+> Tailwind v4 สแกน class จาก source file แบบ static ดังนั้น class ที่สร้างแบบ dynamic (เช่น จาก CMS field) อาจหายไป
+> แก้ไขโดยเพิ่ม class ลงในไฟล์ `next-app/src/lib/tailwind-safelist.js` เป็น string ตรงๆ แล้ว rebuild:
+> ```bash
+> docker compose up -d --build
+> ```
+
 ---
 
 ## โครงสร้างโปรเจกต์
@@ -169,6 +238,13 @@ docker compose logs -f directus
 bdt_next_direct/
 ├── docker-compose.yaml   # config รัน service ทั้งหมด
 ├── dump.sql              # ข้อมูลตั้งต้นของฐานข้อมูล
+├── install.bat           # Windows one-click installer
+├── install.command       # Mac one-click installer
+├── export_data.bat       # Windows export database + uploads
+├── export_data.command   # Mac export database + uploads
+├── update_dump.bat       # Windows อัปเดต dump.sql
+├── update_dump.command   # Mac อัปเดต dump.sql
+├── installer/            # scripts หลัก (install.ps1, install.sh, ...)
 ├── directus/
 │   └── uploads/          # ไฟล์ที่อัปโหลดผ่าน Directus
 └── next-app/
@@ -177,6 +253,7 @@ bdt_next_direct/
     │   ├── app/          # Next.js App Router pages
     │   ├── components/   # React components
     │   ├── lib/          # utility / API clients
+    │   │   └── tailwind-safelist.js  # safelist สำหรับ Tailwind class ที่มาจาก CMS
     │   └── styles/
     └── package.json
 ```
