@@ -1,9 +1,9 @@
-# Compiled executables (optional — build via installer/build.bat)
+# Compiled executables (optional — build via scripts/build/build.bat)
 install.exe
 export_data.exe
 
 # PyInstaller build cache
-installer/build/
+scripts/build/build/
 *.spec
 
 # Export archives

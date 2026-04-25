@@ -47,10 +47,10 @@ cd ชื่อโฟลเดอร์
 
 ### 2. Double-click ไฟล์ติดตั้ง
 
-| OS | ติดตั้ง | Export ข้อมูล | อัปเดต dump.sql |
-|---|---|---|---|
-| **Windows** | `install.bat` | `export_data.bat` | `update_dump.bat` |
-| **Mac** | `install.command` | `export_data.command` | `update_dump.command` |
+| OS | ติดตั้ง | Export ข้อมูล |
+|---|---|---|
+| **Windows** | `install.bat` | `export_data.bat` |
+| **Mac** | `install.command` | `export_data.command` |
 
 > **Mac:** ครั้งแรกอาจต้อง Right-click → Open เพื่ออนุญาต Gatekeeper
 
@@ -71,15 +71,6 @@ Double-click `export_data.bat` (Windows) หรือ `export_data.command` (Mac
 - `directus/uploads/` — ไฟล์จาก Directus (แตก zip ทับโฟลเดอร์โปรเจกต์ได้เลย)
 
 บีบอัดลงไฟล์ `export_YYYYMMDD_HHMMSS.zip` โดยอัตโนมัติ
-
-### อัปเดต dump.sql (เมื่อข้อมูลใน database เปลี่ยน)
-
-Double-click `update_dump.bat` (Windows) หรือ `update_dump.command` (Mac) โปรแกรมจะ:
-1. Export database ปัจจุบันมาแทนที่ `dump.sql`
-2. Patch FK constraints ให้ `ON DELETE SET NULL` อัตโนมัติ
-3. Backup `dump.sql` เดิมไว้เป็น `dump.sql.bak`
-
-จากนั้น commit และ push `dump.sql` เพื่ออัปเดต repo
 
 ---
 
