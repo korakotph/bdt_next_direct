@@ -42,6 +42,15 @@ ok "Docker พร้อมใช้งาน"
 
 [ -f "docker-compose.yaml" ] || { err "ไม่พบ docker-compose.yaml"; pause_exit; }
 
+# ── Admin credentials ─────────────────────────────────────────
+step "ตั้งค่า Admin account"
+read -rp "  Admin email    (default: admin@example.com): " ADMIN_EMAIL
+ADMIN_EMAIL="${ADMIN_EMAIL:-admin@example.com}"
+read -rp "  Admin password (default: admin123): " ADMIN_PASS
+ADMIN_PASS="${ADMIN_PASS:-admin123}"
+ok "Email    : $ADMIN_EMAIL"
+ok "Password : $ADMIN_PASS"
+
 # ── Find free ports ───────────────────────────────────────────
 find_free_port() {
     local port=$1
@@ -95,6 +104,8 @@ perl -i -pe "s|PUBLIC_URL: http://localhost:\d+|PUBLIC_URL: http://localhost:${D
 perl -i -pe "s|NEXT_PUBLIC_DIRECTUS_URL: http://localhost:\d+|NEXT_PUBLIC_DIRECTUS_URL: http://localhost:${DIR_PORT}|g" \
     docker-compose.yaml
 perl -i -pe "s/\Q${VOL_OLD}\E/${PREFIX}_postgres_data/g" docker-compose.yaml
+perl -i -pe "s|ADMIN_EMAIL: \S+|ADMIN_EMAIL: ${ADMIN_EMAIL}|g"    docker-compose.yaml
+perl -i -pe "s|ADMIN_PASSWORD: \S+|ADMIN_PASSWORD: ${ADMIN_PASS}|g" docker-compose.yaml
 
 ok "เสร็จแล้ว"
 PG_CONTAINER="${PREFIX}_db"

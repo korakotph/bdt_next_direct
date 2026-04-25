@@ -56,12 +56,13 @@ cd ชื่อโฟลเดอร์
 
 โปรแกรมจะทำทุกอย่างอัตโนมัติ:
 1. ตั้งชื่อ container ตามชื่อโฟลเดอร์
-2. หา port ที่ว่าง (เริ่มจาก 5433 / 8056 / 3012)
-3. อัปเดต `docker-compose.yaml` และ backup เป็น `.bak`
-4. `docker compose up -d --build`
-5. Import `dump.sql` เข้า PostgreSQL
-6. Restart Directus เพื่อโหลด schema ใหม่
-7. แสดง URL และ login ที่ใช้งานได้เลย
+2. ขอ Admin email และ password (กด Enter เพื่อใช้ค่า default)
+3. หา port ที่ว่าง (เริ่มจาก 5433 / 8056 / 3012)
+4. อัปเดต `docker-compose.yaml` และ backup เป็น `.bak`
+5. `docker compose up -d --build`
+6. Import `dump.sql` เข้า PostgreSQL
+7. Restart Directus เพื่อโหลด schema ใหม่
+8. แสดง URL และ login ที่ใช้งานได้เลย
 
 ### Export ข้อมูล
 
@@ -237,6 +238,13 @@ docker compose logs -f directus
 bdt_next_direct/
 ├── docker-compose.yaml   # config รัน service ทั้งหมด
 ├── dump.sql              # ข้อมูลตั้งต้นของฐานข้อมูล
+├── install.bat           # Windows one-click installer
+├── install.command       # Mac one-click installer
+├── export_data.bat       # Windows export database + uploads
+├── export_data.command   # Mac export database + uploads
+├── update_dump.bat       # Windows อัปเดต dump.sql
+├── update_dump.command   # Mac อัปเดต dump.sql
+├── installer/            # scripts หลัก (install.ps1, install.sh, ...)
 ├── directus/
 │   └── uploads/          # ไฟล์ที่อัปโหลดผ่าน Directus
 └── next-app/
