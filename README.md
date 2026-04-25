@@ -56,13 +56,15 @@ cd ชื่อโฟลเดอร์
 
 โปรแกรมจะทำทุกอย่างอัตโนมัติ:
 1. ตั้งชื่อ container ตามชื่อโฟลเดอร์
-2. ขอ Admin email และ password (กด Enter เพื่อใช้ค่า default)
-3. หา port ที่ว่าง (เริ่มจาก 5433 / 8056 / 3012)
+2. **ขอ Admin email และ password** — กรอกหรือกด Enter เพื่อใช้ค่า default (`admin@example.com` / `admin123`)
+3. หา port ที่ว่างอัตโนมัติ (เริ่มจาก 5433 / 8056 / 3012 ถ้าว่าง)
 4. อัปเดต `docker-compose.yaml` และ backup เป็น `.bak`
-5. `docker compose up -d --build`
+5. Build และ Start containers
 6. Import `dump.sql` เข้า PostgreSQL
-7. Restart Directus เพื่อโหลด schema ใหม่
-8. แสดง URL และ login ที่ใช้งานได้เลย
+7. อัปเดต admin credentials ใน Directus
+8. **แสดง URL จริงและ login ที่ใช้งานได้เลยตอนจบ**
+
+> **URL และ port จะแสดงตอนจบการติดตั้ง** เพราะอาจเปลี่ยนถ้า port เริ่มต้นถูกใช้งานอยู่แล้ว
 
 ### Export ข้อมูล
 
@@ -86,17 +88,19 @@ Double-click `export_data.bat` (Windows) หรือ `export_data.command` (Mac
 docker compose up -d
 ```
 
-รอให้ container ทั้งหมด start เสร็จ (ประมาณ 30–60 วินาที) แล้วเปิด:
+รอให้ container ทั้งหมด start เสร็จ (ประมาณ 30–60 วินาที) แล้วเปิด URL ตาม port ที่กำหนดใน `docker-compose.yaml`:
 
-| Service | URL |
+| Service | Port เริ่มต้น (อาจเปลี่ยนถ้าผ่าน installer) |
 |---|---|
-| Next.js (Frontend) | http://localhost:3012 |
-| Directus (Admin) | http://localhost:8056 |
-| PostgreSQL | localhost:5433 |
+| Next.js (Frontend) | http://localhost:**3012** |
+| Directus (Admin) | http://localhost:**8056** |
+| PostgreSQL | localhost:**5433** |
 
-**Directus Admin เริ่มต้น:**
-- Email: `admin@example.com`
-- Password: `admin123`
+> ถ้าติดตั้งผ่าน `install.bat` / `install.command` — ดู URL และ port จริงได้จากหน้าต่างสรุปตอนจบการติดตั้ง หรือดูค่าใน `docker-compose.yaml`
+
+**Directus login:**
+- Email: ตามที่กรอกตอนติดตั้ง (default: `admin@example.com`)
+- Password: ตามที่กรอกตอนติดตั้ง (default: `admin123`)
 
 ---
 
@@ -235,7 +239,7 @@ bdt_next_direct/
 ├── export_data.command   # Mac export database + uploads
 ├── update_dump.bat       # Windows อัปเดต dump.sql
 ├── update_dump.command   # Mac อัปเดต dump.sql
-├── installer/            # scripts หลัก (install.ps1, install.sh, ...)
+├── scripts/              # scripts หลัก (install.ps1, install.sh, ...)
 ├── directus/
 │   └── uploads/          # ไฟล์ที่อัปโหลดผ่าน Directus
 └── next-app/
