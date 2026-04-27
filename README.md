@@ -227,6 +227,23 @@ docker compose logs -f directus
 
 ---
 
+## การตั้งค่าเว็บไซต์ผ่าน Directus (Site Settings)
+
+ไปที่ Directus Admin → **Site Settings** เพื่อกำหนดค่าต่างๆ ของเว็บ:
+
+| ฟิลด์ | คำอธิบาย |
+|---|---|
+| `logo` | รูป logo ที่แสดงใน Navbar — **ใช้เป็น favicon ของเว็บด้วยโดยอัตโนมัติ** |
+| `site_name` | ชื่อเว็บไซต์ |
+| `navbar_color` / `text_color` | สีของ Navbar |
+| `footer_color` / `footer_text_color` | สีของ Footer |
+| `first_page` | slug ของหน้าแรก |
+| `landing` | เปิด/ปิด popup ข่าว |
+
+> **Favicon อัตโนมัติ:** เมื่อตั้งค่า `logo` ใน Site Settings, Next.js จะใช้รูปนั้นเป็น favicon (`<link rel="icon">`) โดยอัตโนมัติ หากยังไม่ได้ตั้งค่า logo จะใช้ไฟล์ `favicon.ico` เริ่มต้น
+
+---
+
 ## โครงสร้างโปรเจกต์
 
 ```
