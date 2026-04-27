@@ -2,6 +2,8 @@ import "@/styles/globals.css";
 import { getSiteSettings } from "@/lib/site-settings";
 import PopupNews from "@/components/NewsPopup";
 
+export const dynamic = 'force-dynamic';
+
 export async function generateMetadata() {
   const setting = await getSiteSettings();
   const icons = setting?.logo
