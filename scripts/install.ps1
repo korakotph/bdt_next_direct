@@ -113,34 +113,34 @@ try {
             Write-Err "Docker Desktop ownership error detected"
             Write-Host ""
             Write-Host "  Error: C:\ProgramData\DockerDesktop is not owned by an elevated account" -ForegroundColor Red
-            Write-Host "  (Docker Desktop แสดง: 'For security reason ... must be owned by an elevated account')" -ForegroundColor Gray
+            Write-Host "  (Docker Desktop says: 'For security reason ... must be owned by an elevated account')" -ForegroundColor Gray
             Write-Host ""
 
             $isAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole(
                 [Security.Principal.WindowsBuiltInRole]::Administrator)
 
             if ($isAdmin) {
-                Write-Host "  ตรวจพบว่ารันด้วยสิทธิ์ Administrator — แก้ไขอัตโนมัติได้เลย" -ForegroundColor Cyan
-                $fix = Read-Host "  แก้ไข ownership อัตโนมัติเลยไหม? (Y/n)"
+                Write-Host "  Running as Administrator — can fix automatically" -ForegroundColor Cyan
+                $fix = Read-Host "  Fix ownership automatically? (Y/n)"
                 if ($fix -ne 'n' -and $fix -ne 'N') {
                     Write-Step "Fixing C:\ProgramData\DockerDesktop ownership..."
                     takeown /f $ddPath /r /d y 2>&1 | Out-Null
                     icacls $ddPath /grant "Administrators:F" /t 2>&1 | Out-Null
                     Write-Ok "Ownership fixed"
                     Write-Host ""
-                    Write-Host "  กรุณา restart Docker Desktop แล้วรัน install.bat อีกครั้ง" -ForegroundColor Yellow
+                    Write-Host "  Please restart Docker Desktop, then run install.bat again." -ForegroundColor Yellow
                     Pause-Exit
                 }
             } else {
-                Write-Host "  วิธีแก้ไข — เปิด Command Prompt แบบ 'Run as administrator' แล้วรัน:" -ForegroundColor Cyan
+                Write-Host "  Fix: open Command Prompt as administrator and run:" -ForegroundColor Cyan
                 Write-Host ""
                 Write-Host "    takeown /f `"C:\ProgramData\DockerDesktop`" /r /d y" -ForegroundColor White
                 Write-Host "    icacls `"C:\ProgramData\DockerDesktop`" /grant Administrators:F /t" -ForegroundColor White
                 Write-Host ""
-                Write-Host "  จากนั้น restart Docker Desktop แล้วรัน install.bat อีกครั้ง" -ForegroundColor Yellow
+                Write-Host "  Then restart Docker Desktop and run install.bat again." -ForegroundColor Yellow
                 Write-Host ""
-                Write-Host "  หรือจะ Right-click install.bat -> 'Run as administrator' แล้วรันใหม่" -ForegroundColor Yellow
-                Write-Host "  เพื่อให้โปรแกรมแก้ไขให้อัตโนมัติ" -ForegroundColor Yellow
+                Write-Host "  Or right-click install.bat -> 'Run as administrator'" -ForegroundColor Yellow
+                Write-Host "  to let the installer fix it automatically." -ForegroundColor Yellow
             }
             Pause-Exit
         }
