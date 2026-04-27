@@ -4,7 +4,7 @@ export default async function DivBlock({ item }) {
   // const item = block.block_items?.[0]
   if (!item) return null
 
-  const ContentHtml = await prerenderHtml(item.box);
+  const ContentHtml = await prerenderHtml(item.box, { imgClass: 'rounded-xl my-6 max-w-full h-auto' });
 
   return (
     <section  style={item?.background_color ? { backgroundColor: item.background_color } : {}}>

@@ -13,19 +13,66 @@
 |---|---|---|
 | Docker Desktop | 24+ | https://www.docker.com/products/docker-desktop |
 | Docker Compose | 2.x (มาพร้อม Docker Desktop) | — |
-| Node.js | 20+ | https://nodejs.org |
-| Git | ล่าสุด | https://git-scm.com |
 
 ---
 
 ## วิธีติดตั้ง
 
-### 1. Clone โปรเจกต์
+### 1. ดาวน์โหลดโปรเจกต์
+
+เลือกวิธีใดวิธีหนึ่ง:
+
+**วิธีที่ 1 — Download ZIP (ไม่ต้องติดตั้ง Git)**
+
+1. เปิด https://github.com/korakotph/bdt_next_direct
+2. คลิก **Code → Download ZIP**
+3. แตกไฟล์ ZIP
+4. เปลี่ยนชื่อโฟลเดอร์เป็นชื่อที่ต้องการ
+
+**วิธีที่ 2 — Git Clone (ต้องติดตั้ง [Git](https://git-scm.com) ก่อน)**
 
 ```bash
-git clone <repository-url>
-cd next_direct
+git clone https://github.com/korakotph/bdt_next_direct.git ชื่อโฟลเดอร์
+cd ชื่อโฟลเดอร์
 ```
+
+> **ชื่อโฟลเดอร์สำคัญ** — `install.bat` จะใช้ชื่อโฟลเดอร์เป็น prefix ของ container
+> เช่น โฟลเดอร์ชื่อ `mysite` → container จะเป็น `mysite_db`, `mysite_directus`, `mysite_nextjs`
+
+---
+
+## วิธีติดตั้งแบบ One-Click
+
+> ต้องการแค่ **Docker Desktop** เท่านั้น — ไม่ต้องติดตั้ง Python หรือ Node.js
+
+### 2. Double-click ไฟล์ติดตั้ง
+
+| OS | ติดตั้ง | Export ข้อมูล |
+|---|---|---|
+| **Windows** | `install.bat` | `export_data.bat` |
+| **Mac** | `install.command` | `export_data.command` |
+
+> **Mac:** ครั้งแรกอาจต้อง Right-click → Open เพื่ออนุญาต Gatekeeper
+
+โปรแกรมจะทำทุกอย่างอัตโนมัติ:
+1. ตั้งชื่อ container ตามชื่อโฟลเดอร์
+2. **ขอ Admin email และ password** — กรอกหรือกด Enter เพื่อใช้ค่า default (`admin@example.com` / `admin123`)
+3. หา port ที่ว่างอัตโนมัติ (เริ่มจาก 5433 / 8056 / 3012 ถ้าว่าง)
+4. อัปเดต `docker-compose.yaml` และ backup เป็น `.bak`
+5. Build และ Start containers
+6. Import `dump.sql` เข้า PostgreSQL
+7. อัปเดต admin credentials ใน Directus
+8. **แสดง URL จริงและ login ที่ใช้งานได้เลยตอนจบ**
+
+> **URL และ port จะแสดงตอนจบการติดตั้ง** เพราะอาจเปลี่ยนถ้า port เริ่มต้นถูกใช้งานอยู่แล้ว
+
+### Export ข้อมูล
+
+Double-click `export_data.bat` (Windows) หรือ `export_data.command` (Mac) โปรแกรมจะ export:
+- `dump.sql` — database ทั้งหมด
+- `directus/uploads/` — ไฟล์จาก Directus (แตก zip ทับโฟลเดอร์โปรเจกต์ได้เลย)
+
+บีบอัดลงไฟล์ `export_YYYYMMDD_HHMMSS.zip` โดยอัตโนมัติ
 
 ---
 
@@ -41,17 +88,19 @@ cd next_direct
 docker compose up -d
 ```
 
-รอให้ container ทั้งหมด start เสร็จ (ประมาณ 30–60 วินาที) แล้วเปิด:
+รอให้ container ทั้งหมด start เสร็จ (ประมาณ 30–60 วินาที) แล้วเปิด URL ตาม port ที่กำหนดใน `docker-compose.yaml`:
 
-| Service | URL |
+| Service | Port เริ่มต้น (อาจเปลี่ยนถ้าผ่าน installer) |
 |---|---|
-| Next.js (Frontend) | http://localhost:3012/ita |
-| Directus (Admin) | http://localhost:8056 |
-| PostgreSQL | localhost:5433 |
+| Next.js (Frontend) | http://localhost:**3012** |
+| Directus (Admin) | http://localhost:**8056** |
+| PostgreSQL | localhost:**5433** |
 
-**Directus Admin เริ่มต้น:**
-- Email: `admin@example.com`
-- Password: `admin123`
+> ถ้าติดตั้งผ่าน `install.bat` / `install.command` — ดู URL และ port จริงได้จากหน้าต่างสรุปตอนจบการติดตั้ง หรือดูค่าใน `docker-compose.yaml`
+
+**Directus login:**
+- Email: ตามที่กรอกตอนติดตั้ง (default: `admin@example.com`)
+- Password: ตามที่กรอกตอนติดตั้ง (default: `admin123`)
 
 ---
 
@@ -80,24 +129,35 @@ DIRECTUS_INTERNAL_URL=http://localhost:8056
 NEXT_PUBLIC_BASE_PATH=
 ```
 
-> **หมายเหตุ:** เซ็ต `NEXT_PUBLIC_BASE_PATH` เป็นค่าว่างเพื่อให้เข้าถึงได้ที่ `http://localhost:3000` โดยตรง
-
 จากนั้นรัน dev server:
 
 ```bash
 npm run dev
 ```
 
-เปิดเบราว์เซอร์ที่ http://localhost:3000
+เปิดเบราว์เซอร์ที่ http://localhost:3012
 
 ---
 
 ## นำเข้าข้อมูลเริ่มต้น (Database Seed)
 
-หากมีไฟล์ `dump.sql` ให้นำเข้าหลัง container รันแล้ว:
+ไฟล์ `dump.sql` อยู่ในโฟลเดอร์หลักของโปรเจกต์แล้ว ให้นำเข้าหลัง container รันแล้ว:
 
+#### ขั้นตอน
+
+**1. ตรวจสอบว่า container รันอยู่**
 ```bash
-docker exec -i directus_db_ita psql -U directus -d directus < dump.sql
+docker compose ps
+```
+
+**2. Import dump.sql**
+```bash
+docker exec -i bdt_directus_db psql -U directus -d directus < dump.sql
+```
+
+**3. Restart container เพื่อให้ Directus โหลด schema ใหม่**
+```bash
+docker compose restart directus
 ```
 
 ---
@@ -134,8 +194,16 @@ docker compose logs -f directus
 
 ## ปัญหาที่พบบ่อย
 
+**install.bat ปิดหน้าต่างก่อนอ่าน error ทัน**
+> ดูรายละเอียด error ทั้งหมดได้ที่ไฟล์ `install_log.txt` ในโฟลเดอร์โปรเจกต์
+> หรือรัน install.bat ใหม่ — หน้าต่างจะค้างอยู่ให้อ่าน error ได้
+
+**install.bat error เรื่อง network / connection**
+> `docker compose up` อาจ timeout ขณะ pull image จาก Docker Hub
+> โปรแกรมจะลองใหม่อัตโนมัติ 3 ครั้ง ถ้ายังไม่ได้ให้ตรวจสอบ internet แล้วรัน install.bat อีกครั้ง
+
 **Port ชนกัน**
-> ถ้า port `3012`, `8056`, หรือ `5433` ถูกใช้งานแล้ว ให้แก้ไข port mapping ใน `docker-compose.yaml`
+> `install.bat` จะหา port ที่ว่างให้อัตโนมัติ ไม่ต้องแก้ไขเอง
 
 **Directus ยังไม่พร้อม**
 > Directus ต้องการเวลา initialize ฐานข้อมูลครั้งแรก รอสัก 30–60 วินาที แล้วลอง refresh
@@ -143,17 +211,52 @@ docker compose logs -f directus
 **Next.js build fail บน Docker**
 > ตรวจสอบว่า `NEXT_PUBLIC_DIRECTUS_URL` ใน `docker-compose.yaml` ถูกต้อง เพราะค่านี้จะถูก bake เข้า bundle ตอน build
 
-**ไม่เห็นหน้าเว็บที่ `/ita`**
-> เมื่อรันด้วย Docker ต้องเข้าที่ `http://localhost:3012/ita` ไม่ใช่ `http://localhost:3012`
+**เปิด http://localhost:3012 ไม่ได้หลัง `docker compose up`**
+> ต้อง rebuild image ใหม่เมื่อมีการเปลี่ยนแปลงโค้ดหรือ config:
+> ```bash
+> docker compose down
+> docker compose up -d --build
+> ```
+
+**Tailwind CSS class บางอันไม่แสดงผล**
+> Tailwind v4 สแกน class จาก source file แบบ static ดังนั้น class ที่สร้างแบบ dynamic (เช่น จาก CMS field) อาจหายไป
+> แก้ไขโดยเพิ่ม class ลงในไฟล์ `next-app/src/lib/tailwind-safelist.js` เป็น string ตรงๆ แล้ว rebuild:
+> ```bash
+> docker compose up -d --build
+> ```
+
+---
+
+## การตั้งค่าเว็บไซต์ผ่าน Directus (Site Settings)
+
+ไปที่ Directus Admin → **Site Settings** เพื่อกำหนดค่าต่างๆ ของเว็บ:
+
+| ฟิลด์ | คำอธิบาย |
+|---|---|
+| `logo` | รูป logo ที่แสดงใน Navbar — **ใช้เป็น favicon ของเว็บด้วยโดยอัตโนมัติ** |
+| `site_name` | ชื่อเว็บไซต์ |
+| `navbar_color` / `text_color` | สีของ Navbar |
+| `footer_color` / `footer_text_color` | สีของ Footer |
+| `first_page` | slug ของหน้าแรก |
+| `landing` | เปิด/ปิด popup ข่าว |
+
+> **Favicon อัตโนมัติ:** เมื่อตั้งค่า `logo` ใน Site Settings, Next.js จะใช้รูปนั้นเป็น favicon (`<link rel="icon">`) โดยอัตโนมัติ หากยังไม่ได้ตั้งค่า logo จะใช้ไฟล์ `favicon.ico` เริ่มต้น
 
 ---
 
 ## โครงสร้างโปรเจกต์
 
 ```
-next_direct/
+bdt_next_direct/
 ├── docker-compose.yaml   # config รัน service ทั้งหมด
 ├── dump.sql              # ข้อมูลตั้งต้นของฐานข้อมูล
+├── install.bat           # Windows one-click installer
+├── install.command       # Mac one-click installer
+├── export_data.bat       # Windows export database + uploads
+├── export_data.command   # Mac export database + uploads
+├── update_dump.bat       # Windows อัปเดต dump.sql
+├── update_dump.command   # Mac อัปเดต dump.sql
+├── scripts/              # scripts หลัก (install.ps1, install.sh, ...)
 ├── directus/
 │   └── uploads/          # ไฟล์ที่อัปโหลดผ่าน Directus
 └── next-app/
@@ -162,6 +265,7 @@ next_direct/
     │   ├── app/          # Next.js App Router pages
     │   ├── components/   # React components
     │   ├── lib/          # utility / API clients
+    │   │   └── tailwind-safelist.js  # safelist สำหรับ Tailwind class ที่มาจาก CMS
     │   └── styles/
     └── package.json
 ```

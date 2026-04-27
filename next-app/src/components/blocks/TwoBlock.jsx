@@ -4,8 +4,8 @@ export default async function TwoBlock({ item }) {
   // const item = block.block_items?.[0]
   if (!item) return null
 
-  const leftContentHtml = await prerenderHtml(item.left_box);
-  const rightContentHtml = await prerenderHtml(item.right_box);
+  const leftContentHtml = await prerenderHtml(item.left_box, { imgClass: 'rounded-xl my-6 max-w-full h-auto' });
+  const rightContentHtml = await prerenderHtml(item.right_box, { imgClass: 'rounded-xl my-6 max-w-full h-auto' });
 
   return (
     <section  style={item?.background_color ? { backgroundColor: item.background_color } : {}}>

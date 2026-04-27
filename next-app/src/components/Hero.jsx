@@ -30,6 +30,8 @@ function renderContentTH(content) {
   });
 }
 
+const BASE_URL = process.env.NEXT_PUBLIC_DIRECTUS_URL
+
 export default function Hero() {
   const pathname = usePathname();
   const locale = getLocale(pathname)
@@ -37,7 +39,7 @@ export default function Hero() {
   const [banners, setBanners] = useState([])
 
   useEffect(() => {
-    fetch("https://dev-app-bdt.su.ac.th/suadmin/items/banner?filter[status][_eq]=published")
+    fetch(`${BASE_URL}/items/banner?filter[status][_eq]=published`)
       .then(res => res.json())
       .then(res => setBanners(res?.data || []))
       .catch(() => setBanners([]))
@@ -72,7 +74,7 @@ export default function Hero() {
           <SwiperSlide key={item.id || idx} className={`relative w-full h-[400px] md:h-[500px] lg:h-[600px] ${item.fade == 1 ? 'slide-fade' : ''}`}>
             <img
               src={item.image
-                ? `https://dev-app-bdt.su.ac.th/suadmin/assets/${item.image}`
+                ? `${BASE_URL}/assets/${item.image}`
                 : "/suweb/img/hero/hero1.webp"
               }
               className="w-full h-full object-cover"

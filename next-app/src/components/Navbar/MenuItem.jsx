@@ -50,7 +50,9 @@ export default function MenuItem({ item, buildUrl, isActive, settings }) {
         {/* Parent Link */}
         <Link
             href={buildUrl(item.slug)}
-            className="px-4 py-2 hover:opacity-80 flex items-center gap-1 hover:underline underline-offset-6"
+            className={`px-4 py-2 hover:opacity-80 flex items-center gap-1 hover:underline underline-offset-6 ${
+                isActive(item.slug) ? 'font-medium' : 'font-light'
+            }`}
             style={{ color: settings?.text_color }}
             onMouseEnter={e => (e.target.style.color = settings?.text_color_hover)}
             onMouseLeave={e => (e.target.style.color = settings?.text_color)}
@@ -64,7 +66,7 @@ export default function MenuItem({ item, buildUrl, isActive, settings }) {
             // style={{ backgroundColor: settings?.navbar_color }}
             className="absolute left-0 top-full shadow-lg px-2 py-2
                     opacity-0 invisible group-hover:opacity-100 group-hover:visible
-                    transition-all duration-200 w-full"
+                    transition-all duration-200 min-w-max whitespace-nowrap"
             style={{ backgroundColor: settings?.navbar_color,color: settings?.text_color }}
             onMouseEnter={e => (e.target.style.color = settings?.text_color_hover)}
             onMouseLeave={e => (e.target.style.color = settings?.text_color)}

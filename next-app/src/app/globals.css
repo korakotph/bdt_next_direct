@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* Dynamic CMS classes are safelisted in src/lib/tailwind-safelist.js
+   as static strings so Tailwind v4's scanner can detect them. */
+
 :root {
   --background: #ffffff;
   --foreground: #171717;

@@ -1,24 +1,14 @@
-'use strict';
+'use strict'
 
-const isServer = typeof window === "undefined"
+import { cache } from 'react'
+import { readSingleton } from '@directus/sdk'
+import { getDirectusClient } from './directus-client'
 
-// console.log("isServer:", isServer);
-
-const BASE_URL = process.env.NEXT_PUBLIC_DIRECTUS_URL
-// const BASE_URL = isServer
-//   ? process.env.DIRECTUS_INTERNAL_URL
-//   : process.env.NEXT_PUBLIC_DIRECTUS_URL
-
-  // console.log("BASE_URL:", BASE_URL);
-
-export async function getSiteSettings() {
-  const res = await fetch(
-    `${BASE_URL}/items/Site_Settings`,
-    { cache: "no-store", next: { tags: ["site-settings"] } }
-  );
-
-
-  const json = await res.json();
-  // console.log('Fetched site settings:', json);
-  return json.data;
-}
+export const getSiteSettings = cache(async function getSiteSettings() {
+  try {
+    const client = getDirectusClient()
+    return await client.request(readSingleton('Site_Settings'))
+  } catch {
+    return null
+  }
+})

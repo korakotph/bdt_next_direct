@@ -4,9 +4,9 @@ export default async function ThreeBlock({ item }) {
   // const item = block.block_items?.[0]
   if (!item) return null
 
-  const ContentHtml_1 = await prerenderHtml(item.box_1);
-  const ContentHtml_2 = await prerenderHtml(item.box_2);
-  const ContentHtml_3 = await prerenderHtml(item.box_3);
+  const ContentHtml_1 = await prerenderHtml(item.box_1, { imgClass: 'rounded-xl my-6 max-w-full h-auto' });
+  const ContentHtml_2 = await prerenderHtml(item.box_2, { imgClass: 'rounded-xl my-6 max-w-full h-auto' });
+  const ContentHtml_3 = await prerenderHtml(item.box_3, { imgClass: 'rounded-xl my-6 max-w-full h-auto' });
 
   return (
     <section  style={item?.background_color ? { backgroundColor: item.background_color } : {}}>

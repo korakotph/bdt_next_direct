@@ -8,8 +8,6 @@
 //   },
 // }
 const nextConfig = {
-  basePath: '/ita',
-  assetPrefix: '/ita',
   output: 'standalone',
 }
 

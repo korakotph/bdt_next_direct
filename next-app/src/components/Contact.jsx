@@ -16,6 +16,8 @@ function renderEditorJsBlocks(blocks) {
   });
 }
 
+const BASE_URL = process.env.NEXT_PUBLIC_DIRECTUS_URL
+
 export default function Contact() {
   // Use null or a string like 'campus-0' to track which item is open
   const [opened, setOpened] = useState(null);
@@ -31,7 +33,7 @@ export default function Contact() {
   const locale = getLocale(pathname);
 
   useEffect(() => {
-    fetch('https://dev-app-bdt.su.ac.th/suadmin/items/contact?filter[status][_eq]=published')
+    fetch(`${BASE_URL}/items/contact?filter[status][_eq]=published`)
       .then(response => response.json())
       .then(data => {
         var grouped = {

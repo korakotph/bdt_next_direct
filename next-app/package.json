@@ -3,15 +3,17 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev -p 3000 --webpack",
+    "dev": "next dev -p 3012 --webpack",
     "build": "next build",
     "start": "next start"
   },
   "dependencies": {
+    "@directus/sdk": "^21.2.2",
     "@fortawesome/fontawesome-svg-core": "^7.2.0",
     "@fortawesome/free-solid-svg-icons": "^7.2.0",
     "@fortawesome/react-fontawesome": "^3.2.0",
     "@scalar/api-reference-react": "^0.8.52",
+    "dayjs": "^1.11.20",
     "next": "16.1.6",
     "react": "19.2.3",
     "react-dom": "19.2.3",

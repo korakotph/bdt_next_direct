@@ -16,9 +16,11 @@ function formatRelative(date, locale) {
     .fromNow();
 }
 
+const BASE_URL = process.env.NEXT_PUBLIC_DIRECTUS_URL
+
 function getImageUrl(image) {
   if (!image) return './img/news/default.png';
-  return `https://dev-app-bdt.su.ac.th/suadmin/assets/${image}`;
+  return `${BASE_URL}/assets/${image}`;
 }
 
 export default function NewsSection({
@@ -42,7 +44,7 @@ export default function NewsSection({
     setIsThai(lang.startsWith('th'));
 
     // Fetch grouped news (category 1, 2)
-    fetch(`https://dev-app-bdt.su.ac.th/suadmin/items/news?sort=-date_created&filter[category][_in]=1,3&filter[status][_eq]=published`)
+    fetch(`${BASE_URL}/items/news?sort=-date_created&filter[category][_in]=1,3&filter[status][_eq]=published`)
       .then(res => res.json())
       .then(data => {
         if (data?.data) {
@@ -58,7 +60,7 @@ export default function NewsSection({
       .catch(err => console.error('Error fetching grouped news:', err));
 
     // Fetch categories
-    fetch(`https://dev-app-bdt.su.ac.th/suadmin/items/${collectionCategoryName}`)
+    fetch(`${BASE_URL}/items/${collectionCategoryName}`)
       .then(res => res.json())
       .then(data => {
         if (data?.data) setCategories(data.data);
