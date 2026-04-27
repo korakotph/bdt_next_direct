@@ -205,6 +205,20 @@ docker compose logs -f directus
 
 ## ปัญหาที่พบบ่อย
 
+**Docker Desktop ขึ้น error: "For security reason C:\ProgramData\DockerDesktop must be owned by an elevated account"**
+> โฟลเดอร์ `C:\ProgramData\DockerDesktop` มี owner ผิด ต้องแก้ก่อน Docker จะรันได้
+>
+> **วิธีที่ 1 — ให้ install.bat แก้อัตโนมัติ:**
+> Right-click `install.bat` → **Run as administrator** — โปรแกรมจะตรวจพบและเสนอแก้ไขให้เลย
+>
+> **วิธีที่ 2 — แก้เอง:**
+> เปิด **Command Prompt แบบ Run as administrator** แล้วรัน:
+> ```
+> takeown /f "C:\ProgramData\DockerDesktop" /r /d y
+> icacls "C:\ProgramData\DockerDesktop" /grant Administrators:F /t
+> ```
+> จากนั้น restart Docker Desktop แล้วรัน `install.bat` อีกครั้ง
+
 **ติดตั้ง Docker Desktop ไม่ได้ (เช่น corporate policy / Windows edition)**
 > ใช้ **Rancher Desktop** แทน — ดาวน์โหลดที่ https://rancherdesktop.io
 > หลังติดตั้งให้ไปที่ Preferences → Container Engine → เลือก **dockerd (moby)** แล้ว Apply
