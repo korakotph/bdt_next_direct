@@ -2,8 +2,15 @@ import "@/styles/globals.css";
 import { getSiteSettings } from "@/lib/site-settings";
 import PopupNews from "@/components/NewsPopup";
 
-export const metadata = {
-  charset: 'utf-8',
+export async function generateMetadata() {
+  const setting = await getSiteSettings();
+  const icons = setting?.logo
+    ? { icon: `${process.env.NEXT_PUBLIC_DIRECTUS_URL}/assets/${setting.logo}` }
+    : undefined;
+  return {
+    charset: 'utf-8',
+    ...(icons && { icons }),
+  };
 }
 
 export default async function RootLayout({ children }) {
