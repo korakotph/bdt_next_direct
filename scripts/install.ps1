@@ -81,77 +81,80 @@ try {
     Write-Host "  Container : ${prefix}_*"
     Write-Host "  Log file  : $LogFile" -ForegroundColor Gray
 
-    # check Docker
-    Write-Step "Checking Docker"
-    $dockerExists = $null -ne (Get-Command docker -ErrorAction SilentlyContinue)
-    if (-not $dockerExists) {
-        Write-Err "docker not found - please install Docker first"
-        Write-Host ""
-        Write-Host "  Docker installation options:" -ForegroundColor Cyan
-        Write-Host "   1) Docker Desktop  : https://www.docker.com/products/docker-desktop"
-        Write-Host "   2) Rancher Desktop : https://rancherdesktop.io  (free, Docker Desktop alternative)"
-        Write-Host "   3) Podman Desktop  : https://podman-desktop.io  (free, open-source)"
-        Write-Host ""
-        Write-Host "  After installing, open the app and wait for it to finish starting," -ForegroundColor Yellow
-        Write-Host "  then run install.bat again." -ForegroundColor Yellow
-        Pause-Exit
+    # Detect container runtime: docker (Docker Desktop / Rancher Desktop dockerd) or nerdctl (Rancher Desktop containerd)
+    Write-Step "Checking container runtime"
+    $DOCKER = $null
+
+    $dockerExists  = $null -ne (Get-Command docker  -ErrorAction SilentlyContinue)
+    $nerdctlExists = $null -ne (Get-Command nerdctl -ErrorAction SilentlyContinue)
+
+    if ($dockerExists) {
+        docker info 2>&1 | Out-Null
+        if ($LASTEXITCODE -eq 0) { $DOCKER = "docker" }
     }
-    docker info 2>&1 | Out-Null
-    if ($LASTEXITCODE -ne 0) {
-        # Detect C:\ProgramData\DockerDesktop ownership error
-        $ddPath = "C:\ProgramData\DockerDesktop"
-        $ownershipBad = $false
-        if (Test-Path $ddPath) {
-            try {
-                $owner = (Get-Acl $ddPath -ErrorAction Stop).Owner
-                # Elevated owners: NT AUTHORITY\SYSTEM, BUILTIN\Administrators, etc.
-                $ownershipBad = $owner -notmatch '^(NT AUTHORITY|BUILTIN\\Administrators|NT SERVICE|SYSTEM)'
-            } catch { $ownershipBad = $true }
-        }
+    if (-not $DOCKER -and $nerdctlExists) {
+        nerdctl info 2>&1 | Out-Null
+        if ($LASTEXITCODE -eq 0) { $DOCKER = "nerdctl" }
+    }
 
-        if ($ownershipBad) {
-            Write-Err "Docker Desktop ownership error detected"
-            Write-Host ""
-            Write-Host "  Error: C:\ProgramData\DockerDesktop is not owned by an elevated account" -ForegroundColor Red
-            Write-Host "  (Docker Desktop says: 'For security reason ... must be owned by an elevated account')" -ForegroundColor Gray
-            Write-Host ""
-
-            $isAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole(
-                [Security.Principal.WindowsBuiltInRole]::Administrator)
-
-            if ($isAdmin) {
-                Write-Host "  Running as Administrator - can fix automatically" -ForegroundColor Cyan
-                $fix = Read-Host "  Fix ownership automatically? (Y/n)"
-                if ($fix -ne 'n' -and $fix -ne 'N') {
-                    Write-Step "Fixing C:\ProgramData\DockerDesktop ownership..."
-                    takeown /f $ddPath /r /d y 2>&1 | Out-Null
-                    icacls $ddPath /grant "Administrators:F" /t 2>&1 | Out-Null
-                    Write-Ok "Ownership fixed"
+    if (-not $DOCKER) {
+        if ($dockerExists) {
+            # docker found but not running - check ownership error
+            $ddPath = "C:\ProgramData\DockerDesktop"
+            $ownershipBad = $false
+            if (Test-Path $ddPath) {
+                try {
+                    $owner = (Get-Acl $ddPath -ErrorAction Stop).Owner
+                    $ownershipBad = $owner -notmatch '^(NT AUTHORITY|BUILTIN\\Administrators|NT SERVICE|SYSTEM)'
+                } catch { $ownershipBad = $true }
+            }
+            if ($ownershipBad) {
+                Write-Err "Docker Desktop ownership error detected"
+                Write-Host ""
+                Write-Host "  Error: C:\ProgramData\DockerDesktop is not owned by an elevated account" -ForegroundColor Red
+                Write-Host "  (Docker Desktop says: 'For security reason ... must be owned by an elevated account')" -ForegroundColor Gray
+                Write-Host ""
+                $isAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole(
+                    [Security.Principal.WindowsBuiltInRole]::Administrator)
+                if ($isAdmin) {
+                    Write-Host "  Running as Administrator - can fix automatically" -ForegroundColor Cyan
+                    $fix = Read-Host "  Fix ownership automatically? (Y/n)"
+                    if ($fix -ne 'n' -and $fix -ne 'N') {
+                        Write-Step "Fixing ownership..."
+                        takeown /f $ddPath /r /d y 2>&1 | Out-Null
+                        icacls $ddPath /grant "Administrators:F" /t 2>&1 | Out-Null
+                        Write-Ok "Ownership fixed - please restart Docker Desktop, then run install.bat again."
+                    }
+                } else {
+                    Write-Host "  Fix: open Command Prompt as administrator and run:" -ForegroundColor Cyan
+                    Write-Host "    takeown /f `"C:\ProgramData\DockerDesktop`" /r /d y" -ForegroundColor White
+                    Write-Host "    icacls `"C:\ProgramData\DockerDesktop`" /grant Administrators:F /t" -ForegroundColor White
                     Write-Host ""
-                    Write-Host "  Please restart Docker Desktop, then run install.bat again." -ForegroundColor Yellow
-                    Pause-Exit
+                    Write-Host "  Then restart Docker Desktop and run install.bat again." -ForegroundColor Yellow
+                    Write-Host "  Or right-click install.bat -> 'Run as administrator' to fix automatically." -ForegroundColor Yellow
                 }
             } else {
-                Write-Host "  Fix: open Command Prompt as administrator and run:" -ForegroundColor Cyan
-                Write-Host ""
-                Write-Host "    takeown /f `"C:\ProgramData\DockerDesktop`" /r /d y" -ForegroundColor White
-                Write-Host "    icacls `"C:\ProgramData\DockerDesktop`" /grant Administrators:F /t" -ForegroundColor White
-                Write-Host ""
-                Write-Host "  Then restart Docker Desktop and run install.bat again." -ForegroundColor Yellow
-                Write-Host ""
-                Write-Host "  Or right-click install.bat -> 'Run as administrator'" -ForegroundColor Yellow
-                Write-Host "  to let the installer fix it automatically." -ForegroundColor Yellow
+                Write-Err "Docker is installed but not running"
+                Write-Host "  Please open Docker Desktop (or Rancher Desktop), then run install.bat again." -ForegroundColor Yellow
             }
-            Pause-Exit
+        } elseif ($nerdctlExists) {
+            Write-Err "nerdctl found but Rancher Desktop is not running"
+            Write-Host "  Please open Rancher Desktop, then run install.bat again." -ForegroundColor Yellow
+        } else {
+            Write-Err "No container runtime found - please install one first"
+            Write-Host ""
+            Write-Host "  Options:" -ForegroundColor Cyan
+            Write-Host "   1) Docker Desktop  : https://www.docker.com/products/docker-desktop"
+            Write-Host "   2) Rancher Desktop : https://rancherdesktop.io  (free, supports all Windows editions)"
+            Write-Host "      containerd mode uses nerdctl  |  dockerd mode uses docker"
+            Write-Host "   3) Podman Desktop  : https://podman-desktop.io  (free, open-source)"
+            Write-Host ""
+            Write-Host "  After installing, open the app and wait for it to finish starting," -ForegroundColor Yellow
+            Write-Host "  then run install.bat again." -ForegroundColor Yellow
         }
-
-        Write-Err "Docker is installed but not running"
-        Write-Host ""
-        Write-Host "  Please open Docker Desktop (or Rancher Desktop / Podman Desktop)" -ForegroundColor Yellow
-        Write-Host "  and wait for the tray icon to stop spinning, then run install.bat again." -ForegroundColor Yellow
         Pause-Exit
     }
-    Write-Ok "Docker is ready"
+    Write-Ok "Container runtime: $DOCKER"
 
     $composePath = Join-Path $ProjectDir "docker-compose.yaml"
     if (-not (Test-Path $composePath)) { Pause-Exit "docker-compose.yaml not found" }
@@ -187,23 +190,23 @@ try {
             Write-Warn "Retry $attempt/3 (waiting 10s)..."
             Start-Sleep 10
         }
-        docker compose build nextjs
+        & $DOCKER compose build nextjs
         if ($LASTEXITCODE -eq 0) { $built = $true; break }
         Write-Warn "Attempt $attempt failed"
     }
-    if (-not $built) { Pause-Exit "docker compose build failed after 3 attempts. Check log above." }
+    if (-not $built) { Pause-Exit "$DOCKER compose build failed after 3 attempts. Check log above." }
     Write-Ok "Build complete"
 
     # start postgres only - import dump BEFORE Directus runs migrations
     Write-Step "Starting PostgreSQL"
-    docker compose up -d postgres
+    & $DOCKER compose up -d postgres
     if ($LASTEXITCODE -ne 0) { Pause-Exit "Failed to start postgres container." }
 
     # wait for postgres
     Write-Step "Waiting for PostgreSQL"
     $ready = $false
     for ($i = 1; $i -le 40; $i++) {
-        docker exec $pgContainer pg_isready -U directus 2>&1 | Out-Null
+        & $DOCKER exec $pgContainer pg_isready -U directus 2>&1 | Out-Null
         if ($LASTEXITCODE -eq 0) { $ready = $true; break }
         Write-Host "`r   Waiting... ($i/40)" -NoNewline
         Start-Sleep 3
@@ -218,11 +221,11 @@ try {
         $dumpPath = Join-Path $ProjectDir "dump.sql"
         if (Test-Path $dumpPath) {
             Write-Step "Resetting database schema"
-            docker exec $pgContainer psql -U directus -d directus -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public; GRANT ALL ON SCHEMA public TO directus; GRANT ALL ON SCHEMA public TO public;"
+            & $DOCKER exec $pgContainer psql -U directus -d directus -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public; GRANT ALL ON SCHEMA public TO directus; GRANT ALL ON SCHEMA public TO public;"
             Write-Ok "Schema reset"
 
             Write-Step "Importing database (dump.sql)"
-            cmd /c "docker exec -i $pgContainer psql -U directus -d directus < `"$dumpPath`""
+            cmd /c "$DOCKER exec -i $pgContainer psql -U directus -d directus < `"$dumpPath`""
             if ($LASTEXITCODE -eq 0) {
                 Write-Ok "Import successful"
             } else {
@@ -235,7 +238,7 @@ try {
 
     # now start all remaining services (Directus finds DB already populated)
     Write-Step "Starting Directus and Next.js"
-    docker compose up -d
+    & $DOCKER compose up -d
     if ($LASTEXITCODE -ne 0) { Pause-Exit "Failed to start all containers." }
     Write-Ok "All containers are running"
 
@@ -279,7 +282,7 @@ try {
             }
         }
     } else {
-        Write-Warn "Directus did not respond - check: docker compose logs directus"
+        Write-Warn "Directus did not respond - check: $DOCKER compose logs directus"
     }
 
     Write-Host ("`n" + "=" * 54) -ForegroundColor Cyan

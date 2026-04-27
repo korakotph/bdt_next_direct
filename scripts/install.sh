@@ -31,27 +31,37 @@ banner "BDT Next Direct — Docker Installer"
 echo -e "\n  โฟลเดอร์  : $FOLDER_NAME"
 echo    "  Container : ${PREFIX}_*"
 
-# ── Check Docker ──────────────────────────────────────────────
-step "ตรวจสอบ Docker"
-if ! command -v docker &>/dev/null; then
-    err "ไม่พบ docker — กรุณาติดตั้ง Docker ก่อน"
+# ── Detect container runtime (docker or nerdctl) ──────────────
+step "ตรวจสอบ container runtime"
+DOCKER_CMD=""
+
+if command -v docker &>/dev/null && docker info &>/dev/null 2>&1; then
+    DOCKER_CMD="docker"
+elif command -v nerdctl &>/dev/null && nerdctl info &>/dev/null 2>&1; then
+    DOCKER_CMD="nerdctl"
+elif command -v docker &>/dev/null; then
+    err "Docker ติดตั้งแล้วแต่ยังไม่ได้รัน"
+    echo "  กรุณาเปิด Docker Desktop (หรือ Rancher Desktop) แล้วรัน install อีกครั้ง"
+    pause_exit
+elif command -v nerdctl &>/dev/null; then
+    err "nerdctl พบแล้วแต่ Rancher Desktop ยังไม่ได้รัน"
+    echo "  กรุณาเปิด Rancher Desktop แล้วรัน install อีกครั้ง"
+    pause_exit
+else
+    err "ไม่พบ docker หรือ nerdctl — กรุณาติดตั้ง container runtime ก่อน"
     echo ""
-    echo "  ตัวเลือกการติดตั้ง Docker:"
+    echo "  ตัวเลือก:"
     echo "   1) Docker Desktop  : https://www.docker.com/products/docker-desktop"
-    echo "   2) Rancher Desktop : https://rancherdesktop.io  (ฟรี, ใช้แทน Docker Desktop ได้)"
+    echo "   2) Rancher Desktop : https://rancherdesktop.io  (ฟรี, รองรับทุก Windows edition)"
+    echo "      containerd mode: ใช้ nerdctl  |  dockerd mode: ใช้ docker"
     echo "   3) Podman Desktop  : https://podman-desktop.io  (ฟรี, open-source)"
     echo ""
     echo "  หลังติดตั้งแล้ว ให้เปิดโปรแกรมก่อน แล้วรัน install อีกครั้ง"
     pause_exit
 fi
-if ! docker info &>/dev/null; then
-    err "Docker ติดตั้งแล้วแต่ยังไม่ได้รัน"
-    echo ""
-    echo "  กรุณาเปิด Docker Desktop (หรือ Rancher Desktop / Podman Desktop)"
-    echo "  รอให้ icon ใน system tray หยุดหมุน แล้วรัน install อีกครั้ง"
-    pause_exit
-fi
-ok "Docker พร้อมใช้งาน"
+
+COMPOSE_CMD="$DOCKER_CMD compose"
+ok "Container runtime: $DOCKER_CMD"
 
 [ -f "docker-compose.yaml" ] || { err "ไม่พบ docker-compose.yaml"; pause_exit; }
 
@@ -125,18 +135,18 @@ PG_CONTAINER="${PREFIX}_db"
 
 # ── Build Next.js image first ─────────────────────────────────
 step "Build Next.js image (อาจใช้เวลาหลายนาที)"
-docker compose build nextjs || { err "docker compose build ล้มเหลว"; pause_exit; }
+$COMPOSE_CMD build nextjs || { err "$DOCKER_CMD compose build ล้มเหลว"; pause_exit; }
 ok "Build เสร็จแล้ว"
 
 # ── Start PostgreSQL only — import dump BEFORE Directus runs migrations ──
 step "เริ่ม PostgreSQL"
-docker compose up -d postgres || { err "ไม่สามารถเริ่ม postgres ได้"; pause_exit; }
+$COMPOSE_CMD up -d postgres || { err "ไม่สามารถเริ่ม postgres ได้"; pause_exit; }
 
 # ── Wait for PostgreSQL ───────────────────────────────────────
 step "รอ PostgreSQL พร้อม"
 READY=false
 for i in $(seq 1 40); do
-    if docker exec "$PG_CONTAINER" pg_isready -U directus &>/dev/null; then
+    if $DOCKER_CMD exec "$PG_CONTAINER" pg_isready -U directus &>/dev/null; then
         READY=true; break
     fi
     printf "\r   รอ... (%s/40)" "$i"
@@ -151,12 +161,12 @@ else
 
     if [ -f "dump.sql" ]; then
         step "Reset database schema"
-        docker exec "$PG_CONTAINER" psql -U directus -d directus \
+        $DOCKER_CMD exec "$PG_CONTAINER" psql -U directus -d directus \
             -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public; GRANT ALL ON SCHEMA public TO directus; GRANT ALL ON SCHEMA public TO public;"
         ok "Schema reset แล้ว"
 
         step "Import database (dump.sql)"
-        if docker exec -i "$PG_CONTAINER" psql -U directus -d directus < dump.sql; then
+        if $DOCKER_CMD exec -i "$PG_CONTAINER" psql -U directus -d directus < dump.sql; then
             ok "Import สำเร็จ"
         else
             warn "Import อาจมีปัญหาบางส่วน — ดำเนินการต่อ"
@@ -168,7 +178,7 @@ fi
 
 # ── Start remaining services (Directus finds DB already populated) ────
 step "เริ่ม Directus และ Next.js"
-docker compose up -d || { err "ไม่สามารถเริ่ม containers ทั้งหมดได้"; pause_exit; }
+$COMPOSE_CMD up -d || { err "ไม่สามารถเริ่ม containers ทั้งหมดได้"; pause_exit; }
 ok "Containers ทั้งหมดกำลังรัน"
 
 # ── Wait for Directus health endpoint ────────────────────────
@@ -206,7 +216,7 @@ if [ "$DIR_READY" = true ]; then
         fi
     fi
 else
-    warn "Directus ไม่ตอบสนอง — กรุณาตรวจสอบ: docker compose logs directus"
+    warn "Directus ไม่ตอบสนอง — กรุณาตรวจสอบ: $COMPOSE_CMD logs directus"
 fi
 
 # ── Summary ───────────────────────────────────────────────────
