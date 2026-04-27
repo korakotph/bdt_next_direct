@@ -69,7 +69,7 @@ function Update-Compose($path, $prefix, $pgPort, $dirPort, $nextPort, $adminEmai
     return "${prefix}_db"
 }
 
-# ─────────────────────────────────────────────────────────────
+# -------------------------------------------------------------
 try {
     Set-Location $ProjectDir
 
@@ -85,7 +85,7 @@ try {
     Write-Step "Checking Docker"
     $dockerExists = $null -ne (Get-Command docker -ErrorAction SilentlyContinue)
     if (-not $dockerExists) {
-        Write-Err "docker not found — please install Docker first"
+        Write-Err "docker not found - please install Docker first"
         Write-Host ""
         Write-Host "  Docker installation options:" -ForegroundColor Cyan
         Write-Host "   1) Docker Desktop  : https://www.docker.com/products/docker-desktop"
@@ -120,7 +120,7 @@ try {
                 [Security.Principal.WindowsBuiltInRole]::Administrator)
 
             if ($isAdmin) {
-                Write-Host "  Running as Administrator — can fix automatically" -ForegroundColor Cyan
+                Write-Host "  Running as Administrator - can fix automatically" -ForegroundColor Cyan
                 $fix = Read-Host "  Fix ownership automatically? (Y/n)"
                 if ($fix -ne 'n' -and $fix -ne 'N') {
                     Write-Step "Fixing C:\ProgramData\DockerDesktop ownership..."
@@ -194,7 +194,7 @@ try {
     if (-not $built) { Pause-Exit "docker compose build failed after 3 attempts. Check log above." }
     Write-Ok "Build complete"
 
-    # start postgres only — import dump BEFORE Directus runs migrations
+    # start postgres only - import dump BEFORE Directus runs migrations
     Write-Step "Starting PostgreSQL"
     docker compose up -d postgres
     if ($LASTEXITCODE -ne 0) { Pause-Exit "Failed to start postgres container." }
