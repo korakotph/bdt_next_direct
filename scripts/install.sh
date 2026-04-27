@@ -33,9 +33,22 @@ echo    "  Container : ${PREFIX}_*"
 
 # ── Check Docker ──────────────────────────────────────────────
 step "ตรวจสอบ Docker"
+if ! command -v docker &>/dev/null; then
+    err "ไม่พบ docker — กรุณาติดตั้ง Docker ก่อน"
+    echo ""
+    echo "  ตัวเลือกการติดตั้ง Docker:"
+    echo "   1) Docker Desktop  : https://www.docker.com/products/docker-desktop"
+    echo "   2) Rancher Desktop : https://rancherdesktop.io  (ฟรี, ใช้แทน Docker Desktop ได้)"
+    echo "   3) Podman Desktop  : https://podman-desktop.io  (ฟรี, open-source)"
+    echo ""
+    echo "  หลังติดตั้งแล้ว ให้เปิดโปรแกรมก่อน แล้วรัน install อีกครั้ง"
+    pause_exit
+fi
 if ! docker info &>/dev/null; then
-    err "Docker ไม่ได้รันอยู่ หรือยังไม่ได้ติดตั้ง"
-    echo "     กรุณาเปิด Docker Desktop แล้วลองใหม่"
+    err "Docker ติดตั้งแล้วแต่ยังไม่ได้รัน"
+    echo ""
+    echo "  กรุณาเปิด Docker Desktop (หรือ Rancher Desktop / Podman Desktop)"
+    echo "  รอให้ icon ใน system tray หยุดหมุน แล้วรัน install อีกครั้ง"
     pause_exit
 fi
 ok "Docker พร้อมใช้งาน"

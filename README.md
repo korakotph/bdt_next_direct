@@ -9,10 +9,21 @@
 
 ## สิ่งที่ต้องติดตั้งก่อน
 
-| เครื่องมือ | เวอร์ชันที่แนะนำ | ดาวน์โหลด |
+ต้องการ **Docker + Docker Compose** เท่านั้น — ไม่ต้องติดตั้ง Python หรือ Node.js
+
+### ตัวเลือก Docker (เลือกแค่อันเดียว)
+
+| ตัวเลือก | แนะนำสำหรับ | ดาวน์โหลด |
 |---|---|---|
-| Docker Desktop | 24+ | https://www.docker.com/products/docker-desktop |
-| Docker Compose | 2.x (มาพร้อม Docker Desktop) | — |
+| **Docker Desktop** | ทั่วไป | https://www.docker.com/products/docker-desktop |
+| **Rancher Desktop** | เครื่องที่ install Docker Desktop ไม่ได้ (เช่น corporate policy) | https://rancherdesktop.io |
+| **Podman Desktop** | ต้องการ open-source / ไม่ต้องการ license | https://podman-desktop.io |
+
+> **Rancher Desktop** รองรับ Windows 10/11 ทุก edition รวมถึง Home และไม่ต้อง license — ใช้แทน Docker Desktop ได้ 100% กับโปรเจกต์นี้
+>
+> หลังติดตั้งให้ตั้งค่า **Container Engine เป็น `dockerd (moby)`** ใน Rancher Desktop Preferences เพื่อให้ใช้คำสั่ง `docker compose` ได้ปกติ
+
+Docker Compose 2.x จะมาพร้อมกับทุกตัวเลือกข้างต้น
 
 ---
 
@@ -193,6 +204,11 @@ docker compose logs -f directus
 ---
 
 ## ปัญหาที่พบบ่อย
+
+**ติดตั้ง Docker Desktop ไม่ได้ (เช่น corporate policy / Windows edition)**
+> ใช้ **Rancher Desktop** แทน — ดาวน์โหลดที่ https://rancherdesktop.io
+> หลังติดตั้งให้ไปที่ Preferences → Container Engine → เลือก **dockerd (moby)** แล้ว Apply
+> จากนั้นรัน `install.bat` ได้ปกติ
 
 **install.bat ปิดหน้าต่างก่อนอ่าน error ทัน**
 > ดูรายละเอียด error ทั้งหมดได้ที่ไฟล์ `install_log.txt` ในโฟลเดอร์โปรเจกต์

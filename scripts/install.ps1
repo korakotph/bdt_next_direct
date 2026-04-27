@@ -83,9 +83,26 @@ try {
 
     # check Docker
     Write-Step "Checking Docker"
+    $dockerExists = $null -ne (Get-Command docker -ErrorAction SilentlyContinue)
+    if (-not $dockerExists) {
+        Write-Err "docker not found — please install Docker first"
+        Write-Host ""
+        Write-Host "  Docker installation options:" -ForegroundColor Cyan
+        Write-Host "   1) Docker Desktop  : https://www.docker.com/products/docker-desktop"
+        Write-Host "   2) Rancher Desktop : https://rancherdesktop.io  (free, Docker Desktop alternative)"
+        Write-Host "   3) Podman Desktop  : https://podman-desktop.io  (free, open-source)"
+        Write-Host ""
+        Write-Host "  After installing, open the app and wait for it to finish starting," -ForegroundColor Yellow
+        Write-Host "  then run install.bat again." -ForegroundColor Yellow
+        Pause-Exit
+    }
     docker info 2>&1 | Out-Null
     if ($LASTEXITCODE -ne 0) {
-        Pause-Exit "Docker is not running. Please open Docker Desktop and try again."
+        Write-Err "Docker is installed but not running"
+        Write-Host ""
+        Write-Host "  Please open Docker Desktop (or Rancher Desktop / Podman Desktop)" -ForegroundColor Yellow
+        Write-Host "  and wait for the tray icon to stop spinning, then run install.bat again." -ForegroundColor Yellow
+        Pause-Exit
     }
     Write-Ok "Docker is ready"
 
