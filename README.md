@@ -29,6 +29,39 @@ Docker/nerdctl Compose จะมาพร้อมกับทุกตัวเ
 
 ---
 
+## การเตรียมเครื่อง Mac
+
+### ติดตั้ง Git
+
+Mac ต้องการ **Xcode Command Line Tools** ก่อนถึงจะใช้ `git` ได้:
+
+```bash
+xcode-select --install
+```
+
+จะมี popup ขึ้นมา — กด **Install** แล้วรอจนเสร็จ (ประมาณ 5–15 นาที) จากนั้นตรวจสอบด้วย:
+
+```bash
+git --version
+```
+
+> ถ้าอัปเดต macOS แล้ว Git หาย ให้รัน `xcode-select --install` อีกครั้ง
+
+### ติดตั้ง Docker Desktop สำหรับ Mac
+
+1. ดาวน์โหลด **Docker Desktop for Mac** ที่ https://www.docker.com/products/docker-desktop
+2. เลือก chip ให้ถูกต้อง: **Apple Silicon (M1/M2/M3/M4)** หรือ **Intel**
+3. ลากไฟล์ `.dmg` ไปไว้ใน Applications แล้วเปิด Docker Desktop
+4. รอให้ Docker icon ใน Menu Bar แสดงสถานะ **Running**
+
+### รัน installer
+
+Double-click ไฟล์ **`install.command`** ในโฟลเดอร์โปรเจกต์
+
+> **ครั้งแรก:** macOS อาจบล็อกไฟล์ — ให้ **Right-click → Open** แทน แล้วกด Open ในกล่อง dialog
+
+---
+
 ## วิธีติดตั้ง
 
 ### 1. ดาวน์โหลดโปรเจกต์
