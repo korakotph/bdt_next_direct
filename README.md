@@ -9,7 +9,7 @@
 
 ## สิ่งที่ต้องติดตั้งก่อน
 
-ต้องการ **Docker + Docker Compose** เท่านั้น — ไม่ต้องติดตั้ง Python หรือ Node.js
+ต้องการ **Docker (หรือ nerdctl) + Compose** เท่านั้น — ไม่ต้องติดตั้ง Python หรือ Node.js
 
 ### ตัวเลือก Docker (เลือกแค่อันเดียว)
 
@@ -19,11 +19,13 @@
 | **Rancher Desktop** | เครื่องที่ install Docker Desktop ไม่ได้ (เช่น corporate policy) | https://rancherdesktop.io |
 | **Podman Desktop** | ต้องการ open-source / ไม่ต้องการ license | https://podman-desktop.io |
 
-> **Rancher Desktop** รองรับ Windows 10/11 ทุก edition รวมถึง Home และไม่ต้อง license — ใช้แทน Docker Desktop ได้ 100% กับโปรเจกต์นี้
+> **Rancher Desktop** รองรับ Windows 10/11 ทุก edition รวมถึง Home และไม่ต้อง license — installer รองรับทั้ง 2 mode:
+> - **dockerd (moby)** — ใช้คำสั่ง `docker` / `docker compose` (แนะนำ)
+> - **containerd** — ใช้คำสั่ง `nerdctl` / `nerdctl compose` (รองรับเช่นกัน)
 >
-> หลังติดตั้งให้ตั้งค่า **Container Engine เป็น `dockerd (moby)`** ใน Rancher Desktop Preferences เพื่อให้ใช้คำสั่ง `docker compose` ได้ปกติ
+> installer จะ detect runtime ที่ใช้งานอยู่ให้อัตโนมัติ ไม่ต้องตั้งค่าเพิ่มเติม
 
-Docker Compose 2.x จะมาพร้อมกับทุกตัวเลือกข้างต้น
+Docker/nerdctl Compose จะมาพร้อมกับทุกตัวเลือกข้างต้น
 
 ---
 
