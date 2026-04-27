@@ -240,8 +240,9 @@ docker compose logs -f directus
 **Directus ยังไม่พร้อม**
 > Directus ต้องการเวลา initialize ฐานข้อมูลครั้งแรก รอสัก 30–60 วินาที แล้วลอง refresh
 
-**Next.js build fail บน Docker**
-> ตรวจสอบว่า `NEXT_PUBLIC_DIRECTUS_URL` ใน `docker-compose.yaml` ถูกต้อง เพราะค่านี้จะถูก bake เข้า bundle ตอน build
+**Next.js build fail บน Docker — `TypeError: fetch failed` / `ECONNREFUSED`**
+> Next.js พยายาม prerender หน้าเว็บตอน build แต่ Directus ยังไม่รัน ทำให้ fetch ไม่ได้
+> ปัญหานี้ถูกแก้แล้วด้วย `export const dynamic = 'force-dynamic'` ใน layout — ถ้ายังเจอให้ตรวจสอบว่า code ล่าสุดจาก repository แล้ว
 
 **เปิด http://localhost:3012 ไม่ได้หลัง `docker compose up`**
 > ต้อง rebuild image ใหม่เมื่อมีการเปลี่ยนแปลงโค้ดหรือ config:
