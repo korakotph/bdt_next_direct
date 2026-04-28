@@ -3,25 +3,25 @@
 services:
   postgres:
     image: postgres:16
-    container_name: sample2_db
+    container_name: sample5_db
     restart: unless-stopped
     environment:
       POSTGRES_USER: directus
       POSTGRES_PASSWORD: directus
       POSTGRES_DB: directus
     volumes:
-      - sample2_postgres_data:/var/lib/postgresql/data
+      - sample5_postgres_data:/var/lib/postgresql/data
     ports:
-      - "5434:5432"
+      - "5437:5432"
 
   directus:
     image: directus/directus:latest
-    container_name: sample2_directus
+    container_name: sample5_directus
     restart: unless-stopped
     depends_on:
       - postgres
     ports:
-      - "8057:8055"
+      - "8060:8055"
     environment:
       CORS_ENABLED: "true"
       # TODO: จำกัด CORS_ORIGIN ให้เฉพาะ domain จริง เช่น "https://example.com"
@@ -45,12 +45,12 @@ services:
       STORAGE_LOCAL_DRIVER: local
       STORAGE_LOCAL_ROOT: /directus/uploads
 
-      ADMIN_EMAIL: admin@example.com
+      ADMIN_EMAIL: phromchaiman_k@su.ac.th
       # SECURITY: เปลี่ยน ADMIN_PASSWORD ก่อน deploy production
-      ADMIN_PASSWORD: admin123
+      ADMIN_PASSWORD: krt123
 
       # URL สาธารณะของ Directus — ใช้สำหรับ generate asset URL ให้ถูกต้อง
-      PUBLIC_URL: http://localhost:8057
+      PUBLIC_URL: http://localhost:8060
     volumes:
       - ./directus/uploads:/directus/uploads
       - ./directus/migrations:/directus/migrations
@@ -60,18 +60,18 @@ services:
       context: ./next-app
       args:
         # ส่ง NEXT_PUBLIC_* เข้า Docker build เพื่อ bake ลง client bundle
-        NEXT_PUBLIC_DIRECTUS_URL: http://localhost:8057
+        NEXT_PUBLIC_DIRECTUS_URL: http://localhost:8060
         NEXT_PUBLIC_BASE_PATH: ""
-    container_name: sample2_nextjs
+    container_name: sample5_nextjs
     restart: unless-stopped
     ports:
-      - "3013:3000"
+      - "3016:3000"
     environment:
       DIRECTUS_INTERNAL_URL: http://directus:8055
-      NEXT_PUBLIC_DIRECTUS_URL: http://localhost:8057
+      NEXT_PUBLIC_DIRECTUS_URL: http://localhost:8060
       NEXT_PUBLIC_BASE_PATH: ""
     depends_on:
       - directus
 
 volumes:
-  sample2_postgres_data:
+  sample5_postgres_data:

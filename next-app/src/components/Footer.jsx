@@ -2,10 +2,11 @@
 
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
+import { prerenderHtml } from '@/lib/prerenderHtml'
 
 const DEFAULT_LOCALE = 'th'
 
-export default function Footer({ settings, lang }) {
+export default async function Footer({ settings, lang }) {
   const pathname = usePathname()
   const year = new Date().getFullYear()
 
@@ -38,19 +39,19 @@ export default function Footer({ settings, lang }) {
     },
   ].filter(item => item.url)
 
-  if (settings?.footer_theme === 2) {
+  const ContentHtml = await prerenderHtml(settings?.footer_content);
+
+  if (settings?.footer_theme == 2) {
     return (
       <footer
         className="text-white shadow-md"
         style={{ backgroundColor: settings?.footer_color }}
       >
-        <div className={`${settings?.max_w_footer} flex flex-col md:flex-row justify-between items-center gap-4 px-6 py-4`}>
-          <div className="text-sm text-center md:text-left" style={{ color: settings?.footer_text_color }}>
+        <div className={`max-w-${settings?.max_w_footer} mx-auto flex flex-col md:flex-row justify-between items-center gap-4 px-6 py-4`}>
+          <div className="text-sm text-left md:text-left" style={{ color: settings?.footer_text_color }}>
             {settings?.footer_name}
           </div>
-          <div className="text-sm text-center md:text-right" style={{ color: settings?.footer_text_color }}>
-            {settings?.footer_content}
-          </div>
+          <div className="text-sm text-right md:text-right" style={{ color: settings?.footer_text_color }} dangerouslySetInnerHTML={{ __html: ContentHtml }}/>
         </div>
       </footer>
     )
@@ -61,7 +62,7 @@ export default function Footer({ settings, lang }) {
       className="text-white shadow-md"
       style={{ backgroundColor: settings?.footer_color }}
     >
-      <div className={`${settings?.max_w_footer} flex flex-col md:flex-row justify-center items-center gap-4 px-6 py-4`}>
+      <div className={`max-w-${settings?.max_w_footer} mx-auto flex flex-col md:flex-row justify-center items-center gap-4 px-6 py-4`}>
         <div className="text-sm text-center md:text-left" style={{ color: settings?.footer_text_color }}>
           {settings?.footer_name}
         </div>

@@ -83,7 +83,7 @@ export default function NavbarClient({ settings, menu}) {
     </div>
   )
 
-  if (settings?.header_theme === 2) {
+  if (settings?.header_theme == 2) {
     return (
       <nav className="sticky top-0 z-[100] shadow-md"
         style={{ backgroundColor: settings?.navbar_color }}
