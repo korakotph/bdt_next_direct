@@ -57,13 +57,13 @@ export default function NavbarClient({ settings, menu}) {
 
   const mobileToggle = (
     <button
-      className="menu-btn md:hidden flex flex-col justify-center items-center w-8 h-8 mr-0"
+      className="menu-btn md:hidden flex flex-col justify-center items-center w-10 h-10"
       onClick={() => setMenuOpen(!menuOpen)}
       aria-label="Toggle menu"
     >
-      <span className="block w-6 h-0.5 bg-white mb-1 transition-all duration-300"></span>
-      <span className="block w-6 h-0.5 bg-white mb-1 transition-all duration-300"></span>
-      <span className="block w-6 h-0.5 bg-white transition-all duration-300"></span>
+      <span className="block w-6 h-0.5 mb-1 transition-all duration-300" style={{ backgroundColor: settings?.text_color ?? '#ffffff' }}></span>
+      <span className="block w-6 h-0.5 mb-1 transition-all duration-300" style={{ backgroundColor: settings?.text_color ?? '#ffffff' }}></span>
+      <span className="block w-6 h-0.5 transition-all duration-300" style={{ backgroundColor: settings?.text_color ?? '#ffffff' }}></span>
     </button>
   )
 
