@@ -48,7 +48,7 @@ export default async function Footer({ settings, lang }) {
         className="text-white shadow-md"
         style={{ backgroundColor: settings?.footer_color }}
       >
-        <style>{`.footer-content a { color: ${footerTextColor} !important; } .footer-content a:hover { color: ${footerTextColor} !important; }`}</style>
+        <style>{`.footer-content a { color: ${footerTextColor} !important; } .footer-content a:hover { color: ${footerTextColor} !important; } .footer-content p { margin: 0 !important; }`}</style>
         <div className={`max-w-${settings?.max_w_footer} mx-auto flex flex-col md:flex-row justify-between items-center gap-4 px-6 py-4`}>
           <div className="text-sm text-left md:text-left" style={{ color: footerTextColor }}>
             {settings?.footer_name}
