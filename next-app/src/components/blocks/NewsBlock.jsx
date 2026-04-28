@@ -80,7 +80,7 @@ export default function NewsBlock({ item, lang }) {
             <Link
               key={n.id ?? n.slug}
               href={`/news/${n.id}`}
-              className="block hover:shadow-lg transition-shadow duration-200 h-full"
+              className="block shadow-lg hover:shadow-xl transition-shadow duration-200 h-full"
             >
               <div key={n.id} className={`${item?.rounded_news || ''} shadow flex flex-col h-full`}>
                 <img
@@ -122,7 +122,7 @@ export default function NewsBlock({ item, lang }) {
             target='_self'
             href={item.all_news_link}
             className="inline-block px-8 py-3 rounded-lg font-medium text-white transition hover:opacity-80"
-            style={{ backgroundColor: item?.news_button || '#308E85' }}
+            style={{ backgroundColor: item?.news_button || '#353535' }}
           >
             ดูข่าวทั้งหมด
           </Link>
