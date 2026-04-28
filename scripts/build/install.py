@@ -58,7 +58,8 @@ def err(msg: str):
 # ──────────────────────────────────────────────
 
 def patch_compose(path: str, prefix: str,
-                  pg_port: int, dir_port: int, next_port: int):
+                  pg_port: int, dir_port: int, next_port: int,
+                  admin_email: str = '', admin_pass: str = ''):
     """Patch docker-compose.yaml in-place, preserving comments."""
 
     with open(path, 'r', encoding='utf-8') as f:
@@ -120,6 +121,12 @@ def patch_compose(path: str, prefix: str,
     # ── patch volume name ──
     src = src.replace(old_vol, new_vol)
 
+    # ── patch ADMIN_EMAIL / ADMIN_PASSWORD ──
+    if admin_email:
+        src = re.sub(r'ADMIN_EMAIL:\s*\S+', f'ADMIN_EMAIL: {admin_email}', src)
+    if admin_pass:
+        src = re.sub(r'ADMIN_PASSWORD:\s*\S+', f'ADMIN_PASSWORD: {admin_pass}', src)
+
     with open(path, 'w', encoding='utf-8', newline='\n') as f:
         f.write(src)
 
@@ -180,6 +187,15 @@ def main():
         input("\nกด Enter เพื่อออก...")
         sys.exit(1)
 
+    # ── admin credentials ──
+    step("ตั้งค่า Admin account")
+    admin_email = input("  Admin email    (default: admin@example.com): ").strip()
+    admin_email = admin_email or "admin@example.com"
+    admin_pass  = input("  Admin password (default: admin123): ").strip()
+    admin_pass  = admin_pass  or "admin123"
+    ok(f"Email    : {admin_email}")
+    ok(f"Password : {admin_pass}")
+
     # ── find free ports ──
     step("หา port ที่ว่าง")
     pg_port   = free_port(5433)
@@ -192,7 +208,8 @@ def main():
     # ── patch docker-compose.yaml ──
     step("อัปเดต docker-compose.yaml")
     pg_container = patch_compose(compose_path, prefix,
-                                 pg_port, dir_port, next_port)
+                                 pg_port, dir_port, next_port,
+                                 admin_email, admin_pass)
     ok("เสร็จแล้ว")
 
     # ── build + start ──
@@ -225,6 +242,15 @@ def main():
             if r.returncode == 0:
                 ok("Import สำเร็จ")
 
+                step("ลบ users เดิมออก (Directus จะสร้าง admin ใหม่จาก credentials ที่กำหนด)")
+                subprocess.run(
+                    ['docker', 'exec', pg_container,
+                     'psql', '-U', 'directus', '-d', 'directus',
+                     '-c', 'DELETE FROM directus_users;'],
+                    capture_output=True
+                )
+                ok("Users reset แล้ว")
+
                 step("Restart Directus เพื่อโหลด schema ใหม่")
                 subprocess.run(['docker', 'compose', 'restart', 'directus'],
                                capture_output=True)
@@ -243,8 +269,8 @@ def main():
     print(f"\n  Frontend  :  http://localhost:{next_port}")
     print(f"  Directus  :  http://localhost:{dir_port}")
     print(f"\n  Directus login")
-    print(f"    Email    :  admin@example.com")
-    print(f"    Password :  admin123")
+    print(f"    Email    :  {admin_email}")
+    print(f"    Password :  {admin_pass}")
     print(f"\n  Container names")
     print(f"    {prefix}_db")
     print(f"    {prefix}_directus")

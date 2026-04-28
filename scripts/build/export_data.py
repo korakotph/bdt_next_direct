@@ -148,7 +148,8 @@ def main():
     try:
         r = subprocess.run(
             ['docker', 'exec', pg_container,
-             'pg_dump', '-U', 'directus', '--no-owner', '--no-acl', 'directus'],
+             'pg_dump', '-U', 'directus', '--no-owner', '--no-acl',
+             '--exclude-table-data=directus_users', 'directus'],
             capture_output=True
         )
         if r.returncode == 0 and r.stdout:

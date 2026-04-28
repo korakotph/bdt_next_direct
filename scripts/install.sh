@@ -168,6 +168,11 @@ else
         step "Import database (dump.sql)"
         if $DOCKER_CMD exec -i "$PG_CONTAINER" psql -U directus -d directus < dump.sql; then
             ok "Import สำเร็จ"
+
+            step "ลบ users เดิมออก (Directus จะสร้าง admin ใหม่จาก credentials ที่กำหนด)"
+            $DOCKER_CMD exec "$PG_CONTAINER" psql -U directus -d directus \
+                -c "DELETE FROM directus_users;" &>/dev/null
+            ok "Users reset แล้ว"
         else
             warn "Import อาจมีปัญหาบางส่วน — ดำเนินการต่อ"
         fi
@@ -193,28 +198,8 @@ for i in $(seq 1 40); do
 done
 echo ""
 
-# ── Update admin credentials via Directus API ─────────────────
 if [ "$DIR_READY" = true ]; then
     ok "Directus พร้อมแล้ว"
-
-    if [ "$ADMIN_EMAIL" != "admin@example.com" ] || [ "$ADMIN_PASS" != "admin123" ]; then
-        step "อัปเดต admin credentials"
-        LOGIN_RESP=$(curl -sf -X POST "http://localhost:${DIR_PORT}/auth/login" \
-            -H "Content-Type: application/json" \
-            -d '{"email":"admin@example.com","password":"admin123"}' 2>/dev/null || true)
-        TOKEN=$(echo "$LOGIN_RESP" | grep -o '"access_token":"[^"]*"' | cut -d'"' -f4)
-
-        if [ -n "$TOKEN" ]; then
-            PATCH_BODY=$(printf '{"email":"%s","password":"%s"}' "$ADMIN_EMAIL" "$ADMIN_PASS")
-            curl -sf -X PATCH "http://localhost:${DIR_PORT}/users/me" \
-                -H "Authorization: Bearer $TOKEN" \
-                -H "Content-Type: application/json" \
-                -d "$PATCH_BODY" &>/dev/null
-            ok "อัปเดต credentials เรียบร้อย"
-        else
-            warn "Login ด้วย default credentials ไม่ได้ — กรุณาเปลี่ยน password ใน Directus admin เอง"
-        fi
-    fi
 else
     warn "Directus ไม่ตอบสนอง — กรุณาตรวจสอบ: $COMPOSE_CMD logs directus"
 fi

@@ -106,8 +106,8 @@ cd ชื่อโฟลเดอร์
 3. หา port ที่ว่างอัตโนมัติ (เริ่มจาก 5433 / 8056 / 3012 ถ้าว่าง)
 4. อัปเดต `docker-compose.yaml` และ backup เป็น `.bak`
 5. Build และ Start containers
-6. Import `dump.sql` เข้า PostgreSQL
-7. อัปเดต admin credentials ใน Directus
+6. Import `dump.sql` เข้า PostgreSQL แล้วลบ users เดิมออก
+7. Directus สร้าง admin ใหม่จาก credentials ที่กรอกตอนติดตั้ง
 8. **แสดง URL จริงและ login ที่ใช้งานได้เลยตอนจบ**
 
 > **URL และ port จะแสดงตอนจบการติดตั้ง** เพราะอาจเปลี่ยนถ้า port เริ่มต้นถูกใช้งานอยู่แล้ว
@@ -115,7 +115,7 @@ cd ชื่อโฟลเดอร์
 ### Export ข้อมูล
 
 Double-click `export_data.bat` (Windows) หรือ `export_data.command` (Mac) โปรแกรมจะ export:
-- `dump.sql` — database ทั้งหมด
+- `dump.sql` — database ทั้งหมด (ยกเว้นข้อมูล users — สร้าง admin ใหม่ตอน install)
 - `directus/uploads/` — ไฟล์จาก Directus (แตก zip ทับโฟลเดอร์โปรเจกต์ได้เลย)
 
 บีบอัดลงไฟล์ `export_YYYYMMDD_HHMMSS.zip` โดยอัตโนมัติ
