@@ -57,7 +57,7 @@ export default function NavbarClient({ settings, menu}) {
 
   const mobileToggle = (
     <button
-      className="menu-btn md:hidden flex flex-col justify-center items-center w-10 h-10"
+      className="menu-btn md:hidden flex flex-col justify-center items-center w-10 h-10 cursor-pointer"
       onClick={() => setMenuOpen(!menuOpen)}
       aria-label="Toggle menu"
     >
