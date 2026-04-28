@@ -45,10 +45,6 @@ services:
       STORAGE_LOCAL_DRIVER: local
       STORAGE_LOCAL_ROOT: /directus/uploads
 
-      ADMIN_EMAIL: phromchaiman_k@su.ac.th
-      # SECURITY: เปลี่ยน ADMIN_PASSWORD ก่อน deploy production
-      ADMIN_PASSWORD: krt123
-
       # URL สาธารณะของ Directus — ใช้สำหรับ generate asset URL ให้ถูกต้อง
       PUBLIC_URL: http://localhost:8060
     volumes:
