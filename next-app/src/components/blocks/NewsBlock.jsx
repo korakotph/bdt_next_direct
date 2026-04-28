@@ -92,7 +92,7 @@ export default function NewsBlock({ item, lang }) {
                   <h4 className="text-xl font-medium mb-2 line-clamp-2">
                     {n.title}
                   </h4>
-                  <h4 className="text-base pb-2 text-gray-600 line-clamp-3 flex-1">
+                  <h4 className="text-base mb-2 text-gray-600 line-clamp-3 flex-1">
                     {n.subtitle}
                   </h4>
                   {n.date_updated && (
