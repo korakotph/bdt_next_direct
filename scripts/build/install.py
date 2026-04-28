@@ -212,14 +212,22 @@ def main():
                                  admin_email, admin_pass)
     ok("เสร็จแล้ว")
 
-    # ── build + start ──
-    step("Build และ Start containers  (อาจใช้เวลาหลายนาที)")
-    result = subprocess.run(['docker', 'compose', 'up', '-d', '--build'])
+    # ── build Next.js image first ──
+    step("Build Next.js image (อาจใช้เวลาหลายนาที)")
+    result = subprocess.run(['docker', 'compose', 'build', 'nextjs'])
     if result.returncode != 0:
-        err("docker compose up ล้มเหลว — ดู error ด้านบน")
+        err("docker compose build ล้มเหลว — ดู error ด้านบน")
         input("\nกด Enter เพื่อออก...")
         sys.exit(1)
-    ok("Containers กำลังรัน")
+    ok("Build เสร็จแล้ว")
+
+    # ── start postgres only — import dump BEFORE Directus runs ──
+    step("เริ่ม PostgreSQL")
+    result = subprocess.run(['docker', 'compose', 'up', '-d', 'postgres'])
+    if result.returncode != 0:
+        err("ไม่สามารถเริ่ม postgres ได้")
+        input("\nกด Enter เพื่อออก...")
+        sys.exit(1)
 
     # ── wait postgres ──
     step("รอ PostgreSQL พร้อม")
@@ -229,9 +237,19 @@ def main():
         print()
         ok("PostgreSQL พร้อมแล้ว")
 
-        # ── import dump ──
         dump = os.path.join(root, 'dump.sql')
         if os.path.exists(dump):
+            step("Reset database schema")
+            subprocess.run(
+                ['docker', 'exec', pg_container,
+                 'psql', '-U', 'directus', '-d', 'directus',
+                 '-c', 'DROP SCHEMA public CASCADE; CREATE SCHEMA public; '
+                       'GRANT ALL ON SCHEMA public TO directus; '
+                       'GRANT ALL ON SCHEMA public TO public;'],
+                capture_output=True
+            )
+            ok("Schema reset แล้ว")
+
             step("Import database (dump.sql)")
             with open(dump, 'rb') as f:
                 r = subprocess.run(
@@ -241,25 +259,28 @@ def main():
                 )
             if r.returncode == 0:
                 ok("Import สำเร็จ")
-
-                step("ลบ users เดิมออก (Directus จะสร้าง admin ใหม่จาก credentials ที่กำหนด)")
-                subprocess.run(
-                    ['docker', 'exec', pg_container,
-                     'psql', '-U', 'directus', '-d', 'directus',
-                     '-c', 'DELETE FROM directus_users;'],
-                    capture_output=True
-                )
-                ok("Users reset แล้ว")
-
-                step("Restart Directus เพื่อโหลด schema ใหม่")
-                subprocess.run(['docker', 'compose', 'restart', 'directus'],
-                               capture_output=True)
-                ok("Directus restarted — รอ 10 วินาที...")
-                time.sleep(10)
             else:
-                warn("Import อาจมีปัญหา — ตรวจสอบ log ด้วย: docker compose logs directus")
+                warn("Import อาจมีปัญหาบางส่วน — ดำเนินการต่อ")
+
+            step("ลบ users เดิมออก (Directus จะสร้าง admin จาก ADMIN_EMAIL/ADMIN_PASSWORD ใน docker-compose)")
+            subprocess.run(
+                ['docker', 'exec', pg_container,
+                 'psql', '-U', 'directus', '-d', 'directus',
+                 '-c', 'DELETE FROM directus_users;'],
+                capture_output=True
+            )
+            ok("Users reset แล้ว")
         else:
             warn("ไม่พบ dump.sql — ข้ามการ import database")
+
+    # ── start remaining services (Directus finds DB already populated) ──
+    step("เริ่ม Directus และ Next.js")
+    result = subprocess.run(['docker', 'compose', 'up', '-d'])
+    if result.returncode != 0:
+        err("ไม่สามารถเริ่ม containers ทั้งหมดได้")
+        input("\nกด Enter เพื่อออก...")
+        sys.exit(1)
+    ok("Containers ทั้งหมดกำลังรัน")
 
     # ── summary ──
     print()
