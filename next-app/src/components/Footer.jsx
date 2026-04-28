@@ -38,19 +38,30 @@ export default function Footer({ settings, lang }) {
     },
   ].filter(item => item.url)
 
+  if (settings?.footer_theme === 2) {
+    return (
+      <footer
+        className="text-white shadow-md"
+        style={{ backgroundColor: settings?.footer_color }}
+      >
+        <div className={`${settings?.max_w_footer} flex flex-col md:flex-row justify-between items-center gap-4 px-6 py-4`}>
+          <div className="text-sm text-center md:text-left" style={{ color: settings?.footer_text_color }}>
+            {settings?.footer_name}
+          </div>
+          <div className="text-sm text-center md:text-right" style={{ color: settings?.footer_text_color }}>
+            {settings?.footer_content}
+          </div>
+        </div>
+      </footer>
+    )
+  }
+
   return (
     <footer
       className="text-white shadow-md"
       style={{ backgroundColor: settings?.footer_color }}
     >
       <div className={`${settings?.max_w_footer} flex flex-col md:flex-row justify-center items-center gap-4 px-6 py-4`}>
-        {/* Left */}
-        {/* <div className="text-sm text-center md:text-left">
-          © {year} {settings?.site_name}.
-          <span className="ml-1">
-            {t[locale]?.rights ?? t.th.rights}
-          </span>
-        </div> */}
         <div className="text-sm text-center md:text-left" style={{ color: settings?.footer_text_color }}>
           {settings?.footer_name}
         </div>
