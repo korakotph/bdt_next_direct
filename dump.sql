@@ -2,10 +2,10 @@
 -- PostgreSQL database dump
 --
 
-\restrict i9zyxgY8hcnHW6TqTkZUOxuFHfEb7Zv0kBY0WgSfG1ccegUreLptdMBiOqt1w4q
+\restrict ObBD7PLjqBkiWepfR6KPPiaHoV7mCS1My8AmcRvenWulqlmuS5TbgTaW6fjjCgl
 
--- Dumped from database version 16.11 (Debian 16.11-1.pgdg13+1)
--- Dumped by pg_dump version 16.11 (Debian 16.11-1.pgdg13+1)
+-- Dumped from database version 16.13 (Debian 16.13-1.pgdg13+1)
+-- Dumped by pg_dump version 16.13 (Debian 16.13-1.pgdg13+1)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -5280,6 +5280,7 @@ COPY public.directus_activity (id, action, "user", "timestamp", ip, user_agent, 
 4036	delete	45726bfd-c98c-46ec-ae7a-c7f46b5f040e	2026-04-28 07:43:02.244+00	172.26.0.1	Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36	directus_files	99bdb6bc-2069-4971-b831-6076fd558191	http://localhost:8060
 4037	create	45726bfd-c98c-46ec-ae7a-c7f46b5f040e	2026-04-28 07:43:23.534+00	172.26.0.1	Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36	directus_folders	3fe768e0-4dc4-4dbf-ac26-b247c9604ff1	http://localhost:8060
 4038	update	45726bfd-c98c-46ec-ae7a-c7f46b5f040e	2026-04-28 07:43:33.898+00	172.26.0.1	Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36	directus_files	2044bcb9-9238-4562-959b-aa295063562d	http://localhost:8060
+4039	login	45726bfd-c98c-46ec-ae7a-c7f46b5f040e	2026-04-28 08:41:38.05+00	192.168.143.2	Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36	directus_users	45726bfd-c98c-46ec-ae7a-c7f46b5f040e	http://localhost:8056
 \.
 
 
@@ -9329,8 +9330,8 @@ H4RB5zV28R-uSb_RJAufkeyGC5pujjNN95hJ6p0JJ2zhgSRSklwVz680poXoB-v7	45726bfd-c98c-4
 5O9u-UjWt0mzBRkVeLvhEfoMU24A9rZLTHM2mYO5kglvZ-KZxOJLJRkayMfTTVrx	45726bfd-c98c-46ec-ae7a-c7f46b5f040e	2026-05-04 04:29:22.865+00	172.26.0.1	Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36	\N	http://localhost:8060	\N
 ahonc-LHfBCulK9NOGKpG5WhljOPm_FlKH0QdTuXCj8OKckbU60TQepgD4pqEY31	45726bfd-c98c-46ec-ae7a-c7f46b5f040e	2026-05-04 04:32:59.795+00	172.26.0.1	Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36	\N	http://localhost:8060	\N
 gSefPt8jIcNyJIBTzkzBNGkvv9ezr1HUM5S3lv44rKYfEjEJJp2BIVXXyHJ0edPc	45726bfd-c98c-46ec-ae7a-c7f46b5f040e	2026-05-05 02:38:28.619+00	172.26.0.1	Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36	\N	http://localhost:8060	\N
-rvLn5PyMoYQ8ezW6agTesBB5Qx-XsVF8864z1hNbVTTuT_bGy47gLm2elEMk19Gw	45726bfd-c98c-46ec-ae7a-c7f46b5f040e	2026-04-28 07:21:13.183+00	172.26.0.1	Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36	\N	http://localhost:8060	1QraofSqIatAVXWyfsLEmwtSUmpOMCyfhSADZ3f2ggzAcZK-Sw5fZAyqHCCoSaQh
 1QraofSqIatAVXWyfsLEmwtSUmpOMCyfhSADZ3f2ggzAcZK-Sw5fZAyqHCCoSaQh	45726bfd-c98c-46ec-ae7a-c7f46b5f040e	2026-04-29 07:21:03.183+00	172.26.0.1	Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36	\N	http://localhost:8060	\N
+o0BG4WFv4K5NTYpBFiZfVmpOTAect_SBtfXgoiHMWdC1IoWipTflXe8Zy-JPnx3w	45726bfd-c98c-46ec-ae7a-c7f46b5f040e	2026-05-05 08:41:38.027+00	192.168.143.2	Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36	\N	http://localhost:8056	\N
 \.
 
 
@@ -9365,7 +9366,7 @@ COPY public.directus_translations (id, language, key, value) FROM stdin;
 --
 
 COPY public.directus_users (id, first_name, last_name, email, password, location, title, description, tags, avatar, language, tfa_secret, status, role, token, last_access, last_page, provider, external_identifier, auth_data, email_notifications, appearance, theme_dark, theme_light, theme_light_overrides, theme_dark_overrides, text_direction) FROM stdin;
-45726bfd-c98c-46ec-ae7a-c7f46b5f040e	Admin	User	phromchaiman_k@su.ac.th	$argon2id$v=19$m=65536,t=3,p=4$e73XJKbkwTIw+TrpLGbtOg$Cftb8kKeZEq0ZkK1xVDpismu93SxBlTRlJKBbQde0rk	\N	\N	\N	\N	\N	\N	\N	active	9c6098f1-c434-4832-8ceb-1e70baf6858c	WhAWhXcMpYQHxAB8rY077VEYanmHftQM	2026-04-28 07:21:03.188+00	/files	default	\N	\N	t	\N	\N	\N	\N	\N	auto
+45726bfd-c98c-46ec-ae7a-c7f46b5f040e	Admin	User	phromchaiman_k@su.ac.th	$argon2id$v=19$m=65536,t=3,p=4$e73XJKbkwTIw+TrpLGbtOg$Cftb8kKeZEq0ZkK1xVDpismu93SxBlTRlJKBbQde0rk	\N	\N	\N	\N	\N	\N	\N	active	9c6098f1-c434-4832-8ceb-1e70baf6858c	WhAWhXcMpYQHxAB8rY077VEYanmHftQM	2026-04-28 08:41:38.061+00	/users/45726bfd-c98c-46ec-ae7a-c7f46b5f040e	default	\N	\N	t	\N	\N	\N	\N	\N	auto
 \.
 
 
@@ -9452,7 +9453,7 @@ SELECT pg_catalog.setval('public.block_types_id_seq', 19, true);
 -- Name: directus_activity_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('public.directus_activity_id_seq', 4038, true);
+SELECT pg_catalog.setval('public.directus_activity_id_seq', 4039, true);
 
 
 --
@@ -10509,5 +10510,5 @@ ALTER TABLE ONLY public."Site_Settings"
 -- PostgreSQL database dump complete
 --
 
-\unrestrict i9zyxgY8hcnHW6TqTkZUOxuFHfEb7Zv0kBY0WgSfG1ccegUreLptdMBiOqt1w4q
+\unrestrict ObBD7PLjqBkiWepfR6KPPiaHoV7mCS1My8AmcRvenWulqlmuS5TbgTaW6fjjCgl
 
