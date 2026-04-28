@@ -23,4 +23,4 @@ Thumbs.db
 .env.local
 install_log.txt
 export_log.txt
-directus/extensions/modules/site-deploy/node_modules
+directus/extensions/site-deploy/node_modules
