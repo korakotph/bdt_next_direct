@@ -24,30 +24,78 @@ export default function NavbarClient({ settings, menu}) {
 
   const buildUrl = (targetSlug = 'home') => `/${targetSlug}`
 
-  return (
-    <nav className="sticky top-0 z-[100] shadow-md" 
-      style={{ backgroundColor: settings?.navbar_color,
-      }}
+  const logoBlock = (
+    <Link
+      href={buildUrl(settings?.first_page)}
+      className='flex justify-center items-center'
+      style={{ color: settings?.text_color }}
     >
-      <div className={`px-6 h-20 flex justify-between items-center max-w-${settings?.max_w_navbar} mx-auto`}>
-        {/* LOGO */}
-        <Link 
-          href={buildUrl(settings?.first_page)}
-          className='flex jusify-center items-center'
-          style={{ color: settings?.text_color }}
-        >
-          {settings?.logo && (
-            <img
-              src={`${process.env.NEXT_PUBLIC_DIRECTUS_URL}/assets/${settings.logo}`}
-              alt={settings?.site_name}
-              className="h-10"
-            />
-          )}
-          <span className="ml-4 font-medium">{settings.site_name}</span>
-        </Link>
+      {settings?.logo && (
+        <img
+          src={`${process.env.NEXT_PUBLIC_DIRECTUS_URL}/assets/${settings.logo}`}
+          alt={settings?.site_name}
+          className="h-10"
+        />
+      )}
+      <span className="ml-4 font-medium">{settings.site_name}</span>
+    </Link>
+  )
 
-        {/* Desktop Menu */}
-        <div className="hidden md:flex gap-2">
+  const desktopMenu = (
+    <div className="hidden md:flex gap-2">
+      {menu.map(item => (
+        <MenuItem
+          key={item.id}
+          item={item}
+          buildUrl={buildUrl}
+          isActive={isActive}
+          settings={settings}
+        />
+      ))}
+    </div>
+  )
+
+  const mobileToggle = (
+    <button
+      className="menu-btn md:hidden flex flex-col justify-center items-center w-8 h-8 mr-0"
+      onClick={() => setMenuOpen(!menuOpen)}
+      aria-label="Toggle menu"
+    >
+      <span className="block w-6 h-0.5 bg-white mb-1 transition-all duration-300"></span>
+      <span className="block w-6 h-0.5 bg-white mb-1 transition-all duration-300"></span>
+      <span className="block w-6 h-0.5 bg-white transition-all duration-300"></span>
+    </button>
+  )
+
+  const mobileMenu = menuOpen && (
+    <div className="md:hidden bg-brand-700 border-t border-white/10 px-6 py-4 space-y-4">
+      <div className="flex flex-col gap-3">
+        {menu.map(item => (
+          <MobileMenuItem
+            key={item.id}
+            item={item}
+            buildUrl={buildUrl}
+            isActive={isActive}
+            settings={settings}
+          />
+        ))}
+      </div>
+    </div>
+  )
+
+  if (settings?.header_theme === 2) {
+    return (
+      <nav className="sticky top-0 z-[100] shadow-md"
+        style={{ backgroundColor: settings?.navbar_color }}
+      >
+        {/* Row 1: Logo + Site Name */}
+        <div className={`px-6 h-16 flex justify-between items-center max-w-${settings?.max_w_navbar} mx-auto`}>
+          {logoBlock}
+          {mobileToggle}
+        </div>
+
+        {/* Row 2: Desktop Menu */}
+        <div className={`hidden md:flex border-t border-white/10 px-6 max-w-${settings?.max_w_navbar} mx-auto`}>
           {menu.map(item => (
             <MenuItem
               key={item.id}
@@ -59,37 +107,21 @@ export default function NavbarClient({ settings, menu}) {
           ))}
         </div>
 
-        {/* Mobile Toggle */}
-        <button 
-          className="menu-btn md:hidden flex flex-col justify-center items-center w-8 h-8 mr-0"
-          onClick={() => setMenuOpen(!menuOpen)}
-          aria-label="Toggle menu"
-        >
-          <span className="block w-6 h-0.5 bg-white mb-1 transition-all duration-300 "></span>
-          <span className="block w-6 h-0.5 bg-white mb-1 transition-all duration-300 "></span>
-          <span className="block w-6 h-0.5 bg-white transition-all duration-300 "></span>
-        </button>
+        {mobileMenu}
+      </nav>
+    )
+  }
+
+  return (
+    <nav className="sticky top-0 z-[100] shadow-md"
+      style={{ backgroundColor: settings?.navbar_color }}
+    >
+      <div className={`px-6 h-20 flex justify-between items-center max-w-${settings?.max_w_navbar} mx-auto`}>
+        {logoBlock}
+        {desktopMenu}
+        {mobileToggle}
       </div>
-
-      {/* Mobile Menu */}
-      {menuOpen && (
-        <div className="md:hidden bg-brand-700 border-t border-white/10 px-6 py-4 space-y-4">
-
-          {/* Menu */}
-          <div className="flex flex-col gap-3">
-            {menu.map(item => (
-              <MobileMenuItem
-                key={item.id}
-                item={item}
-                buildUrl={buildUrl}
-                isActive={isActive}
-                settings={settings}
-              />
-            ))}
-          </div>
-
-        </div>
-      )}
+      {mobileMenu}
     </nav>
   )
 }

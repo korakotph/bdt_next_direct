@@ -302,6 +302,7 @@ docker compose logs -f directus
 | `logo` | รูป logo ที่แสดงใน Navbar — **ใช้เป็น favicon ของเว็บด้วยโดยอัตโนมัติ** |
 | `site_name` | ชื่อเว็บไซต์ |
 | `navbar_color` / `text_color` | สีของ Navbar |
+| `header_theme` | รูปแบบ Navbar: `1` = แถวเดียว (โลโก้ซ้าย เมนูขวา), `2` = สองแถว (แถว 1 โลโก้, แถว 2 เมนู) |
 | `footer_color` / `footer_text_color` | สีของ Footer |
 | `first_page` | slug ของหน้าแรก |
 | `landing` | เปิด/ปิด popup ข่าว |
