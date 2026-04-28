@@ -54,7 +54,8 @@ PARTS=()
 # ── Export database ───────────────────────────────────────────
 step "Export database"
 DUMP_OUT="$EXPORT_DIR/dump.sql"
-if docker exec "$PG_CONTAINER" pg_dump -U directus --no-owner --no-acl directus > "$DUMP_OUT"; then
+if docker exec "$PG_CONTAINER" pg_dump -U directus --no-owner --no-acl \
+        --exclude-table-data=directus_users directus > "$DUMP_OUT"; then
     KB=$(du -k "$DUMP_OUT" | cut -f1)
     ok "dump.sql  (${KB} KB)"
     PARTS+=("dump.sql")
