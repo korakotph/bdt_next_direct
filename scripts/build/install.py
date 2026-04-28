@@ -245,14 +245,19 @@ def main():
             else:
                 warn("Import อาจมีปัญหาบางส่วน — ดำเนินการต่อ")
 
-            step("ลบ users เดิมออก (ตั้งค่า admin ใหม่ได้ที่ /admin/setup)")
+            step("ลบ users และ admin policies เดิมออก (ตั้งค่า admin ใหม่ได้ที่ /admin/setup)")
             subprocess.run(
                 ['docker', 'exec', pg_container,
                  'psql', '-U', 'directus', '-d', 'directus',
-                 '-c', 'DELETE FROM directus_users;'],
+                 '-c', (
+                     'DELETE FROM directus_access WHERE policy IN '
+                     '(SELECT id FROM directus_policies WHERE admin_access = true);'
+                     'DELETE FROM directus_policies WHERE admin_access = true;'
+                     'DELETE FROM directus_users;'
+                 )],
                 capture_output=True
             )
-            ok("Users reset แล้ว")
+            ok("Users และ admin policies reset แล้ว")
         else:
             warn("ไม่พบ dump.sql — ข้ามการ import database")
 

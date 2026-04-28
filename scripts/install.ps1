@@ -217,9 +217,13 @@ try {
             if ($LASTEXITCODE -eq 0) {
                 Write-Ok "Import successful"
 
-                Write-Step "Removing old users (set up new admin at /admin/setup)"
-                & $DOCKER exec $pgContainer psql -U directus -d directus -c "DELETE FROM directus_users;" | Out-Null
-                Write-Ok "Users reset"
+                Write-Step "Removing old users and admin policies (set up new admin at /admin/setup)"
+                & $DOCKER exec $pgContainer psql -U directus -d directus -c @"
+DELETE FROM directus_access WHERE policy IN (SELECT id FROM directus_policies WHERE admin_access = true);
+DELETE FROM directus_policies WHERE admin_access = true;
+DELETE FROM directus_users;
+"@ | Out-Null
+                Write-Ok "Users and admin policies reset"
             } else {
                 Write-Warn "Import may have had errors - continuing anyway"
             }

@@ -157,10 +157,13 @@ else
         if $DOCKER_CMD exec -i "$PG_CONTAINER" psql -U directus -d directus < dump.sql; then
             ok "Import สำเร็จ"
 
-            step "ลบ users เดิมออก (ตั้งค่า admin ใหม่ได้ที่ /admin/setup)"
-            $DOCKER_CMD exec "$PG_CONTAINER" psql -U directus -d directus \
-                -c "DELETE FROM directus_users;" &>/dev/null
-            ok "Users reset แล้ว"
+            step "ลบ users และ admin policies เดิมออก (ตั้งค่า admin ใหม่ได้ที่ /admin/setup)"
+            $DOCKER_CMD exec "$PG_CONTAINER" psql -U directus -d directus -c "
+                DELETE FROM directus_access WHERE policy IN (SELECT id FROM directus_policies WHERE admin_access = true);
+                DELETE FROM directus_policies WHERE admin_access = true;
+                DELETE FROM directus_users;
+            " &>/dev/null
+            ok "Users และ admin policies reset แล้ว"
         else
             warn "Import อาจมีปัญหาบางส่วน — ดำเนินการต่อ"
         fi
