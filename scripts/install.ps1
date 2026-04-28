@@ -37,7 +37,7 @@ function Find-FreePort($start) {
     throw "No free port near $start"
 }
 
-function Update-Compose($path, $prefix, $pgPort, $dirPort, $nextPort, $adminEmail, $adminPass) {
+function Update-Compose($path, $prefix, $pgPort, $dirPort, $nextPort) {
     Copy-Item $path "$path.bak" -Force
     Write-Ok "Backup -> docker-compose.yaml.bak"
 
@@ -62,9 +62,6 @@ function Update-Compose($path, $prefix, $pgPort, $dirPort, $nextPort, $adminEmai
     $c = $c -replace 'NEXT_PUBLIC_DIRECTUS_URL:\s+http://localhost:\d+',
                      "NEXT_PUBLIC_DIRECTUS_URL: http://localhost:${dirPort}"
     $c = $c.Replace($volOld, "${prefix}_postgres_data")
-    $c = $c -replace 'ADMIN_EMAIL:\s+\S+',     "ADMIN_EMAIL: ${adminEmail}"
-    $c = $c -replace 'ADMIN_PASSWORD:\s+\S+',  "ADMIN_PASSWORD: ${adminPass}"
-
     [IO.File]::WriteAllText($path, $c, [Text.Encoding]::UTF8)
     return "${prefix}_db"
 }
@@ -159,15 +156,6 @@ try {
     $composePath = Join-Path $ProjectDir "docker-compose.yaml"
     if (-not (Test-Path $composePath)) { Pause-Exit "docker-compose.yaml not found" }
 
-    # admin credentials
-    Write-Step "Admin account setup"
-    $adminEmail = Read-Host "  Admin email    (default: admin@example.com)"
-    if (-not $adminEmail) { $adminEmail = "admin@example.com" }
-    $adminPass  = Read-Host "  Admin password (default: admin123)"
-    if (-not $adminPass)  { $adminPass  = "admin123" }
-    Write-Ok "Email    : $adminEmail"
-    Write-Ok "Password : $adminPass"
-
     # find free ports
     Write-Step "Finding available ports"
     $pgPort   = Find-FreePort 5433
@@ -179,7 +167,7 @@ try {
 
     # patch compose
     Write-Step "Updating docker-compose.yaml"
-    $pgContainer = Update-Compose $composePath $prefix $pgPort $dirPort $nextPort $adminEmail $adminPass
+    $pgContainer = Update-Compose $composePath $prefix $pgPort $dirPort $nextPort
     Write-Ok "Done"
 
     # build nextjs image first (so it's ready when we start all services)
@@ -229,7 +217,7 @@ try {
             if ($LASTEXITCODE -eq 0) {
                 Write-Ok "Import successful"
 
-                Write-Step "Removing old users (Directus will create fresh admin from configured credentials)"
+                Write-Step "Removing old users (set up new admin at /admin/setup)"
                 & $DOCKER exec $pgContainer psql -U directus -d directus -c "DELETE FROM directus_users;" | Out-Null
                 Write-Ok "Users reset"
             } else {
@@ -271,9 +259,8 @@ try {
     Write-Host ("=" * 54) -ForegroundColor Cyan
     Write-Host "`n  Frontend  :  http://localhost:$nextPort"
     Write-Host "  Directus  :  http://localhost:$dirPort"
-    Write-Host "`n  Directus login"
-    Write-Host "    Email    :  $adminEmail"
-    Write-Host "    Password :  $adminPass"
+    Write-Host "`n  Directus Admin Setup"
+    Write-Host "    http://localhost:$dirPort/admin/setup"
     Write-Host "`n  Containers : ${prefix}_db / ${prefix}_directus / ${prefix}_nextjs"
     Write-Host "  Log file   : $LogFile" -ForegroundColor Gray
     Write-Host ("=" * 54) -ForegroundColor Cyan
