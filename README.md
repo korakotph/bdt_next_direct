@@ -293,6 +293,41 @@ docker compose logs -f directus
 
 ---
 
+## Deploy Site ผ่าน Directus Admin
+
+โปรเจกต์มีหน้า **Deploy** ใน Directus admin สำหรับ pull code และ restart Next.js โดยไม่ต้องเปิด terminal
+
+### วิธีใช้
+
+**1. รัน deploy-server บน host machine** (ต้องรันทิ้งไว้ตลอด):
+
+```bash
+node scripts/deploy-server.js
+```
+
+> server จะรันที่ `http://127.0.0.1:9901` และแสดงสถานะ "Deploy server running..." — ปล่อยให้ค้างอยู่ได้ปกติ
+> เปลี่ยน port ได้ด้วย `DEPLOY_PORT=xxxx node scripts/deploy-server.js`
+
+**2. Restart Directus** เพื่อโหลด extension:
+
+```bash
+docker compose restart directus
+```
+
+**3. เข้า Directus Admin** → จะมีเมนู **Deploy** (ไอคอน 🚀) ที่ sidebar ด้านซ้าย
+
+### ปุ่มในหน้า Deploy
+
+| ปุ่ม | การทำงาน |
+|---|---|
+| ⬇️ Git Pull | ดึง code เวอร์ชันล่าสุดจาก repository |
+| 🐳 Docker Compose | Build และ restart เฉพาะ Next.js container |
+| 🚀 Deploy | รวมทั้งสองขั้นตอนในครั้งเดียว |
+
+> ตั้งค่า URL ของ deploy-server ได้ในหน้า Deploy (บันทึกใน localStorage ของ browser)
+
+---
+
 ## การตั้งค่าเว็บไซต์ผ่าน Directus (Site Settings)
 
 ไปที่ Directus Admin → **Site Settings** เพื่อกำหนดค่าต่างๆ ของเว็บ:
