@@ -282,6 +282,38 @@ def main():
         sys.exit(1)
     ok("Containers ทั้งหมดกำลังรัน")
 
+    # ── wait for Directus health endpoint ──
+    step("รอ Directus พร้อม")
+    dir_ready = False
+    for i in range(1, 41):
+        try:
+            import urllib.request
+            urllib.request.urlopen(
+                f'http://localhost:{dir_port}/server/health', timeout=2)
+            dir_ready = True
+            break
+        except Exception:
+            sys.stdout.write(f"\r   รอ... ({i}/40)")
+            sys.stdout.flush()
+            time.sleep(3)
+    print()
+
+    if dir_ready:
+        ok("Directus พร้อมแล้ว")
+
+        step("Bootstrap admin user จาก docker-compose credentials")
+        r = subprocess.run(
+            ['docker', 'exec', f'{prefix}_directus',
+             'node', '/directus/cli.js', 'bootstrap'],
+            capture_output=True
+        )
+        if r.returncode == 0:
+            ok("Admin user พร้อมแล้ว")
+        else:
+            warn("Bootstrap ไม่สำเร็จ — ลองล็อกอินด้วย credentials ที่กำหนดไว้")
+    else:
+        warn("Directus ไม่ตอบสนอง — ตรวจสอบ: docker compose logs directus")
+
     # ── summary ──
     print()
     hr('═')

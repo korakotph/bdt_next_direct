@@ -262,6 +262,14 @@ try {
 
     if ($dirReady) {
         Write-Ok "Directus is ready"
+
+        Write-Step "Bootstrapping admin user from docker-compose credentials"
+        & $DOCKER exec "${prefix}_directus" node /directus/cli.js bootstrap 2>&1 | Out-Null
+        if ($LASTEXITCODE -eq 0) {
+            Write-Ok "Admin user ready"
+        } else {
+            Write-Warn "Bootstrap had issues - try logging in with the credentials you specified"
+        }
     } else {
         Write-Warn "Directus did not respond - check: $DOCKER compose logs directus"
     }

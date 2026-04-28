@@ -200,6 +200,11 @@ echo ""
 
 if [ "$DIR_READY" = true ]; then
     ok "Directus พร้อมแล้ว"
+
+    step "Bootstrap admin user จาก docker-compose credentials"
+    $DOCKER_CMD exec "${PREFIX}_directus" node /directus/cli.js bootstrap 2>/dev/null \
+        && ok "Admin user พร้อมแล้ว" \
+        || warn "Bootstrap ไม่สำเร็จ — ลองล็อกอินด้วย credentials ที่กำหนดไว้"
 else
     warn "Directus ไม่ตอบสนอง — กรุณาตรวจสอบ: $COMPOSE_CMD logs directus"
 fi
