@@ -228,6 +228,10 @@ try {
             cmd /c "$DOCKER exec -i $pgContainer psql -U directus -d directus < `"$dumpPath`""
             if ($LASTEXITCODE -eq 0) {
                 Write-Ok "Import successful"
+
+                Write-Step "Removing old users (Directus will create fresh admin from configured credentials)"
+                & $DOCKER exec $pgContainer psql -U directus -d directus -c "DELETE FROM directus_users;" | Out-Null
+                Write-Ok "Users reset"
             } else {
                 Write-Warn "Import may have had errors - continuing anyway"
             }
@@ -256,31 +260,8 @@ try {
     }
     Write-Host ""
 
-    # update admin credentials via Directus API
     if ($dirReady) {
         Write-Ok "Directus is ready"
-
-        if ($adminEmail -ne "admin@example.com" -or $adminPass -ne "admin123") {
-            Write-Step "Updating admin credentials"
-            try {
-                $loginBody = '{"email":"admin@example.com","password":"admin123"}'
-                $loginResp = Invoke-RestMethod -Uri "http://localhost:${dirPort}/auth/login" `
-                    -Method POST -Body $loginBody -ContentType "application/json"
-                $token = $loginResp.data.access_token
-
-                if ($token) {
-                    $patchBody = "{`"email`":`"${adminEmail}`",`"password`":`"${adminPass}`"}"
-                    Invoke-RestMethod -Uri "http://localhost:${dirPort}/users/me" `
-                        -Method PATCH -Body $patchBody -ContentType "application/json" `
-                        -Headers @{ Authorization = "Bearer $token" } | Out-Null
-                    Write-Ok "Credentials updated successfully"
-                } else {
-                    Write-Warn "Could not get token - please change password in Directus admin"
-                }
-            } catch {
-                Write-Warn "Could not update credentials via API: $_ - please change in Directus admin"
-            }
-        }
     } else {
         Write-Warn "Directus did not respond - check: $DOCKER compose logs directus"
     }
