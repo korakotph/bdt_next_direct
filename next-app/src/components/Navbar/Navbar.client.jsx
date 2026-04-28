@@ -68,7 +68,10 @@ export default function NavbarClient({ settings, menu}) {
   )
 
   const mobileMenu = menuOpen && (
-    <div className="md:hidden bg-brand-700 border-t border-white/10 px-6 py-4 space-y-4">
+    <div
+      className="md:hidden absolute w-full border-t border-white/10 px-6 py-4 space-y-4 z-[99] shadow-lg"
+      style={{ backgroundColor: settings?.navbar_color }}
+    >
       <div className="flex flex-col gap-3">
         {menu.map(item => (
           <MobileMenuItem
@@ -85,7 +88,7 @@ export default function NavbarClient({ settings, menu}) {
 
   if (settings?.header_theme == 2) {
     return (
-      <nav className="sticky top-0 z-[100] shadow-md"
+      <nav className="sticky top-0 z-[100] shadow-md relative"
         style={{ backgroundColor: settings?.navbar_color }}
       >
         {/* Row 1: Logo + Site Name */}
