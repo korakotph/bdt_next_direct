@@ -7,10 +7,8 @@ import { faAngleDown } from '@fortawesome/free-solid-svg-icons'
 
 export default function MobileMenuItem({
   item,
-  locale,
   buildUrl,
   isActive,
-  getTitleByLang,
   settings
 }) {
   const [open, setOpen] = useState(false)
@@ -19,35 +17,34 @@ export default function MobileMenuItem({
   if (!hasChildren) {
     return (
       <Link
-        href={buildUrl(locale, item.slug)}
+        href={buildUrl(item.slug)}
         className={`block text-white ${
           isActive(item.slug) ? 'font-semibold' : 'opacity-80'
         }`}
+        style={{ color: settings?.text_color }}
       >
-        {getTitleByLang(item)}
+        {item.title}
       </Link>
     )
   }
 
   return (
     <div className="flex flex-col">
-      
-      {/* Parent */}
-      <button onClick={() => setOpen(!open)} className="flex justify-between items-center text-white">
-        {getTitleByLang(item)}
+      <button onClick={() => setOpen(!open)} className="flex justify-between items-center" style={{ color: settings?.text_color }}>
+        {item.title}
         <FontAwesomeIcon icon={faAngleDown} className="w-3 h-3" />
       </button>
 
-      {/* Children */}
       {open && (
         <div className="pl-4 mt-2 flex flex-col gap-2">
           {item.children.map(child => (
             <Link
               key={child.id}
-              href={buildUrl(locale, child.slug)}
-              className="text-white opacity-80"
+              href={buildUrl(child.slug)}
+              className="opacity-80"
+              style={{ color: settings?.text_color }}
             >
-              {getTitleByLang(child)}
+              {child.title}
             </Link>
           ))}
         </div>
