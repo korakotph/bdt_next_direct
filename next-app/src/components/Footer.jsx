@@ -1,44 +1,6 @@
-'use client'
-
-import Image from 'next/image'
-import { usePathname } from 'next/navigation'
 import { prerenderHtml } from '@/lib/prerenderHtml'
 
-const DEFAULT_LOCALE = 'th'
-
 export default async function Footer({ settings, lang }) {
-  const pathname = usePathname()
-  const year = new Date().getFullYear()
-
-  const locale = lang;
-
-  const t = {
-    th: {
-      rights: 'สงวนลิขสิทธิ์',
-    },
-    en: {
-      rights: 'All rights reserved',
-    },
-  }
-
-  const socials = [
-    {
-      name: 'facebook',
-      icon: '/img/fb.svg',
-      url: settings?.facebook_url,
-    },
-    {
-      name: 'youtube',
-      icon: '/img/yt.svg',
-      url: settings?.youtube_url,
-    },
-    {
-      name: 'instagram',
-      icon: '/img/ig.svg',
-      url: settings?.instagram_url,
-    },
-  ].filter(item => item.url)
-
   const ContentHtml = await prerenderHtml(settings?.footer_content);
 
   if (settings?.footer_theme == 2) {
