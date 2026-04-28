@@ -58,8 +58,7 @@ def err(msg: str):
 # ──────────────────────────────────────────────
 
 def patch_compose(path: str, prefix: str,
-                  pg_port: int, dir_port: int, next_port: int,
-                  admin_email: str = '', admin_pass: str = ''):
+                  pg_port: int, dir_port: int, next_port: int):
     """Patch docker-compose.yaml in-place, preserving comments."""
 
     with open(path, 'r', encoding='utf-8') as f:
@@ -121,12 +120,6 @@ def patch_compose(path: str, prefix: str,
     # ── patch volume name ──
     src = src.replace(old_vol, new_vol)
 
-    # ── patch ADMIN_EMAIL / ADMIN_PASSWORD ──
-    if admin_email:
-        src = re.sub(r'ADMIN_EMAIL:\s*\S+', f'ADMIN_EMAIL: {admin_email}', src)
-    if admin_pass:
-        src = re.sub(r'ADMIN_PASSWORD:\s*\S+', f'ADMIN_PASSWORD: {admin_pass}', src)
-
     with open(path, 'w', encoding='utf-8', newline='\n') as f:
         f.write(src)
 
@@ -187,15 +180,6 @@ def main():
         input("\nกด Enter เพื่อออก...")
         sys.exit(1)
 
-    # ── admin credentials ──
-    step("ตั้งค่า Admin account")
-    admin_email = input("  Admin email    (default: admin@example.com): ").strip()
-    admin_email = admin_email or "admin@example.com"
-    admin_pass  = input("  Admin password (default: admin123): ").strip()
-    admin_pass  = admin_pass  or "admin123"
-    ok(f"Email    : {admin_email}")
-    ok(f"Password : {admin_pass}")
-
     # ── find free ports ──
     step("หา port ที่ว่าง")
     pg_port   = free_port(5433)
@@ -208,8 +192,7 @@ def main():
     # ── patch docker-compose.yaml ──
     step("อัปเดต docker-compose.yaml")
     pg_container = patch_compose(compose_path, prefix,
-                                 pg_port, dir_port, next_port,
-                                 admin_email, admin_pass)
+                                 pg_port, dir_port, next_port)
     ok("เสร็จแล้ว")
 
     # ── build Next.js image first ──
@@ -262,7 +245,7 @@ def main():
             else:
                 warn("Import อาจมีปัญหาบางส่วน — ดำเนินการต่อ")
 
-            step("ลบ users เดิมออก (Directus จะสร้าง admin จาก ADMIN_EMAIL/ADMIN_PASSWORD ใน docker-compose)")
+            step("ลบ users เดิมออก (ตั้งค่า admin ใหม่ได้ที่ /admin/setup)")
             subprocess.run(
                 ['docker', 'exec', pg_container,
                  'psql', '-U', 'directus', '-d', 'directus',
@@ -300,17 +283,6 @@ def main():
 
     if dir_ready:
         ok("Directus พร้อมแล้ว")
-
-        step("Bootstrap admin user จาก docker-compose credentials")
-        r = subprocess.run(
-            ['docker', 'exec', f'{prefix}_directus',
-             'node', '/directus/cli.js', 'bootstrap'],
-            capture_output=True
-        )
-        if r.returncode == 0:
-            ok("Admin user พร้อมแล้ว")
-        else:
-            warn("Bootstrap ไม่สำเร็จ — ลองล็อกอินด้วย credentials ที่กำหนดไว้")
     else:
         warn("Directus ไม่ตอบสนอง — ตรวจสอบ: docker compose logs directus")
 
@@ -321,9 +293,8 @@ def main():
     hr('═')
     print(f"\n  Frontend  :  http://localhost:{next_port}")
     print(f"  Directus  :  http://localhost:{dir_port}")
-    print(f"\n  Directus login")
-    print(f"    Email    :  {admin_email}")
-    print(f"    Password :  {admin_pass}")
+    print(f"\n  Directus Admin Setup")
+    print(f"    http://localhost:{dir_port}/admin/setup")
     print(f"\n  Container names")
     print(f"    {prefix}_db")
     print(f"    {prefix}_directus")

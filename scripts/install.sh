@@ -65,15 +65,6 @@ ok "Container runtime: $DOCKER_CMD"
 
 [ -f "docker-compose.yaml" ] || { err "ไม่พบ docker-compose.yaml"; pause_exit; }
 
-# ── Admin credentials ─────────────────────────────────────────
-step "ตั้งค่า Admin account"
-read -rp "  Admin email    (default: admin@example.com): " ADMIN_EMAIL
-ADMIN_EMAIL="${ADMIN_EMAIL:-admin@example.com}"
-read -rp "  Admin password (default: admin123): " ADMIN_PASS
-ADMIN_PASS="${ADMIN_PASS:-admin123}"
-ok "Email    : $ADMIN_EMAIL"
-ok "Password : $ADMIN_PASS"
-
 # ── Find free ports ───────────────────────────────────────────
 find_free_port() {
     local port=$1
@@ -127,9 +118,6 @@ perl -i -pe "s|PUBLIC_URL: http://localhost:\d+|PUBLIC_URL: http://localhost:${D
 perl -i -pe "s|NEXT_PUBLIC_DIRECTUS_URL: http://localhost:\d+|NEXT_PUBLIC_DIRECTUS_URL: http://localhost:${DIR_PORT}|g" \
     docker-compose.yaml
 perl -i -pe "s/\Q${VOL_OLD}\E/${PREFIX}_postgres_data/g" docker-compose.yaml
-perl -i -pe "s|ADMIN_EMAIL: \S+|ADMIN_EMAIL: ${ADMIN_EMAIL}|g"    docker-compose.yaml
-perl -i -pe "s|ADMIN_PASSWORD: \S+|ADMIN_PASSWORD: ${ADMIN_PASS}|g" docker-compose.yaml
-
 ok "เสร็จแล้ว"
 PG_CONTAINER="${PREFIX}_db"
 
@@ -169,7 +157,7 @@ else
         if $DOCKER_CMD exec -i "$PG_CONTAINER" psql -U directus -d directus < dump.sql; then
             ok "Import สำเร็จ"
 
-            step "ลบ users เดิมออก (Directus จะสร้าง admin ใหม่จาก credentials ที่กำหนด)"
+            step "ลบ users เดิมออก (ตั้งค่า admin ใหม่ได้ที่ /admin/setup)"
             $DOCKER_CMD exec "$PG_CONTAINER" psql -U directus -d directus \
                 -c "DELETE FROM directus_users;" &>/dev/null
             ok "Users reset แล้ว"
@@ -200,11 +188,6 @@ echo ""
 
 if [ "$DIR_READY" = true ]; then
     ok "Directus พร้อมแล้ว"
-
-    step "Bootstrap admin user จาก docker-compose credentials"
-    $DOCKER_CMD exec "${PREFIX}_directus" node /directus/cli.js bootstrap 2>/dev/null \
-        && ok "Admin user พร้อมแล้ว" \
-        || warn "Bootstrap ไม่สำเร็จ — ลองล็อกอินด้วย credentials ที่กำหนดไว้"
 else
     warn "Directus ไม่ตอบสนอง — กรุณาตรวจสอบ: $COMPOSE_CMD logs directus"
 fi
@@ -217,9 +200,8 @@ echo ""
 echo "  Frontend  :  http://localhost:$NEXT_PORT"
 echo "  Directus  :  http://localhost:$DIR_PORT"
 echo ""
-echo "  Directus login"
-echo "    Email    :  $ADMIN_EMAIL"
-echo "    Password :  $ADMIN_PASS"
+echo "  Directus Admin Setup"
+echo "    http://localhost:$DIR_PORT/admin/setup"
 echo ""
 echo "  Container names"
 echo "    ${PREFIX}_db  /  ${PREFIX}_directus  /  ${PREFIX}_nextjs"

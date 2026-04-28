@@ -102,13 +102,11 @@ cd ชื่อโฟลเดอร์
 
 โปรแกรมจะทำทุกอย่างอัตโนมัติ:
 1. ตั้งชื่อ container ตามชื่อโฟลเดอร์
-2. **ขอ Admin email และ password** — กรอกหรือกด Enter เพื่อใช้ค่า default (`admin@example.com` / `admin123`)
-3. หา port ที่ว่างอัตโนมัติ (เริ่มจาก 5433 / 8056 / 3012 ถ้าว่าง)
-4. อัปเดต `docker-compose.yaml` และ backup เป็น `.bak`
-5. Build และ Start containers
-6. Import `dump.sql` เข้า PostgreSQL แล้วลบ users เดิมออก
-7. Directus สร้าง admin ใหม่จาก credentials ที่กรอกตอนติดตั้ง
-8. **แสดง URL จริงและ login ที่ใช้งานได้เลยตอนจบ**
+2. หา port ที่ว่างอัตโนมัติ (เริ่มจาก 5433 / 8056 / 3012 ถ้าว่าง)
+3. อัปเดต `docker-compose.yaml` และ backup เป็น `.bak`
+4. Build และ Start containers
+5. Import `dump.sql` เข้า PostgreSQL แล้วลบ users เดิมออก
+6. **แสดง URL สำหรับตั้งค่า Admin ตอนจบ — ไปสร้าง account ที่ `/admin/setup`**
 
 > **URL และ port จะแสดงตอนจบการติดตั้ง** เพราะอาจเปลี่ยนถ้า port เริ่มต้นถูกใช้งานอยู่แล้ว
 
@@ -145,8 +143,7 @@ docker compose up -d
 > ถ้าติดตั้งผ่าน `install.bat` / `install.command` — ดู URL และ port จริงได้จากหน้าต่างสรุปตอนจบการติดตั้ง หรือดูค่าใน `docker-compose.yaml`
 
 **Directus login:**
-- Email: ตามที่กรอกตอนติดตั้ง (default: `admin@example.com`)
-- Password: ตามที่กรอกตอนติดตั้ง (default: `admin123`)
+- ครั้งแรกให้ไปตั้งค่าที่ `http://localhost:8056/admin/setup` เพื่อสร้าง Admin account
 
 ---
 
