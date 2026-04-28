@@ -2,10 +2,16 @@
   "name": "directus-extension-site-deploy",
   "version": "1.0.0",
   "type": "module",
+  "scripts": {
+    "build": "directus-extension build -t module -i app.js -o dist/app.js"
+  },
+  "devDependencies": {
+    "@directus/extensions-sdk": "^11.0.0"
+  },
   "directus:extension": {
     "type": "module",
     "path": {
-      "app": "app.js"
+      "app": "dist/app.js"
     },
     "host": ">=10.0.0"
   }
