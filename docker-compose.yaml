@@ -74,22 +74,16 @@ services:
     depends_on:
       - directus
 
-  manager:
-    build:
-      context: ./manager
-    container_name: bdt_next_direct_manager
+  adminer:
+    image: adminer
+    container_name: bdt_next_direct_adminer
     restart: unless-stopped
     ports:
-      - "9090:9090"
+      - "8057:8080"
     environment:
-      PROJECT_DIR: /project
-      # path จริงบน host — ใช้ resolve bind mounts เวลารัน docker compose จากในตัว container
-      HOST_PROJECT_DIR: ${PWD}
-      PROJECTS_ROOT: /projects_root
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - .:/project
-      - ..:/projects_root
+      ADMINER_DEFAULT_SERVER: postgres
+    depends_on:
+      - postgres
 
 volumes:
   bdt_next_direct_postgres_data:

@@ -1,10 +1,15 @@
 # คู่มือการติดตั้งและเปิดใช้งานบนเครื่อง Local
 
-โปรเจกต์นี้ประกอบด้วย 4 ส่วนหลัก:
+โปรเจกต์นี้ประกอบด้วย 2 compose stack:
+
+**Project stack** (แต่ละโปรเจค มี 4 services):
 - **PostgreSQL** — ฐานข้อมูล
 - **Directus** — CMS / API backend
 - **Next.js** — Frontend
-- **Manager** — Web UI สำหรับจัดการ containers บน server (port 9090)
+- **Adminer** — Web UI ดูฐานข้อมูล (port 8057)
+
+**Manager stack** (deploy แยก 1 ชุดต่อ server):
+- **Manager** — Web UI สำหรับจัดการ container ทุกโปรเจคบน server (port 9090)
 
 ---
 
@@ -298,37 +303,53 @@ docker compose logs -f directus
 
 ## ใช้งานบน Server (Manager Web UI)
 
-Manager container ช่วยจัดการระบบบน server ผ่านเบราว์เซอร์ โดยไม่ต้อง SSH หรือรัน script แบบ interactive
+Manager เป็น standalone container แยกออกจาก project stack — deploy ครั้งเดียวบน server แล้วจัดการได้ทุกโปรเจค
 
-### วิธีเริ่มต้นบน Server
+### Deploy Manager (ทำครั้งเดียวต่อ server)
 
 ```bash
-# เริ่ม manager container อย่างเดียวก่อน
-docker compose up -d manager
+# รันจาก project root directory
+export HOST_PROJECTS_ROOT="$(dirname $PWD)"   # path จริงของ parent dir บน host
+docker compose -f manager/docker-compose.yaml up -d
 
-# จากนั้นเปิดเบราว์เซอร์ไปที่
+# เปิดเบราว์เซอร์ไปที่
 http://<server-ip>:9090
 ```
+
+> ถ้าไม่ set `HOST_PROJECTS_ROOT` Manager จะ auto-detect host path ผ่าน `docker inspect`
+
+### Adminer (DB GUI ใน Project Stack)
+
+แต่ละโปรเจคมี Adminer container สำหรับดูฐานข้อมูลโดยตรง:
+
+```
+http://<server-ip>:{adminer_port}
+```
+
+- Server: `postgres`
+- Username: `directus`
+- Password: `directus`
+- Database: `directus`
 
 ### ฟีเจอร์ใน Manager UI
 
 | ฟีเจอร์ | รายละเอียด |
 |---|---|
-| **All Projects** | ดูรายการ BDT stack ทั้งหมดบน server พร้อมสถานะและ port links (auto-refresh ทุก 15 วิ) |
-| **+ New Project** | สร้างโปรเจคใหม่ — copy template, กำหนดชื่อ/port อัตโนมัติ, build และ start ทั้งหมด |
-| **Container Status** | สถานะ container ของโปรเจคปัจจุบันแบบ real-time |
+| **All Projects** | ดูรายการ BDT stack ทั้งหมดบน server พร้อมสถานะ — คลิกเพื่อเลือก (auto-refresh ทุก 15 วิ) |
+| **+ New Project** | สร้างโปรเจคใหม่ — เลือก template, กำหนดชื่อ/port อัตโนมัติ, build และ start ทั้งหมด |
+| **Selected Project Status** | สถานะ container (postgres/directus/nextjs/adminer) ของโปรเจคที่เลือก |
 | **Setup / Import Data** | Build Next.js, เริ่ม containers, import `dump.sql`, reset admin — ไม่ต้องใช้ terminal |
 | **Export Data** | Export database + uploads เป็น `.zip` พร้อม download ผ่านเบราว์เซอร์ |
-| **Past Exports** | รายการไฟล์ export ที่ผ่านมา พร้อม download link |
-| **Database Browser** | ดูข้อมูลในฐานข้อมูลแบบ table — เลือกดูได้ทุกโปรเจค, แสดง row count, pagination, ค้นหาข้อมูล |
+| **Past Exports** | รายการไฟล์ export ของโปรเจคที่เลือก พร้อม download link |
+| **Database Browser** | ดูข้อมูลในฐานข้อมูลแบบ table — เลือกดูได้ทุกโปรเจค, row count, pagination, ค้นหาข้อมูล |
 
-> ไฟล์ export จะถูกเก็บไว้ในโฟลเดอร์ `_exports/` ในโปรเจกต์
+> ไฟล์ export จะถูกเก็บไว้ในโฟลเดอร์ `_exports/` ภายในโปรเจคนั้นๆ
 >
-> โปรเจคใหม่ที่สร้างผ่าน Manager จะถูกวางไว้ในโฟลเดอร์เดียวกับโปรเจคปัจจุบัน (parent directory) และมี Manager UI ของตัวเองบน port ที่กำหนดให้อัตโนมัติ
+> โปรเจคใหม่ที่สร้างผ่าน Manager จะถูกวางไว้ใน parent directory เดียวกับ template ที่เลือก
 
-### ข้อกำหนด
+### ข้อกำหนดของ Manager
 
-Manager ต้องการสิทธิ์เข้าถึง Docker socket (`/var/run/docker.sock`) และ mount parent directory (`..:/projects_root`) ซึ่งกำหนดไว้ใน `docker-compose.yaml` แล้ว
+Manager ต้องการสิทธิ์เข้าถึง Docker socket (`/var/run/docker.sock`) และ mount parent directory (`..:/projects_root`) ซึ่งกำหนดไว้ใน `manager/docker-compose.yaml` แล้ว
 
 ---
 
@@ -399,7 +420,8 @@ bdt_next_direct/
 ├── update_dump.bat       # Windows อัปเดต dump.sql
 ├── update_dump.command   # Mac อัปเดต dump.sql
 ├── scripts/              # scripts หลัก (install.ps1, install.sh, ...)
-├── manager/              # Manager Web UI container (port 9090)
+├── manager/              # Manager Web UI (standalone, deploy แยก)
+│   ├── docker-compose.yaml  # deploy manager: docker compose -f manager/docker-compose.yaml up -d
 │   ├── Dockerfile
 │   ├── app.py            # Flask server
 │   ├── requirements.txt
