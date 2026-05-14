@@ -314,16 +314,20 @@ http://<server-ip>:9090
 
 | ฟีเจอร์ | รายละเอียด |
 |---|---|
-| **Container Status** | ดูสถานะ container ทั้งหมดแบบ real-time |
-| **Setup / Import Data** | Build Next.js, เริ่ม containers, import `dump.sql`, reset admin — ทำงานแบบ non-interactive |
+| **All Projects** | ดูรายการ BDT stack ทั้งหมดบน server พร้อมสถานะและ port links (auto-refresh ทุก 15 วิ) |
+| **+ New Project** | สร้างโปรเจคใหม่ — copy template, กำหนดชื่อ/port อัตโนมัติ, build และ start ทั้งหมด |
+| **Container Status** | สถานะ container ของโปรเจคปัจจุบันแบบ real-time |
+| **Setup / Import Data** | Build Next.js, เริ่ม containers, import `dump.sql`, reset admin — ไม่ต้องใช้ terminal |
 | **Export Data** | Export database + uploads เป็น `.zip` พร้อม download ผ่านเบราว์เซอร์ |
 | **Past Exports** | รายการไฟล์ export ที่ผ่านมา พร้อม download link |
 
 > ไฟล์ export จะถูกเก็บไว้ในโฟลเดอร์ `_exports/` ในโปรเจกต์
+>
+> โปรเจคใหม่ที่สร้างผ่าน Manager จะถูกวางไว้ในโฟลเดอร์เดียวกับโปรเจคปัจจุบัน (parent directory) และมี Manager UI ของตัวเองบน port ที่กำหนดให้อัตโนมัติ
 
 ### ข้อกำหนด
 
-Manager ต้องการสิทธิ์เข้าถึง Docker socket (`/var/run/docker.sock`) ซึ่งกำหนดไว้ใน `docker-compose.yaml` แล้ว
+Manager ต้องการสิทธิ์เข้าถึง Docker socket (`/var/run/docker.sock`) และ mount parent directory (`..:/projects_root`) ซึ่งกำหนดไว้ใน `docker-compose.yaml` แล้ว
 
 ---
 
