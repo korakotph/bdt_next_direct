@@ -331,6 +331,31 @@ http://<server-ip>:{adminer_port}
 - Password: `directus`
 - Database: `directus`
 
+### Sub-path Routing (basePath)
+
+ถ้า deploy หลาย project บน server เดียว (เช่นผ่าน reverse proxy) สามารถตั้ง sub-path ให้แต่ละ project ได้ใน `next-app/next.config.mjs`:
+
+```js
+const nextConfig = {
+  output: 'standalone',
+  basePath: '/myproject',      // Next.js frontend อยู่ที่ /myproject
+  assetPrefix: '/myproject',
+  images: { unoptimized: true },
+}
+```
+
+และใน `next-app/.env.local` (หรือ `.env.production`):
+
+```env
+NEXT_PUBLIC_BASE_PATH=/myproject-admin
+NEXT_PUBLIC_DIRECTUS_URL=https://example.com/myproject-admin
+DIRECTUS_INTERNAL_URL=https://example.com/myproject-admin
+```
+
+> **Auto-update:** เมื่อสร้างโปรเจคใหม่ผ่าน Manager หรือรัน `install.sh` บน project ที่มี `basePath` ตั้งไว้แล้ว — ระบบจะเปลี่ยน path โดยอัตโนมัติ:
+> - `/old-project` → `/new-project`
+> - `/old-project-admin` → `/new-project-admin` (suffix ถูกเก็บไว้)
+
 ### ฟีเจอร์ใน Manager UI
 
 | ฟีเจอร์ | รายละเอียด |
