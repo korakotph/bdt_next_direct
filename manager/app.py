@@ -11,6 +11,9 @@ import uuid
 import zipfile
 from datetime import datetime
 
+import psycopg2
+import psycopg2.extras
+
 from flask import Flask, Response, abort, jsonify, render_template, request, send_from_directory
 
 app = Flask(__name__)
@@ -568,6 +571,121 @@ def api_exports():
     except Exception:
         pass
     return jsonify(out)
+
+
+# ── database browser ─────────────────────────────────────────────────────────
+
+def get_db_config() -> dict:
+    """Read DB connection config from docker-compose.yaml."""
+    cfg = {"host": "postgres", "port": 5432,
+           "user": "directus", "password": "directus", "dbname": "directus"}
+    try:
+        txt = open(os.path.join(PROJECT_DIR, "docker-compose.yaml")).read()
+        for pat, key in [
+            (r'DB_HOST:\s*(\S+)',     "host"),
+            (r'DB_PORT:\s*(\d+)',     "port"),
+            (r'DB_USER:\s*(\S+)',     "user"),
+            (r'DB_PASSWORD:\s*(\S+)', "password"),
+            (r'DB_DATABASE:\s*(\S+)', "dbname"),
+        ]:
+            m = re.search(pat, txt)
+            if m:
+                cfg[key] = m.group(1)
+        cfg["port"] = int(cfg["port"])
+    except Exception:
+        pass
+    return cfg
+
+
+def db_connect():
+    return psycopg2.connect(**get_db_config())
+
+
+@app.get("/api/db/tables")
+def api_db_tables():
+    try:
+        conn = db_connect()
+        cur = conn.cursor()
+        cur.execute("""
+            SELECT t.table_name,
+                   (SELECT COUNT(*) FROM information_schema.columns c
+                    WHERE c.table_name = t.table_name AND c.table_schema = 'public') AS col_count
+            FROM information_schema.tables t
+            WHERE t.table_schema = 'public' AND t.table_type = 'BASE TABLE'
+            ORDER BY t.table_name
+        """)
+        tables = [{"name": r[0], "col_count": r[1], "row_count": None}
+                  for r in cur.fetchall()]
+        for t in tables:
+            try:
+                cur.execute(f'SELECT COUNT(*) FROM "{t["name"]}"')
+                t["row_count"] = cur.fetchone()[0]
+            except Exception:
+                pass
+        conn.close()
+        return jsonify(tables)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.get("/api/db/table/<table_name>")
+def api_db_table(table_name: str):
+    if not re.match(r'^[a-zA-Z0-9_]+$', table_name):
+        abort(400)
+    page      = max(1, int(request.args.get("page", 1)))
+    page_size = min(200, max(10, int(request.args.get("page_size", 50))))
+    search    = request.args.get("search", "").strip()
+
+    try:
+        conn = db_connect()
+        cur  = conn.cursor()
+
+        # Columns
+        cur.execute("""
+            SELECT column_name, data_type
+            FROM information_schema.columns
+            WHERE table_schema = 'public' AND table_name = %s
+            ORDER BY ordinal_position
+        """, (table_name,))
+        columns = [{"name": r[0], "type": r[1]} for r in cur.fetchall()]
+        if not columns:
+            conn.close()
+            return jsonify({"error": "Table not found"}), 404
+
+        # Search filter across text-like columns
+        where, params = "", []
+        if search:
+            text_types = {"character varying", "text", "varchar", "char", "name", "uuid"}
+            text_cols  = [c["name"] for c in columns if c["type"] in text_types]
+            if text_cols:
+                conditions = [f'CAST("{c}" AS TEXT) ILIKE %s' for c in text_cols]
+                where  = "WHERE " + " OR ".join(conditions)
+                params = [f"%{search}%"] * len(text_cols)
+
+        cur.execute(f'SELECT COUNT(*) FROM "{table_name}" {where}', params)
+        total = cur.fetchone()[0]
+
+        offset = (page - 1) * page_size
+        dict_cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        dict_cur.execute(
+            f'SELECT * FROM "{table_name}" {where} LIMIT %s OFFSET %s',
+            params + [page_size, offset],
+        )
+        rows = []
+        for row in dict_cur.fetchall():
+            rows.append({k: (str(v) if v is not None else None) for k, v in row.items()})
+
+        conn.close()
+        return jsonify({
+            "columns":   columns,
+            "rows":      rows,
+            "total":     total,
+            "page":      page,
+            "page_size": page_size,
+            "pages":     max(1, (total + page_size - 1) // page_size),
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 @app.get("/api/download/<path:filename>")

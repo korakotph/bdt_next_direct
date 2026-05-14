@@ -117,6 +117,73 @@
     </div>
   </div>
 
+  <!-- ═══ Database Browser ═══ -->
+  <div class="bg-gray-900 rounded-xl border border-gray-800 overflow-hidden">
+    <button onclick="toggleDB()"
+      class="w-full flex items-center justify-between p-5 hover:bg-gray-800/30 transition-colors">
+      <h2 class="text-xs font-semibold text-gray-400 uppercase tracking-wider">🗄 Database Browser</h2>
+      <span id="db-chevron" class="text-gray-500 text-sm">▼</span>
+    </button>
+
+    <div id="db-panel" class="hidden border-t border-gray-800">
+      <div class="flex h-[520px]">
+
+        <!-- Table list -->
+        <div class="w-52 shrink-0 border-r border-gray-800 flex flex-col">
+          <div class="p-3 border-b border-gray-800">
+            <input id="tbl-filter" type="text" placeholder="Filter tables..."
+              class="w-full bg-gray-800 border border-gray-700 rounded px-2 py-1.5 text-xs
+                     text-white placeholder-gray-600 focus:outline-none focus:border-blue-500"
+              oninput="filterTableList(this.value)">
+          </div>
+          <div id="table-list" class="flex-1 overflow-y-auto p-2 space-y-0.5 text-xs">
+            <span class="text-gray-600 p-2 block">Loading...</span>
+          </div>
+        </div>
+
+        <!-- Table content -->
+        <div class="flex-1 min-w-0 flex flex-col">
+
+          <!-- Toolbar -->
+          <div class="flex items-center gap-2 p-3 border-b border-gray-800 shrink-0">
+            <span id="db-table-title" class="text-sm font-mono text-white font-semibold mr-1">—</span>
+            <input id="db-search" type="text" placeholder="ค้นหาในข้อมูล..."
+              class="flex-1 bg-gray-800 border border-gray-700 rounded px-2 py-1.5 text-xs
+                     text-white placeholder-gray-600 focus:outline-none focus:border-blue-500">
+            <span id="db-row-count" class="text-xs text-gray-500 whitespace-nowrap shrink-0"></span>
+          </div>
+
+          <!-- Data table -->
+          <div class="flex-1 overflow-auto">
+            <table class="w-full text-xs border-collapse">
+              <thead id="db-thead"
+                class="sticky top-0 bg-gray-800/95 backdrop-blur text-gray-400 z-10"></thead>
+              <tbody id="db-tbody"
+                class="divide-y divide-gray-800/60 text-gray-300"></tbody>
+            </table>
+          </div>
+
+          <!-- Pagination -->
+          <div class="flex items-center justify-between px-4 py-2.5 border-t border-gray-800
+                      shrink-0 text-xs text-gray-500">
+            <button id="db-prev" onclick="dbPage(-1)"
+              class="hover:text-white transition-colors px-2 py-0.5 rounded
+                     disabled:opacity-30 disabled:cursor-not-allowed">
+              ← Prev
+            </button>
+            <span id="db-pagination">—</span>
+            <button id="db-next" onclick="dbPage(1)"
+              class="hover:text-white transition-colors px-2 py-0.5 rounded
+                     disabled:opacity-30 disabled:cursor-not-allowed">
+              Next →
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
   <!-- ═══ Past Exports ═══ -->
   <div class="bg-gray-900 rounded-xl border border-gray-800 p-5">
     <div class="flex items-center justify-between mb-4">
@@ -360,6 +427,179 @@ function loadExports() {
         </a>
       </div>`).join('');
   });
+}
+
+// ── database browser ──────────────────────────────────────────────────────
+
+let db = { open: false, loaded: false, tables: [], table: '', page: 1,
+           search: '', pages: 1, total: 0, searchTimer: null };
+
+function toggleDB() {
+  db.open = !db.open;
+  document.getElementById('db-panel').classList.toggle('hidden', !db.open);
+  document.getElementById('db-chevron').textContent = db.open ? '▲' : '▼';
+  if (db.open && !db.loaded) loadDBTables();
+  if (db.open) {
+    // Wire search input (once)
+    const inp = document.getElementById('db-search');
+    if (!inp._wired) {
+      inp._wired = true;
+      inp.addEventListener('input', e => {
+        clearTimeout(db.searchTimer);
+        db.searchTimer = setTimeout(() => {
+          db.search = e.target.value.trim();
+          db.page = 1;
+          loadTableData();
+        }, 350);
+      });
+    }
+  }
+}
+
+function loadDBTables() {
+  fetch('/api/db/tables').then(r => r.json()).then(data => {
+    if (data.error) {
+      document.getElementById('table-list').innerHTML =
+        `<span class="text-red-400 p-2 block">${data.error}</span>`;
+      return;
+    }
+    db.tables = data;
+    db.loaded = true;
+    renderTableList('');
+    // Auto-select first non-system table
+    const first = data.find(t => !t.name.startsWith('directus_')) || data[0];
+    if (first) selectTable(first.name);
+  }).catch(e => {
+    document.getElementById('table-list').innerHTML =
+      `<span class="text-red-400 p-2 block text-xs">Connection failed</span>`;
+  });
+}
+
+function renderTableList(filter) {
+  const el = document.getElementById('table-list');
+  const lower = filter.toLowerCase();
+  const filtered = db.tables.filter(t => !lower || t.name.includes(lower));
+
+  if (!filtered.length) {
+    el.innerHTML = '<span class="text-gray-600 p-2 block">ไม่พบ</span>';
+    return;
+  }
+
+  // Group: system (directus_) vs custom
+  const system = filtered.filter(t => t.name.startsWith('directus_'));
+  const custom  = filtered.filter(t => !t.name.startsWith('directus_'));
+
+  const renderGroup = (label, items) => items.length === 0 ? '' : `
+    <div class="text-gray-600 px-2 pt-2 pb-0.5 uppercase tracking-wider" style="font-size:10px">
+      ${label}
+    </div>
+    ${items.map(t => `
+      <button onclick="selectTable('${t.name}')"
+        data-table="${t.name}"
+        class="tbl-btn w-full text-left px-2 py-1.5 rounded transition-colors
+               text-gray-400 hover:text-white hover:bg-gray-800">
+        <span class="font-mono">${t.name}</span>
+        ${t.row_count !== null
+          ? `<span class="text-gray-600 ml-1">${t.row_count.toLocaleString()}</span>`
+          : ''}
+      </button>`).join('')}`;
+
+  el.innerHTML = renderGroup('Custom', custom) + renderGroup('Directus', system);
+  highlightSelected();
+}
+
+function filterTableList(val) {
+  renderTableList(val);
+}
+
+function highlightSelected() {
+  document.querySelectorAll('.tbl-btn').forEach(b => {
+    const active = b.dataset.table === db.table;
+    b.classList.toggle('bg-blue-900/50', active);
+    b.classList.toggle('text-white', active);
+    b.classList.toggle('text-gray-400', !active);
+  });
+}
+
+function selectTable(name) {
+  db.table = name;
+  db.page  = 1;
+  db.search = '';
+  document.getElementById('db-search').value = '';
+  document.getElementById('db-table-title').textContent = name;
+  highlightSelected();
+  loadTableData();
+}
+
+function dbPage(delta) {
+  const next = db.page + delta;
+  if (next < 1 || next > db.pages) return;
+  db.page = next;
+  loadTableData();
+}
+
+function loadTableData() {
+  if (!db.table) return;
+  const params = new URLSearchParams({
+    page: db.page, page_size: 50, search: db.search
+  });
+  document.getElementById('db-pagination').textContent = 'Loading...';
+
+  fetch(`/api/db/table/${encodeURIComponent(db.table)}?${params}`)
+    .then(r => r.json())
+    .then(data => {
+      if (data.error) {
+        document.getElementById('db-tbody').innerHTML =
+          `<tr><td colspan="99" class="p-6 text-red-400 text-center">${data.error}</td></tr>`;
+        document.getElementById('db-thead').innerHTML = '';
+        document.getElementById('db-pagination').textContent = '—';
+        return;
+      }
+
+      db.total = data.total;
+      db.pages = data.pages;
+
+      // Header
+      document.getElementById('db-thead').innerHTML = `<tr>
+        ${data.columns.map(c => `
+          <th class="px-3 py-2 text-left font-semibold whitespace-nowrap border-b border-gray-700">
+            ${c.name}
+            <span class="text-gray-600 font-normal text-xs ml-1">
+              ${c.type.replace('character varying', 'varchar')}
+            </span>
+          </th>`).join('')}
+      </tr>`;
+
+      // Rows
+      if (!data.rows.length) {
+        document.getElementById('db-tbody').innerHTML =
+          `<tr><td colspan="99" class="p-6 text-gray-500 text-center">ไม่มีข้อมูล</td></tr>`;
+      } else {
+        document.getElementById('db-tbody').innerHTML = data.rows.map(row => `
+          <tr class="hover:bg-gray-800/40 transition-colors">
+            ${data.columns.map(c => {
+              const val = row[c.name];
+              if (val === null)
+                return `<td class="px-3 py-1.5 font-mono text-gray-600">null</td>`;
+              const truncated = val.length > 100;
+              const display = truncated ? val.slice(0, 100) + '…' : val;
+              const attr = truncated ? ` title="${val.replace(/"/g, '&quot;')}"` : '';
+              return `<td class="px-3 py-1.5 font-mono whitespace-nowrap max-w-xs
+                                 overflow-hidden text-ellipsis"${attr}>${display}</td>`;
+            }).join('')}
+          </tr>`).join('');
+      }
+
+      // Pagination
+      const from = (data.page - 1) * data.page_size + 1;
+      const to   = Math.min(data.page * data.page_size, data.total);
+      document.getElementById('db-pagination').textContent =
+        `${from.toLocaleString()}–${to.toLocaleString()} จาก ${data.total.toLocaleString()} rows  ·  หน้า ${data.page}/${data.pages}`;
+      document.getElementById('db-row-count').textContent =
+        `${data.total.toLocaleString()} rows`;
+      document.getElementById('db-prev').disabled = data.page <= 1;
+      document.getElementById('db-next').disabled = data.page >= data.pages;
+    });
 }
 
 // ── init ───────────────────────────────────────────────────────────────────
