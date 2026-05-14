@@ -126,6 +126,17 @@
     </button>
 
     <div id="db-panel" class="hidden border-t border-gray-800">
+
+      <!-- Project selector -->
+      <div class="p-3 border-b border-gray-800 flex items-center gap-2">
+        <span class="text-xs text-gray-500 shrink-0">Project:</span>
+        <select id="db-project-select" onchange="onDBProjectChange()"
+          class="flex-1 bg-gray-800 border border-gray-700 rounded px-2 py-1.5 text-xs
+                 text-white focus:outline-none focus:border-blue-500 font-mono">
+          <option value="">Loading...</option>
+        </select>
+      </div>
+
       <div class="flex h-[520px]">
 
         <!-- Table list -->
@@ -246,6 +257,12 @@ function loadProjects() {
       el.innerHTML = '<span class="text-gray-600 text-sm">ยังไม่พบโปรเจค</span>';
       return;
     }
+
+    // populate DB browser project selector
+    populateDBProjectSelect(projects.map(p => ({
+      prefix: p.name,
+      is_current: currentProject && p.name === currentProject
+    })));
 
     el.innerHTML = projects.map(p => {
       const svcs = ['db', 'directus', 'nextjs', 'manager'];
@@ -432,7 +449,40 @@ function loadExports() {
 // ── database browser ──────────────────────────────────────────────────────
 
 let db = { open: false, loaded: false, tables: [], table: '', page: 1,
-           search: '', pages: 1, total: 0, searchTimer: null };
+           search: '', pages: 1, total: 0, searchTimer: null, project: '' };
+
+function populateDBProjectSelect(projects) {
+  const sel = document.getElementById('db-project-select');
+  const current = sel.value || db.project;
+  sel.innerHTML = '';
+  projects.forEach(p => {
+    const opt = document.createElement('option');
+    opt.value = p.prefix;
+    opt.textContent = p.prefix + (p.is_current ? ' (this)' : '');
+    if (p.is_current && !current) opt.selected = true;
+    if (p.prefix === current) opt.selected = true;
+    sel.appendChild(opt);
+  });
+  db.project = sel.value;
+}
+
+function onDBProjectChange() {
+  const sel = document.getElementById('db-project-select');
+  db.project = sel.value;
+  db.loaded  = false;
+  db.table   = '';
+  db.page    = 1;
+  db.search  = '';
+  document.getElementById('db-search').value = '';
+  document.getElementById('tbl-filter').value = '';
+  document.getElementById('table-list').innerHTML = '<span class="text-gray-600 p-2 block">Loading...</span>';
+  document.getElementById('db-thead').innerHTML  = '';
+  document.getElementById('db-tbody').innerHTML  = '';
+  document.getElementById('db-table-title').textContent = '—';
+  document.getElementById('db-row-count').textContent   = '';
+  document.getElementById('db-pagination').textContent  = '';
+  loadDBTables();
+}
 
 function toggleDB() {
   db.open = !db.open;
@@ -457,7 +507,8 @@ function toggleDB() {
 }
 
 function loadDBTables() {
-  fetch('/api/db/tables').then(r => r.json()).then(data => {
+  const qs = db.project ? `?project=${encodeURIComponent(db.project)}` : '';
+  fetch(`/api/db/tables${qs}`).then(r => r.json()).then(data => {
     if (data.error) {
       document.getElementById('table-list').innerHTML =
         `<span class="text-red-400 p-2 block">${data.error}</span>`;
@@ -543,6 +594,7 @@ function loadTableData() {
   const params = new URLSearchParams({
     page: db.page, page_size: 50, search: db.search
   });
+  if (db.project) params.set('project', db.project);
   document.getElementById('db-pagination').textContent = 'Loading...';
 
   fetch(`/api/db/table/${encodeURIComponent(db.table)}?${params}`)

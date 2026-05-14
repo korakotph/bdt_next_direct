@@ -11,9 +11,6 @@ import uuid
 import zipfile
 from datetime import datetime
 
-import psycopg2
-import psycopg2.extras
-
 from flask import Flask, Response, abort, jsonify, render_template, request, send_from_directory
 
 app = Flask(__name__)
@@ -575,54 +572,63 @@ def api_exports():
 
 # ── database browser ─────────────────────────────────────────────────────────
 
-def get_db_config() -> dict:
-    """Read DB connection config from docker-compose.yaml."""
-    cfg = {"host": "postgres", "port": 5432,
-           "user": "directus", "password": "directus", "dbname": "directus"}
-    try:
-        txt = open(os.path.join(PROJECT_DIR, "docker-compose.yaml")).read()
-        for pat, key in [
-            (r'DB_HOST:\s*(\S+)',     "host"),
-            (r'DB_PORT:\s*(\d+)',     "port"),
-            (r'DB_USER:\s*(\S+)',     "user"),
-            (r'DB_PASSWORD:\s*(\S+)', "password"),
-            (r'DB_DATABASE:\s*(\S+)', "dbname"),
-        ]:
-            m = re.search(pat, txt)
-            if m:
-                cfg[key] = m.group(1)
-        cfg["port"] = int(cfg["port"])
-    except Exception:
-        pass
-    return cfg
+def _pg_container(project: str = "") -> str:
+    """Return the postgres container name for a given project prefix."""
+    if project:
+        return f"{project}_db"
+    return compose_info()["pg"]
 
 
-def db_connect():
-    return psycopg2.connect(**get_db_config())
+def pg_query(pg: str, sql: str, timeout: int = 30) -> list[dict]:
+    """Run SQL via docker exec psql, return rows as list of dicts (JSON)."""
+    wrapped = (
+        "SELECT COALESCE(json_agg(row_to_json(__r)), '[]'::json)"
+        f" FROM ({sql}) __r"
+    )
+    r = subprocess.run(
+        ["docker", "exec", pg,
+         "psql", "-U", "directus", "-d", "directus", "-t", "-A", "-c", wrapped],
+        capture_output=True, text=True, timeout=timeout,
+    )
+    if r.returncode != 0:
+        raise RuntimeError(r.stderr.strip() or r.stdout.strip())
+    out = r.stdout.strip()
+    return json.loads(out) if out else []
+
+
+def pg_scalar(pg: str, sql: str) -> str:
+    """Run SQL via docker exec psql, return single scalar as string."""
+    r = subprocess.run(
+        ["docker", "exec", pg,
+         "psql", "-U", "directus", "-d", "directus", "-t", "-A", "-c", sql],
+        capture_output=True, text=True, timeout=15,
+    )
+    if r.returncode != 0:
+        raise RuntimeError(r.stderr.strip())
+    return r.stdout.strip()
 
 
 @app.get("/api/db/tables")
 def api_db_tables():
+    project = request.args.get("project", "").strip()
+    pg = _pg_container(project)
     try:
-        conn = db_connect()
-        cur = conn.cursor()
-        cur.execute("""
+        tables = pg_query(pg, """
             SELECT t.table_name,
-                   (SELECT COUNT(*) FROM information_schema.columns c
-                    WHERE c.table_name = t.table_name AND c.table_schema = 'public') AS col_count
+                   s.n_live_tup AS row_count,
+                   COUNT(c.column_name) AS col_count
             FROM information_schema.tables t
+            LEFT JOIN pg_stat_user_tables s ON s.relname = t.table_name
+            LEFT JOIN information_schema.columns c
+                   ON c.table_name = t.table_name AND c.table_schema = 'public'
             WHERE t.table_schema = 'public' AND t.table_type = 'BASE TABLE'
+            GROUP BY t.table_name, s.n_live_tup
             ORDER BY t.table_name
         """)
-        tables = [{"name": r[0], "col_count": r[1], "row_count": None}
-                  for r in cur.fetchall()]
+        # Normalise types from JSON
         for t in tables:
-            try:
-                cur.execute(f'SELECT COUNT(*) FROM "{t["name"]}"')
-                t["row_count"] = cur.fetchone()[0]
-            except Exception:
-                pass
-        conn.close()
+            t["row_count"] = int(t["row_count"]) if t.get("row_count") is not None else None
+            t["col_count"] = int(t.get("col_count", 0))
         return jsonify(tables)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -630,55 +636,49 @@ def api_db_tables():
 
 @app.get("/api/db/table/<table_name>")
 def api_db_table(table_name: str):
-    if not re.match(r'^[a-zA-Z0-9_]+$', table_name):
+    if not re.match(r"^[a-zA-Z0-9_]+$", table_name):
         abort(400)
+    project   = request.args.get("project", "").strip()
+    pg        = _pg_container(project)
     page      = max(1, int(request.args.get("page", 1)))
     page_size = min(200, max(10, int(request.args.get("page_size", 50))))
     search    = request.args.get("search", "").strip()
 
     try:
-        conn = db_connect()
-        cur  = conn.cursor()
-
-        # Columns
-        cur.execute("""
-            SELECT column_name, data_type
+        columns = pg_query(pg, f"""
+            SELECT column_name AS name, data_type AS type
             FROM information_schema.columns
-            WHERE table_schema = 'public' AND table_name = %s
+            WHERE table_schema = 'public' AND table_name = '{table_name}'
             ORDER BY ordinal_position
-        """, (table_name,))
-        columns = [{"name": r[0], "type": r[1]} for r in cur.fetchall()]
+        """)
         if not columns:
-            conn.close()
             return jsonify({"error": "Table not found"}), 404
 
-        # Search filter across text-like columns
-        where, params = "", []
+        # Build WHERE clause for search (safe: only alphanumeric col names allowed above)
+        where = ""
         if search:
             text_types = {"character varying", "text", "varchar", "char", "name", "uuid"}
             text_cols  = [c["name"] for c in columns if c["type"] in text_types]
             if text_cols:
-                conditions = [f'CAST("{c}" AS TEXT) ILIKE %s' for c in text_cols]
-                where  = "WHERE " + " OR ".join(conditions)
-                params = [f"%{search}%"] * len(text_cols)
+                escaped = search.replace("'", "''").replace("%", r"\%").replace("_", r"\_")
+                conds   = [f"""CAST("{c}" AS TEXT) ILIKE '%{escaped}%' ESCAPE '\\'"""
+                           for c in text_cols]
+                where   = "WHERE " + " OR ".join(conds)
 
-        cur.execute(f'SELECT COUNT(*) FROM "{table_name}" {where}', params)
-        total = cur.fetchone()[0]
-
+        total  = int(pg_scalar(pg, f'SELECT COUNT(*) FROM "{table_name}" {where}'))
         offset = (page - 1) * page_size
-        dict_cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
-        dict_cur.execute(
-            f'SELECT * FROM "{table_name}" {where} LIMIT %s OFFSET %s',
-            params + [page_size, offset],
+        rows   = pg_query(pg,
+            f'SELECT * FROM "{table_name}" {where} LIMIT {page_size} OFFSET {offset}',
+            timeout=60,
         )
-        rows = []
-        for row in dict_cur.fetchall():
-            rows.append({k: (str(v) if v is not None else None) for k, v in row.items()})
-
-        conn.close()
+        # Stringify all values for the frontend
+        str_rows = [
+            {k: (str(v) if v is not None else None) for k, v in row.items()}
+            for row in rows
+        ]
         return jsonify({
             "columns":   columns,
-            "rows":      rows,
+            "rows":      str_rows,
             "total":     total,
             "page":      page,
             "page_size": page_size,
