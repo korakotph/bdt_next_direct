@@ -320,6 +320,7 @@ http://<server-ip>:9090
 | **Setup / Import Data** | Build Next.js, เริ่ม containers, import `dump.sql`, reset admin — ไม่ต้องใช้ terminal |
 | **Export Data** | Export database + uploads เป็น `.zip` พร้อม download ผ่านเบราว์เซอร์ |
 | **Past Exports** | รายการไฟล์ export ที่ผ่านมา พร้อม download link |
+| **Database Browser** | ดูข้อมูลในฐานข้อมูลแบบ table — แสดง row count, pagination, ค้นหาข้อมูล |
 
 > ไฟล์ export จะถูกเก็บไว้ในโฟลเดอร์ `_exports/` ในโปรเจกต์
 >
