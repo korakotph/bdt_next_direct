@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BDT Manager</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-950 text-gray-100 min-h-screen">
+  <div class="max-w-4xl mx-auto p-6">
+
+    <!-- Header -->
+    <div class="flex items-center justify-between mb-8">
+      <div>
+        <h1 class="text-2xl font-bold text-white">BDT Next Direct</h1>
+        <p class="text-gray-400 text-sm mt-0.5">Container Manager</p>
+      </div>
+      <button onclick="loadStatus()"
+        class="text-gray-400 hover:text-white text-sm px-3 py-1.5 rounded border border-gray-700 hover:border-gray-500 transition-colors">
+        ↻ Refresh
+      </button>
+    </div>
+
+    <!-- Container Status -->
+    <div class="bg-gray-900 rounded-xl border border-gray-800 p-5 mb-5">
+      <h2 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">Container Status</h2>
+      <div id="status-grid" class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div class="animate-pulse bg-gray-800 rounded-lg h-16"></div>
+        <div class="animate-pulse bg-gray-800 rounded-lg h-16"></div>
+        <div class="animate-pulse bg-gray-800 rounded-lg h-16"></div>
+        <div class="animate-pulse bg-gray-800 rounded-lg h-16"></div>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">
+      <button id="btn-setup" onclick="runJob('setup')"
+        class="bg-blue-900/40 hover:bg-blue-800/50 border border-blue-700/50 hover:border-blue-600
+               rounded-xl p-5 text-left transition-all disabled:opacity-40 disabled:cursor-not-allowed">
+        <div class="text-2xl mb-2">⚙</div>
+        <div class="font-semibold text-blue-300 mb-1">Setup / Import Data</div>
+        <div class="text-xs text-blue-400/70 leading-relaxed">
+          Build Next.js, เริ่ม containers, import dump.sql และ reset admin
+        </div>
+      </button>
+
+      <button id="btn-export" onclick="runJob('export')"
+        class="bg-emerald-900/40 hover:bg-emerald-800/50 border border-emerald-700/50 hover:border-emerald-600
+               rounded-xl p-5 text-left transition-all disabled:opacity-40 disabled:cursor-not-allowed">
+        <div class="text-2xl mb-2">📦</div>
+        <div class="font-semibold text-emerald-300 mb-1">Export Data</div>
+        <div class="text-xs text-emerald-400/70 leading-relaxed">
+          Export database + uploads เป็น zip พร้อม download
+        </div>
+      </button>
+    </div>
+
+    <!-- Log Panel -->
+    <div id="log-panel" class="hidden bg-gray-900 rounded-xl border border-gray-800 p-5 mb-5">
+      <div class="flex items-center justify-between mb-3">
+        <h2 class="font-semibold text-sm" id="log-title">Log</h2>
+        <span id="log-status"
+          class="text-xs px-2.5 py-1 rounded-full bg-yellow-900/50 text-yellow-400">
+          Running...
+        </span>
+      </div>
+      <pre id="log-output"
+        class="bg-gray-950 rounded-lg p-4 text-xs text-green-400 h-80 overflow-y-auto
+               whitespace-pre-wrap leading-relaxed font-mono"></pre>
+      <div id="dl-section" class="hidden mt-4">
+        <a id="dl-link" href="#" download
+          class="inline-flex items-center gap-2 bg-emerald-700 hover:bg-emerald-600
+                 text-white rounded-lg px-4 py-2 text-sm font-medium transition-colors">
+          ⬇ Download Export
+        </a>
+      </div>
+    </div>
+
+    <!-- Past Exports -->
+    <div class="bg-gray-900 rounded-xl border border-gray-800 p-5">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Past Exports</h2>
+        <button onclick="loadExports()"
+          class="text-gray-500 hover:text-gray-300 text-xs transition-colors">↻ Refresh</button>
+      </div>
+      <div id="exports-list" class="text-sm">
+        <span class="text-gray-600">Loading...</span>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    const STATUS_STYLE = {
+      running:    ['text-emerald-400', '●', 'bg-emerald-900/30'],
+      exited:     ['text-gray-500',    '○', 'bg-gray-800/60'],
+      not_found:  ['text-red-400',     '✗', 'bg-red-900/20'],
+      unknown:    ['text-yellow-400',  '?', 'bg-yellow-900/20'],
+      paused:     ['text-yellow-400',  '⏸', 'bg-yellow-900/20'],
+      restarting: ['text-blue-400',    '↻', 'bg-blue-900/20'],
+    };
+
+    function loadStatus() {
+      fetch('/api/status').then(r => r.json()).then(data => {
+        const grid = document.getElementById('status-grid');
+        grid.innerHTML = Object.entries(data.containers).map(([name, st]) => {
+          const [cls, dot, bg] = STATUS_STYLE[st] || ['text-gray-400', '?', 'bg-gray-800/60'];
+          return `
+            <div class="${bg} rounded-lg p-3 border border-gray-800/50">
+              <div class="flex items-center gap-1.5 mb-1.5">
+                <span class="${cls} text-xs leading-none">${dot}</span>
+                <span class="text-xs text-gray-400 capitalize font-medium">${name}</span>
+              </div>
+              <div class="text-xs font-mono ${cls}">${st}</div>
+            </div>`;
+        }).join('');
+      }).catch(() => {});
+    }
+
+    function loadExports() {
+      fetch('/api/exports').then(r => r.json()).then(files => {
+        const el = document.getElementById('exports-list');
+        if (!files.length) {
+          el.innerHTML = '<span class="text-gray-600 text-sm">ยังไม่มี export</span>';
+          return;
+        }
+        el.innerHTML = files.map(f => `
+          <div class="flex items-center justify-between py-3 border-b border-gray-800 last:border-0">
+            <div class="flex items-center gap-3 min-w-0">
+              <span class="text-gray-300 text-sm truncate">${f.name}</span>
+              <span class="text-gray-600 text-xs shrink-0">${f.size_mb} MB</span>
+              <span class="text-gray-700 text-xs shrink-0 hidden sm:inline">${f.created}</span>
+            </div>
+            <a href="/api/download/${encodeURIComponent(f.name)}" download="${f.name}"
+               class="shrink-0 ml-4 text-blue-400 hover:text-blue-300 text-xs px-3 py-1.5
+                      rounded border border-blue-800 hover:border-blue-600 transition-colors">
+              ⬇ Download
+            </a>
+          </div>`).join('');
+      });
+    }
+
+    function runJob(type) {
+      const btn    = document.getElementById(`btn-${type}`);
+      const panel  = document.getElementById('log-panel');
+      const output = document.getElementById('log-output');
+      const title  = document.getElementById('log-title');
+      const status = document.getElementById('log-status');
+      const dlSec  = document.getElementById('dl-section');
+      const dlLink = document.getElementById('dl-link');
+
+      btn.disabled = true;
+      panel.classList.remove('hidden');
+      output.textContent = '';
+      title.textContent  = type === 'setup' ? 'Setup Log' : 'Export Log';
+      status.textContent = 'Running...';
+      status.className   = 'text-xs px-2.5 py-1 rounded-full bg-yellow-900/50 text-yellow-400';
+      dlSec.classList.add('hidden');
+
+      fetch(`/api/${type}`, { method: 'POST' })
+        .then(r => r.json())
+        .then(({ job_id }) => {
+          const es = new EventSource(`/api/stream/${job_id}`);
+
+          es.onmessage = e => {
+            const msg = JSON.parse(e.data);
+
+            if (msg === '__DONE__') {
+              es.close();
+              status.textContent = '✓ เสร็จแล้ว';
+              status.className   = 'text-xs px-2.5 py-1 rounded-full bg-emerald-900/50 text-emerald-400';
+              btn.disabled = false;
+              loadStatus();
+              if (type === 'export') loadExports();
+              return;
+            }
+
+            if (typeof msg === 'string' && msg.startsWith('DOWNLOAD:')) {
+              const fname = msg.slice(9);
+              dlLink.href        = `/api/download/${encodeURIComponent(fname)}`;
+              dlLink.download    = fname;
+              dlLink.textContent = `⬇ Download ${fname}`;
+              dlSec.classList.remove('hidden');
+              return;
+            }
+
+            output.textContent += msg + '\n';
+            output.scrollTop    = output.scrollHeight;
+          };
+
+          es.onerror = () => {
+            es.close();
+            status.textContent = 'Connection lost';
+            status.className   = 'text-xs px-2.5 py-1 rounded-full bg-red-900/50 text-red-400';
+            btn.disabled = false;
+          };
+        })
+        .catch(() => { btn.disabled = false; });
+    }
+
+    loadStatus();
+    loadExports();
+    setInterval(loadStatus, 15000);
+  </script>
+</body>
+</html>

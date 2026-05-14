@@ -70,5 +70,18 @@ services:
     depends_on:
       - directus
 
+  manager:
+    build:
+      context: ./manager
+    container_name: bdt_next_direct_manager
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    environment:
+      PROJECT_DIR: /project
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - .:/project
+
 volumes:
   bdt_next_direct_postgres_data:
