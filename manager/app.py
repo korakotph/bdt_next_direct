@@ -11,20 +11,50 @@ import uuid
 import zipfile
 from datetime import datetime
 
-from flask import Flask, Response, abort, jsonify, render_template, send_from_directory
+from flask import Flask, Response, abort, jsonify, render_template, request, send_from_directory
 
 app = Flask(__name__)
 
-PROJECT_DIR = os.environ.get("PROJECT_DIR", "/project")
-EXPORTS_DIR = os.path.join(PROJECT_DIR, "_exports")
+PROJECT_DIR     = os.environ.get("PROJECT_DIR",     "/project")
+PROJECTS_ROOT   = os.environ.get("PROJECTS_ROOT",   "/projects_root")
+EXPORTS_DIR     = os.path.join(PROJECT_DIR, "_exports")
 
 _jobs: dict = {}
 _lock = threading.Lock()
+_host_dir_cache: str = ""
 
 
 # ── helpers ───────────────────────────────────────────────────────────────────
 
-def compose_info() -> dict:
+def get_host_project_dir() -> str:
+    """Resolve /project to its actual path on the host via docker inspect."""
+    global _host_dir_cache
+    if _host_dir_cache:
+        return _host_dir_cache
+
+    explicit = os.environ.get("HOST_PROJECT_DIR", "").strip()
+    if explicit:
+        _host_dir_cache = explicit
+        return explicit
+
+    try:
+        hostname = os.uname().nodename
+        r = subprocess.run(
+            ["docker", "inspect", "--format",
+             "{{range .Mounts}}{{if eq .Destination \"/project\"}}{{.Source}}{{end}}{{end}}",
+             hostname],
+            capture_output=True, text=True, timeout=5,
+        )
+        src = r.stdout.strip()
+        if src:
+            _host_dir_cache = src
+            return src
+    except Exception:
+        pass
+    return PROJECT_DIR
+
+
+def compose_info(compose_file: str = None) -> dict:
     d = {
         "pg":        "bdt_next_direct_db",
         "directus":  "bdt_next_direct_directus",
@@ -33,15 +63,17 @@ def compose_info() -> dict:
         "dir_port":  "8056",
         "next_port": "3012",
     }
+    if compose_file is None:
+        compose_file = os.path.join(PROJECT_DIR, "docker-compose.yaml")
     try:
-        txt = open(os.path.join(PROJECT_DIR, "docker-compose.yaml")).read()
+        txt = open(compose_file).read()
         for pat, key in [
-            (r'container_name:\s*(\S+_db)\b',        "pg"),
-            (r'container_name:\s*(\S+_directus)\b',   "directus"),
-            (r'container_name:\s*(\S+_nextjs)\b',     "nextjs"),
-            (r'container_name:\s*(\S+_manager)\b',    "manager"),
-            (r'"(\d+):8055"',                         "dir_port"),
-            (r'"(\d+):3000"',                         "next_port"),
+            (r'container_name:\s*(\S+_db)\b',       "pg"),
+            (r'container_name:\s*(\S+_directus)\b',  "directus"),
+            (r'container_name:\s*(\S+_nextjs)\b',    "nextjs"),
+            (r'container_name:\s*(\S+_manager)\b',   "manager"),
+            (r'"(\d+):8055"',                        "dir_port"),
+            (r'"(\d+):3000"',                        "next_port"),
         ]:
             m = re.search(pat, txt)
             if m:
@@ -68,6 +100,67 @@ def container_status(name: str) -> str:
         return "unknown"
 
 
+def used_host_ports() -> set:
+    try:
+        r = subprocess.run(
+            ["docker", "ps", "--format", "{{.Ports}}"],
+            capture_output=True, text=True, timeout=5,
+        )
+        ports = set()
+        for line in r.stdout.splitlines():
+            for m in re.finditer(r":(\d+)->", line):
+                ports.add(int(m.group(1)))
+        return ports
+    except Exception:
+        return set()
+
+
+def find_free_port(start: int) -> int:
+    used = used_host_ports()
+    port = start
+    while port in used:
+        port += 1
+    return port
+
+
+def detect_projects() -> list:
+    """Detect all BDT stacks by container name pattern {prefix}_{db|directus|nextjs|manager}."""
+    try:
+        r = subprocess.run(
+            ["docker", "ps", "-a", "--format", "{{.Names}}\t{{.State}}\t{{.Ports}}"],
+            capture_output=True, text=True, timeout=10,
+        )
+        stacks: dict = {}
+        for line in r.stdout.splitlines():
+            parts = line.split("\t", 2)
+            if len(parts) < 2:
+                continue
+            name  = parts[0].lstrip("/")
+            state = parts[1]
+            ports = parts[2] if len(parts) > 2 else ""
+
+            m = re.match(r"^(.+)_(db|directus|nextjs|manager)$", name)
+            if not m:
+                continue
+            prefix, svc = m.group(1), m.group(2)
+
+            if prefix not in stacks:
+                stacks[prefix] = {"name": prefix, "services": {}, "ports": {}}
+            stacks[prefix]["services"][svc] = state
+
+            port_map = {"8055": "directus", "3000": "nextjs", "9090": "manager", "5432": "db"}
+            for pm in re.finditer(r":(\d+)->(\d+)", ports):
+                hp, cp = pm.group(1), pm.group(2)
+                if cp in port_map:
+                    stacks[prefix]["ports"][port_map[cp]] = int(hp)
+
+        result = [s for s in stacks.values()
+                  if "db" in s["services"] or "directus" in s["services"]]
+        return sorted(result, key=lambda p: p["name"])
+    except Exception:
+        return []
+
+
 def stream_cmd(cmd: list, emit, stdin_bytes: bytes = None) -> int:
     emit(f"$ {' '.join(str(c) for c in cmd)}")
     try:
@@ -76,7 +169,6 @@ def stream_cmd(cmd: list, emit, stdin_bytes: bytes = None) -> int:
             stdin=subprocess.PIPE if stdin_bytes is not None else None,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
-            cwd=PROJECT_DIR,
         )
         if stdin_bytes is not None:
             p.stdin.write(stdin_bytes)
@@ -90,10 +182,19 @@ def stream_cmd(cmd: list, emit, stdin_bytes: bytes = None) -> int:
         return -1
 
 
-def compose_run(args: list, emit) -> int:
-    pname = project_name()
-    cf = os.path.join(PROJECT_DIR, "docker-compose.yaml")
-    return stream_cmd(["docker", "compose", "-f", cf, "-p", pname] + args, emit)
+def compose_run(args: list, emit, compose_file: str = None,
+                proj: str = None, host_dir: str = None) -> int:
+    if compose_file is None:
+        compose_file = os.path.join(PROJECT_DIR, "docker-compose.yaml")
+    if proj is None:
+        proj = project_name()
+    if host_dir is None:
+        host_dir = get_host_project_dir()
+    return stream_cmd(
+        ["docker", "compose", "-f", compose_file,
+         "--project-directory", host_dir, "-p", proj] + args,
+        emit,
+    )
 
 
 # ── job runner ────────────────────────────────────────────────────────────────
@@ -118,76 +219,44 @@ def start_job(fn) -> str:
 
     with _lock:
         _jobs[jid] = job
-
     threading.Thread(target=worker, daemon=True).start()
     return jid
 
 
-# ── setup ─────────────────────────────────────────────────────────────────────
+# ── shared sub-tasks ──────────────────────────────────────────────────────────
 
-def do_setup(emit):
-    info = compose_info()
-    pg = info["pg"]
-
-    emit("═══ Setup เริ่มต้น ═══")
-
-    emit("▶ Build Next.js image (อาจใช้เวลาหลายนาที)")
-    compose_run(["build", "nextjs"], emit)
-
-    emit("▶ เริ่ม PostgreSQL")
-    rc = compose_run(["up", "-d", "postgres"], emit)
-    if rc != 0:
-        emit("✘ ไม่สามารถเริ่ม postgres ได้")
-        return
-
-    emit("▶ รอ PostgreSQL พร้อม")
-    ready = False
-    for i in range(40):
+def _wait_for_pg(emit, pg: str, retries: int = 40) -> bool:
+    for i in range(retries):
         r = subprocess.run(
             ["docker", "exec", pg, "pg_isready", "-U", "directus"],
             capture_output=True, timeout=5,
         )
         if r.returncode == 0:
-            ready = True
-            break
-        emit(f"   รอ... ({i + 1}/40)")
+            emit("✔ PostgreSQL พร้อมแล้ว")
+            return True
+        emit(f"   รอ... ({i + 1}/{retries})")
         time.sleep(3)
+    emit("⚠ PostgreSQL ยังไม่พร้อม")
+    return False
 
-    if not ready:
-        emit("⚠ PostgreSQL ยังไม่พร้อม — ดำเนินการต่อ")
-    else:
-        emit("✔ PostgreSQL พร้อมแล้ว")
-        _import_dump(emit, pg)
 
-    emit("▶ เริ่ม Directus และ Next.js")
-    compose_run(["up", "-d", "directus", "nextjs"], emit)
-
-    emit("▶ รอ Directus พร้อม")
-    dir_ready = False
-    for i in range(40):
+def _wait_for_directus(emit, retries: int = 40):
+    for i in range(retries):
         r = subprocess.run(
             ["curl", "-sf", "http://directus:8055/server/health"],
             capture_output=True, timeout=5,
         )
         if r.returncode == 0:
-            dir_ready = True
-            break
-        emit(f"   รอ... ({i + 1}/40)")
+            emit("✔ Directus พร้อมแล้ว")
+            return
+        emit(f"   รอ... ({i + 1}/{retries})")
         time.sleep(3)
-
-    if dir_ready:
-        emit("✔ Directus พร้อมแล้ว")
-    else:
-        emit("⚠ Directus ยังไม่ตอบสนอง — ตรวจสอบ logs")
-
-    emit("═══ Setup เสร็จสมบูรณ์! ═══")
-    emit(f'  Frontend  : http://<server-ip>:{info["next_port"]}')
-    emit(f'  Directus  : http://<server-ip>:{info["dir_port"]}')
-    emit(f'  Admin     : http://<server-ip>:{info["dir_port"]}/admin/setup')
+    emit("⚠ Directus ยังไม่ตอบสนอง")
 
 
-def _import_dump(emit, pg: str):
-    dump_path = os.path.join(PROJECT_DIR, "dump.sql")
+def _import_dump(emit, pg: str, dump_path: str = None):
+    if dump_path is None:
+        dump_path = os.path.join(PROJECT_DIR, "dump.sql")
     if not os.path.exists(dump_path):
         emit("⚠ ไม่พบ dump.sql — ข้าม import")
         return
@@ -210,10 +279,8 @@ def _import_dump(emit, pg: str):
         ["docker", "exec", "-i", pg, "psql", "-U", "directus", "-d", "directus"],
         input=data, capture_output=True, timeout=300,
     )
-    if r.returncode == 0:
-        emit("✔ Import สำเร็จ")
-    else:
-        emit(f"⚠ Import warning: {r.stderr.decode(errors='replace')[:300]}")
+    emit("✔ Import สำเร็จ" if r.returncode == 0 else
+         f"⚠ Import warning: {r.stderr.decode(errors='replace')[:300]}")
 
     emit("▶ Reset admin users/policies")
     subprocess.run(
@@ -228,6 +295,34 @@ def _import_dump(emit, pg: str):
     emit("✔ Users/admin policies reset")
 
 
+# ── setup ─────────────────────────────────────────────────────────────────────
+
+def do_setup(emit):
+    info = compose_info()
+    pg = info["pg"]
+    emit("═══ Setup เริ่มต้น ═══")
+
+    emit("▶ Build Next.js image (อาจใช้เวลาหลายนาที)")
+    compose_run(["build", "nextjs"], emit)
+
+    emit("▶ เริ่ม PostgreSQL")
+    if compose_run(["up", "-d", "postgres"], emit) != 0:
+        emit("✘ ไม่สามารถเริ่ม postgres ได้")
+        return
+
+    if _wait_for_pg(emit, pg):
+        _import_dump(emit, pg)
+
+    emit("▶ เริ่ม Directus และ Next.js")
+    compose_run(["up", "-d", "directus", "nextjs"], emit)
+    _wait_for_directus(emit)
+
+    emit("═══ Setup เสร็จสมบูรณ์! ═══")
+    emit(f'  Frontend  : http://<server-ip>:{info["next_port"]}')
+    emit(f'  Directus  : http://<server-ip>:{info["dir_port"]}')
+    emit(f'  Admin     : http://<server-ip>:{info["dir_port"]}/admin/setup')
+
+
 # ── export ────────────────────────────────────────────────────────────────────
 
 def do_export(emit):
@@ -235,15 +330,12 @@ def do_export(emit):
 
     info = compose_info()
     pg = info["pg"]
-
     emit("═══ Export เริ่มต้น ═══")
     os.makedirs(EXPORTS_DIR, exist_ok=True)
 
     ts = datetime.now().strftime("%Y%m%d_%H%M%S")
     tmp = os.path.join(EXPORTS_DIR, f"_tmp_{ts}")
     os.makedirs(tmp, exist_ok=True)
-
-    parts = []
 
     emit("▶ Export database")
     r = subprocess.run(
@@ -257,7 +349,6 @@ def do_export(emit):
         with open(p, "wb") as f:
             f.write(r.stdout)
         emit(f"✔ dump.sql ({os.path.getsize(p) // 1024} KB)")
-        parts.append("dump.sql")
     else:
         emit(f"⚠ pg_dump: {r.stderr.decode(errors='replace')[:200]}")
 
@@ -268,7 +359,6 @@ def do_export(emit):
         shutil.copytree(src, dst)
         count = sum(1 for p in pathlib.Path(dst).rglob("*") if p.is_file())
         emit(f"✔ directus/uploads/ ({count} files)")
-        parts.append("directus/uploads/")
     else:
         emit("⚠ ไม่พบ directus/uploads/ — ข้าม")
 
@@ -288,6 +378,103 @@ def do_export(emit):
     emit(f"DOWNLOAD:{zip_name}")
 
 
+# ── create project ────────────────────────────────────────────────────────────
+
+def do_create_project(name: str, emit):
+    prefix = re.sub(r"[^a-z0-9_-]", "_", name.lower().strip())
+    prefix = re.sub(r"_+", "_", prefix).strip("_")
+    if not prefix:
+        emit("✘ ชื่อโปรเจคไม่ถูกต้อง")
+        return
+
+    # Paths inside container and on host
+    target_c = os.path.join(PROJECTS_ROOT, prefix)
+    host_project = get_host_project_dir()
+    host_parent  = os.path.dirname(host_project)
+    target_h     = os.path.join(host_parent, prefix)
+
+    if os.path.exists(target_c):
+        emit(f"✘ โฟลเดอร์ {prefix} มีอยู่แล้ว")
+        return
+
+    emit(f"═══ สร้างโปรเจค: {prefix} ═══")
+    emit(f"   โฟลเดอร์: {target_h}")
+
+    # Copy template
+    emit("▶ คัดลอก template")
+    shutil.copytree(PROJECT_DIR, target_c,
+                    ignore=shutil.ignore_patterns(".git", "_exports", "*.bak"))
+    up = os.path.join(target_c, "directus", "uploads")
+    shutil.rmtree(up, ignore_errors=True)
+    os.makedirs(up, exist_ok=True)
+    emit("✔ คัดลอกเสร็จ")
+
+    # Find free ports
+    emit("▶ หา port ที่ว่าง")
+    pg_port   = find_free_port(5433)
+    dir_port  = find_free_port(8056)
+    next_port = find_free_port(3012)
+    mgr_port  = find_free_port(9090)
+    emit(f"   PostgreSQL  → {pg_port}")
+    emit(f"   Directus    → {dir_port}")
+    emit(f"   Next.js     → {next_port}")
+    emit(f"   Manager     → {mgr_port}")
+
+    # Patch docker-compose.yaml
+    emit("▶ ตั้งค่า docker-compose.yaml")
+    compose_path = os.path.join(target_c, "docker-compose.yaml")
+    with open(compose_path) as f:
+        txt = f.read()
+
+    for svc in ("db", "directus", "nextjs", "manager"):
+        m = re.search(rf"container_name:\s*(\S+_{svc})\b", txt)
+        if m:
+            txt = txt.replace(m.group(1), f"{prefix}_{svc}")
+
+    txt = re.sub(r'"(\d+):5432"', f'"{pg_port}:5432"',   txt)
+    txt = re.sub(r'"(\d+):8055"', f'"{dir_port}:8055"',  txt)
+    txt = re.sub(r'"(\d+):3000"', f'"{next_port}:3000"', txt)
+    txt = re.sub(r'"(\d+):9090"', f'"{mgr_port}:9090"',  txt)
+    txt = re.sub(r"PUBLIC_URL: http://localhost:\d+",
+                 f"PUBLIC_URL: http://localhost:{dir_port}", txt)
+    txt = re.sub(r"NEXT_PUBLIC_DIRECTUS_URL: http://localhost:\d+",
+                 f"NEXT_PUBLIC_DIRECTUS_URL: http://localhost:{dir_port}", txt)
+    txt = re.sub(r'SESSION_COOKIE_NAME: "[^"]+_session_token"',
+                 f'SESSION_COOKIE_NAME: "{prefix}_session_token"', txt)
+    txt = re.sub(r'REFRESH_TOKEN_COOKIE_NAME: "[^"]+_refresh_token"',
+                 f'REFRESH_TOKEN_COOKIE_NAME: "{prefix}_refresh_token"', txt)
+    txt = re.sub(r"\S+_postgres_data", f"{prefix}_postgres_data", txt)
+    # Set HOST_PROJECT_DIR for new project's own manager
+    txt = re.sub(r"HOST_PROJECT_DIR:.*", f"HOST_PROJECT_DIR: {target_h}", txt)
+
+    with open(compose_path, "w") as f:
+        f.write(txt)
+    emit("✔ ตั้งค่าเสร็จ")
+
+    pg_container = f"{prefix}_db"
+
+    emit("▶ Build Next.js image (อาจใช้เวลาหลายนาที)")
+    compose_run(["build", "nextjs"], emit,
+                compose_file=compose_path, proj=prefix, host_dir=target_h)
+
+    emit("▶ เริ่ม PostgreSQL")
+    compose_run(["up", "-d", "postgres"], emit,
+                compose_file=compose_path, proj=prefix, host_dir=target_h)
+
+    if _wait_for_pg(emit, pg_container, retries=30):
+        _import_dump(emit, pg_container, os.path.join(target_c, "dump.sql"))
+
+    emit("▶ เริ่ม containers ทั้งหมด")
+    compose_run(["up", "-d", "directus", "nextjs", "manager"], emit,
+                compose_file=compose_path, proj=prefix, host_dir=target_h)
+
+    emit("═══ สร้างโปรเจคเสร็จสมบูรณ์! ═══")
+    emit(f"  Frontend  : http://<server-ip>:{next_port}")
+    emit(f"  Directus  : http://<server-ip>:{dir_port}")
+    emit(f"  Manager   : http://<server-ip>:{mgr_port}")
+    emit(f"  Admin     : http://<server-ip>:{dir_port}/admin/setup")
+
+
 # ── routes ────────────────────────────────────────────────────────────────────
 
 @app.get("/")
@@ -299,14 +486,30 @@ def index():
 def api_status():
     info = compose_info()
     return jsonify({
+        "project": project_name(),
         "containers": {
-            "postgres":  container_status(info["pg"]),
-            "directus":  container_status(info["directus"]),
-            "nextjs":    container_status(info["nextjs"]),
-            "manager":   container_status(info["manager"]),
+            "postgres": container_status(info["pg"]),
+            "directus": container_status(info["directus"]),
+            "nextjs":   container_status(info["nextjs"]),
+            "manager":  container_status(info["manager"]),
         },
         "info": info,
     })
+
+
+@app.get("/api/projects")
+def api_projects():
+    return jsonify(detect_projects())
+
+
+@app.post("/api/projects")
+def api_create_project():
+    data = request.get_json(silent=True) or {}
+    name = (data.get("name") or "").strip()
+    if not name:
+        return jsonify({"error": "name required"}), 400
+    job_id = start_job(lambda emit: do_create_project(name, emit))
+    return jsonify({"job_id": job_id})
 
 
 @app.post("/api/setup")
@@ -333,15 +536,12 @@ def api_stream(job_id: str):
                 batch  = job["lines"][cursor:]
                 total  = len(job["lines"])
                 status = job["status"]
-
             for line in batch:
                 yield f"data: {json.dumps(line)}\n\n"
             cursor = total
-
             if status != "running" and cursor == total:
                 yield f'data: {json.dumps("__DONE__")}\n\n'
                 return
-
             time.sleep(0.1)
 
     return Response(
@@ -359,11 +559,11 @@ def api_exports():
             if fn.endswith(".zip"):
                 fp = os.path.join(EXPORTS_DIR, fn)
                 out.append({
-                    "name":     fn,
-                    "size_mb":  round(os.path.getsize(fp) / 1024 / 1024, 1),
-                    "created":  datetime.fromtimestamp(
-                                    os.path.getmtime(fp)
-                                ).strftime("%Y-%m-%d %H:%M"),
+                    "name":    fn,
+                    "size_mb": round(os.path.getsize(fp) / 1024 / 1024, 1),
+                    "created": datetime.fromtimestamp(
+                                   os.path.getmtime(fp)
+                               ).strftime("%Y-%m-%d %H:%M"),
                 })
     except Exception:
         pass

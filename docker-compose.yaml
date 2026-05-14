@@ -83,9 +83,13 @@ services:
       - "9090:9090"
     environment:
       PROJECT_DIR: /project
+      # path จริงบน host — ใช้ resolve bind mounts เวลารัน docker compose จากในตัว container
+      HOST_PROJECT_DIR: ${PWD}
+      PROJECTS_ROOT: /projects_root
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - .:/project
+      - ..:/projects_root
 
 volumes:
   bdt_next_direct_postgres_data:

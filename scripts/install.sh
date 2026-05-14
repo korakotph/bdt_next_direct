@@ -129,6 +129,7 @@ perl -i -pe "s|SESSION_COOKIE_NAME: \"[^\"]+_session_token\"|SESSION_COOKIE_NAME
 perl -i -pe "s|REFRESH_TOKEN_COOKIE_NAME: \"[^\"]+_refresh_token\"|REFRESH_TOKEN_COOKIE_NAME: \"${PREFIX}_refresh_token\"|g" \
     docker-compose.yaml
 perl -i -pe "s/\Q${VOL_OLD}\E/${PREFIX}_postgres_data/g" docker-compose.yaml
+perl -i -pe "s|HOST_PROJECT_DIR:.*|HOST_PROJECT_DIR: ${PROJECT_DIR}|g" docker-compose.yaml
 ok "เสร็จแล้ว"
 PG_CONTAINER="${PREFIX}_db"
 
