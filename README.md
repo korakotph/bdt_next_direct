@@ -269,6 +269,10 @@ docker compose logs -f directus
 **Port ชนกัน**
 > `install.bat` จะหา port ที่ว่างให้อัตโนมัติ ไม่ต้องแก้ไขเอง
 
+**Login Directus ชนกันเมื่อรันหลาย project บน server/เครื่องเดียวกัน**
+> แต่ละ project จะมีชื่อ session cookie ของตัวเองโดยอัตโนมัติ (`{prefix}_session_token` / `{prefix}_refresh_token`)
+> ซึ่งถูกกำหนดใน `docker-compose.yaml` และ `install.bat` จะ patch ให้ตรงกับชื่อโฟลเดอร์โดยอัตโนมัติ
+
 **Directus ยังไม่พร้อม**
 > Directus ต้องการเวลา initialize ฐานข้อมูลครั้งแรก รอสัก 30–60 วินาที แล้วลอง refresh
 
