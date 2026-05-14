@@ -151,6 +151,36 @@ ok "เสร็จแล้ว"
 PG_CONTAINER="${PREFIX}_db"
 ADM_CONTAINER="${PREFIX}_adminer"
 
+# ── Patch basePath / assetPrefix in next-app config ──────────
+step "อัปเดต base path ใน next-app"
+# Read active (uncommented) basePath from next.config.mjs
+OLD_BASE=$(grep -E '^\s*basePath:' next-app/next.config.mjs 2>/dev/null \
+    | grep -oE "'(/[^']+)'" | tr -d "'" | head -1)
+OLD_BASE=${OLD_BASE:-}
+NEW_BASE="/${PREFIX}"
+
+if [ -n "$OLD_BASE" ] && [ "$OLD_BASE" != "$NEW_BASE" ]; then
+    # Patch next.config.mjs — exact property value replacement
+    perl -i -pe 's,(basePath:\s*['"'"'"])'"${OLD_BASE}"'(['"'"'"]),${1}'"${NEW_BASE}"'${2},g;
+                 s,(assetPrefix:\s*['"'"'"])'"${OLD_BASE}"'(['"'"'"]),${1}'"${NEW_BASE}"'${2},g' \
+        next-app/next.config.mjs 2>/dev/null
+
+    # Patch .env* files — path replacement preserving suffixes (e.g., -admin)
+    for env_file in next-app/.env*; do
+        [ -f "$env_file" ] || continue
+        perl -i -pe 's,\Q'"${OLD_BASE}"'\E(?=[^a-zA-Z0-9_]|$),'"${NEW_BASE}"',g' \
+            "$env_file" 2>/dev/null
+    done
+
+    # Patch NEXT_PUBLIC_BASE_PATH in docker-compose.yaml
+    perl -i -pe 's,(NEXT_PUBLIC_BASE_PATH:\s*")\Q'"${OLD_BASE}"'\E([^"]*"),${1}'"${NEW_BASE}"'${2},g' \
+        docker-compose.yaml 2>/dev/null
+
+    ok "Base path: $OLD_BASE → $NEW_BASE"
+else
+    ok "Base path ไม่มี / ไม่ต้องอัปเดต"
+fi
+
 # ── Build Next.js image first ─────────────────────────────────
 step "Build Next.js image (อาจใช้เวลาหลายนาที)"
 $COMPOSE_CMD build nextjs || { err "$DOCKER_CMD compose build ล้มเหลว"; pause_exit; }

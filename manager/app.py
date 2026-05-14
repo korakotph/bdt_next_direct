@@ -105,6 +105,80 @@ def container_status(name: str) -> str:
         return "unknown"
 
 
+def detect_base_path(project_dir: str) -> str:
+    """Return the active (uncommented) basePath value from next-app/next.config.mjs.
+
+    Returns a string like '/suqa', or '' if not set.
+    """
+    config = os.path.join(project_dir, "next-app", "next.config.mjs")
+    try:
+        for line in open(config):
+            if line.lstrip().startswith("//"):
+                continue
+            m = re.search(r"basePath:\s*['\"](/[^'\"]+)['\"]", line)
+            if m:
+                return m.group(1)
+    except Exception:
+        pass
+    return ""
+
+
+def patch_base_paths(project_dir: str, old_base: str, new_base: str, emit=None):
+    """Replace old_base path prefix with new_base in next-app config and .env files.
+
+    Handles suffixes correctly: '/old-admin' becomes '/new-admin' because
+    only the '/old' part is replaced (using a word-boundary lookahead).
+    Also updates NEXT_PUBLIC_BASE_PATH in docker-compose.yaml.
+    """
+    if not old_base or old_base == new_base:
+        return
+
+    old_esc = re.escape(old_base)
+    # Match old_base when NOT followed by a word character (letter/digit/_)
+    # so /suqa matches in /suqa-admin but not in /suqaapp
+    path_pat = rf"{old_esc}(?=[^a-zA-Z0-9_]|$)"
+
+    patched = []
+
+    # next.config.mjs — replace exact property values only
+    config = os.path.join(project_dir, "next-app", "next.config.mjs")
+    if os.path.isfile(config):
+        txt = open(config).read()
+        txt = re.sub(rf"(basePath:\s*['\"]){old_esc}(['\"])",
+                     rf"\g<1>{new_base}\g<2>", txt)
+        txt = re.sub(rf"(assetPrefix:\s*['\"]){old_esc}(['\"])",
+                     rf"\g<1>{new_base}\g<2>", txt)
+        open(config, "w").write(txt)
+        patched.append("next.config.mjs")
+
+    # .env* files in next-app
+    next_dir = os.path.join(project_dir, "next-app")
+    if os.path.isdir(next_dir):
+        for fname in sorted(os.listdir(next_dir)):
+            if not fname.startswith(".env"):
+                continue
+            fpath = os.path.join(next_dir, fname)
+            if not os.path.isfile(fpath):
+                continue
+            txt = open(fpath).read()
+            txt = re.sub(path_pat, new_base, txt)
+            open(fpath, "w").write(txt)
+            patched.append(fname)
+
+    # docker-compose.yaml — NEXT_PUBLIC_BASE_PATH build arg + env
+    compose = os.path.join(project_dir, "docker-compose.yaml")
+    if os.path.isfile(compose):
+        txt = open(compose).read()
+        txt = re.sub(
+            rf'(NEXT_PUBLIC_BASE_PATH:\s*"){old_esc}([^"]*")',
+            rf'\g<1>{new_base}\g<2>', txt,
+        )
+        open(compose, "w").write(txt)
+
+    if emit and patched:
+        emit(f"✔ Base path {old_base} → {new_base}  ({', '.join(patched)})")
+
+
 def used_host_ports() -> set:
     """Return all host ports reserved by any container (running OR stopped)."""
     try:
@@ -486,6 +560,10 @@ def do_create_project(name: str, template_prefix: str, emit):
     with open(compose_path, "w") as f:
         f.write(txt)
     emit("✔ ตั้งค่าเสร็จ")
+
+    # Patch basePath / assetPrefix / NEXT_PUBLIC_BASE_PATH to match new prefix
+    old_base = detect_base_path(template_dir)
+    patch_base_paths(target_c, old_base, f"/{prefix}", emit)
 
     emit("▶ Build Next.js image (อาจใช้เวลาหลายนาที)")
     compose_run(["build", "nextjs"], emit, prefix=prefix,
