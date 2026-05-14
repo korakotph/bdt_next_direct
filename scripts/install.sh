@@ -124,6 +124,10 @@ perl -i -pe "s|PUBLIC_URL: http://localhost:\d+|PUBLIC_URL: http://localhost:${D
     docker-compose.yaml
 perl -i -pe "s|NEXT_PUBLIC_DIRECTUS_URL: http://localhost:\d+|NEXT_PUBLIC_DIRECTUS_URL: http://localhost:${DIR_PORT}|g" \
     docker-compose.yaml
+perl -i -pe "s|SESSION_COOKIE_NAME: \"[^\"]+_session_token\"|SESSION_COOKIE_NAME: \"${PREFIX}_session_token\"|g" \
+    docker-compose.yaml
+perl -i -pe "s|REFRESH_TOKEN_COOKIE_NAME: \"[^\"]+_refresh_token\"|REFRESH_TOKEN_COOKIE_NAME: \"${PREFIX}_refresh_token\"|g" \
+    docker-compose.yaml
 perl -i -pe "s/\Q${VOL_OLD}\E/${PREFIX}_postgres_data/g" docker-compose.yaml
 ok "เสร็จแล้ว"
 PG_CONTAINER="${PREFIX}_db"

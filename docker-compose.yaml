@@ -47,6 +47,10 @@ services:
 
       # URL สาธารณะของ Directus — ใช้สำหรับ generate asset URL ให้ถูกต้อง
       PUBLIC_URL: http://localhost:8056
+
+      # ชื่อ cookie เฉพาะของ project — ป้องกัน session ชนกันเมื่อรัน Directus หลาย instance
+      SESSION_COOKIE_NAME: "bdt_next_direct_session_token"
+      REFRESH_TOKEN_COOKIE_NAME: "bdt_next_direct_refresh_token"
     volumes:
       - ./directus/uploads:/directus/uploads
       - ./directus/migrations:/directus/migrations
