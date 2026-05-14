@@ -1,9 +1,10 @@
 # คู่มือการติดตั้งและเปิดใช้งานบนเครื่อง Local
 
-โปรเจกต์นี้ประกอบด้วย 3 ส่วนหลัก:
+โปรเจกต์นี้ประกอบด้วย 4 ส่วนหลัก:
 - **PostgreSQL** — ฐานข้อมูล
 - **Directus** — CMS / API backend
 - **Next.js** — Frontend
+- **Manager** — Web UI สำหรับจัดการ containers บน server (port 9090)
 
 ---
 
@@ -83,7 +84,7 @@ cd ชื่อโฟลเดอร์
 ```
 
 > **ชื่อโฟลเดอร์สำคัญ** — `install.bat` จะใช้ชื่อโฟลเดอร์เป็น prefix ของ container
-> เช่น โฟลเดอร์ชื่อ `mysite` → container จะเป็น `mysite_db`, `mysite_directus`, `mysite_nextjs`
+> เช่น โฟลเดอร์ชื่อ `mysite` → container จะเป็น `mysite_db`, `mysite_directus`, `mysite_nextjs`, `mysite_manager`
 
 ---
 
@@ -139,6 +140,7 @@ docker compose up -d
 | Next.js (Frontend) | http://localhost:**3012** |
 | Directus (Admin) | http://localhost:**8056** |
 | PostgreSQL | localhost:**5433** |
+| Manager UI | http://localhost:**9090** |
 
 > ถ้าติดตั้งผ่าน `install.bat` / `install.command` — ดู URL และ port จริงได้จากหน้าต่างสรุปตอนจบการติดตั้ง หรือดูค่าใน `docker-compose.yaml`
 
@@ -290,6 +292,37 @@ docker compose logs -f directus
 
 ---
 
+## ใช้งานบน Server (Manager Web UI)
+
+Manager container ช่วยจัดการระบบบน server ผ่านเบราว์เซอร์ โดยไม่ต้อง SSH หรือรัน script แบบ interactive
+
+### วิธีเริ่มต้นบน Server
+
+```bash
+# เริ่ม manager container อย่างเดียวก่อน
+docker compose up -d manager
+
+# จากนั้นเปิดเบราว์เซอร์ไปที่
+http://<server-ip>:9090
+```
+
+### ฟีเจอร์ใน Manager UI
+
+| ฟีเจอร์ | รายละเอียด |
+|---|---|
+| **Container Status** | ดูสถานะ container ทั้งหมดแบบ real-time |
+| **Setup / Import Data** | Build Next.js, เริ่ม containers, import `dump.sql`, reset admin — ทำงานแบบ non-interactive |
+| **Export Data** | Export database + uploads เป็น `.zip` พร้อม download ผ่านเบราว์เซอร์ |
+| **Past Exports** | รายการไฟล์ export ที่ผ่านมา พร้อม download link |
+
+> ไฟล์ export จะถูกเก็บไว้ในโฟลเดอร์ `_exports/` ในโปรเจกต์
+
+### ข้อกำหนด
+
+Manager ต้องการสิทธิ์เข้าถึง Docker socket (`/var/run/docker.sock`) ซึ่งกำหนดไว้ใน `docker-compose.yaml` แล้ว
+
+---
+
 ## Deploy Site ผ่าน Directus Admin
 
 โปรเจกต์มีหน้า **Deploy** ใน Directus admin สำหรับ pull code และ restart Next.js โดยไม่ต้องเปิด terminal
@@ -357,6 +390,13 @@ bdt_next_direct/
 ├── update_dump.bat       # Windows อัปเดต dump.sql
 ├── update_dump.command   # Mac อัปเดต dump.sql
 ├── scripts/              # scripts หลัก (install.ps1, install.sh, ...)
+├── manager/              # Manager Web UI container (port 9090)
+│   ├── Dockerfile
+│   ├── app.py            # Flask server
+│   ├── requirements.txt
+│   └── templates/
+│       └── index.html    # Dashboard UI
+├── _exports/             # ไฟล์ export จาก Manager (สร้างอัตโนมัติ)
 ├── directus/
 │   └── uploads/          # ไฟล์ที่อัปโหลดผ่าน Directus
 └── next-app/
