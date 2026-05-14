@@ -66,11 +66,29 @@ ok "Container runtime: $DOCKER_CMD"
 [ -f "docker-compose.yaml" ] || { err "ไม่พบ docker-compose.yaml"; pause_exit; }
 
 # ── Find free ports ───────────────────────────────────────────
+# Track ports allocated in this run so sequential calls don't collide.
+_ALLOCATED_PORTS=()
+
 find_free_port() {
     local port=$1
-    while nc -z 127.0.0.1 "$port" 2>/dev/null; do
-        ((port++))
+    while true; do
+        # Skip if port is bound on host (running service)
+        if nc -z 127.0.0.1 "$port" 2>/dev/null; then
+            ((port++)); continue
+        fi
+        # Skip if port is reserved by any Docker container (running OR stopped)
+        if docker ps -a --format '{{.Ports}}' 2>/dev/null | grep -q ":${port}->"; then
+            ((port++)); continue
+        fi
+        # Skip if already allocated in this run
+        local taken=false
+        for p in "${_ALLOCATED_PORTS[@]}"; do
+            [[ "$p" == "$port" ]] && taken=true && break
+        done
+        $taken && { ((port++)); continue; }
+        break
     done
+    _ALLOCATED_PORTS+=("$port")
     echo "$port"
 }
 

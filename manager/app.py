@@ -106,9 +106,10 @@ def container_status(name: str) -> str:
 
 
 def used_host_ports() -> set:
+    """Return all host ports reserved by any container (running OR stopped)."""
     try:
         r = subprocess.run(
-            ["docker", "ps", "--format", "{{.Ports}}"],
+            ["docker", "ps", "-a", "--format", "{{.Ports}}"],
             capture_output=True, text=True, timeout=5,
         )
         ports = set()
@@ -120,12 +121,25 @@ def used_host_ports() -> set:
         return set()
 
 
-def find_free_port(start: int) -> int:
+def find_free_ports(specs: list) -> dict:
+    """Allocate multiple free ports atomically.
+
+    Takes a list of (name, start_port) tuples. Each allocated port is
+    immediately reserved so subsequent lookups in the same call won't
+    pick the same value.
+
+    Example:
+        ports = find_free_ports([("pg", 5433), ("dir", 8056), ("adm", 8057)])
+    """
     used = used_host_ports()
-    port = start
-    while port in used:
-        port += 1
-    return port
+    result = {}
+    for name, start in specs:
+        port = start
+        while port in used:
+            port += 1
+        used.add(port)
+        result[name] = port
+    return result
 
 
 def detect_projects() -> list:
@@ -430,10 +444,16 @@ def do_create_project(name: str, template_prefix: str, emit):
     emit("✔ คัดลอกเสร็จ")
 
     emit("▶ หา port ที่ว่าง")
-    pg_port      = find_free_port(5433)
-    dir_port     = find_free_port(8056)
-    next_port    = find_free_port(3012)
-    adminer_port = find_free_port(8057)
+    ports = find_free_ports([
+        ("pg",      5433),
+        ("dir",     8056),
+        ("next",    3012),
+        ("adminer", 8057),
+    ])
+    pg_port      = ports["pg"]
+    dir_port     = ports["dir"]
+    next_port    = ports["next"]
+    adminer_port = ports["adminer"]
     emit(f"   PostgreSQL → {pg_port}")
     emit(f"   Directus   → {dir_port}")
     emit(f"   Next.js    → {next_port}")
