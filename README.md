@@ -361,6 +361,15 @@ Frontend  : http://<server-ip>/{prefix}/
 
 นอกจากนี้ยังกด Enable/Disable ได้เองในหน้า Selected Project
 
+Manager ใช้ชื่อ container โดยตรง (เช่น `cms_nextjs:3000`) และ **auto-connect** container เข้า Caddy network อัตโนมัติเมื่อ enable — ไม่ต้องใช้ `host.docker.internal`
+
+**Config ที่ถูก generate:**
+```
+handle /cms* {
+    reverse_proxy cms_nextjs:3000
+}
+```
+
 **ต้องทำครั้งเดียวบน server:**
 
 1. สร้าง folder รับ config:
@@ -371,8 +380,6 @@ mkdir -p /var/www/_caddy
 2. Mount เข้า Caddy container (`docker-compose.yaml` ของ Caddy):
 ```yaml
 caddy:
-  extra_hosts:
-    - "host.docker.internal:host-gateway"
   volumes:
     - /var/www/_caddy:/etc/caddy/conf.d
 ```
@@ -387,9 +394,9 @@ import /etc/caddy/conf.d/*.conf
 docker compose restart caddy
 ```
 
-หลังจากนั้นกด **Enable** ใน Manager UI ได้เลย — Manager จะเขียน config และ reload Caddy ให้อัตโนมัติ
+หลังจากนั้น Manager จะจัดการ config และ network ให้อัตโนมัติทุกครั้งที่ setup/create โปรเจค
 
-> เปลี่ยนชื่อ Caddy container ได้ด้วย `CADDY_CONTAINER=my_caddy docker compose ...` (default: `caddy`)
+> env vars ที่ปรับได้: `CADDY_CONTAINER` (default: `caddy`), `CADDY_NETWORK` (default: `caddy_web`)
 
 ### Adminer (DB GUI ใน Project Stack)
 
