@@ -290,6 +290,74 @@ docker compose logs -f directus
 
 ---
 
+## Caddy Reverse Proxy (Production)
+
+โปรเจกต์มี Caddy service ใน `docker-compose.yaml` สำหรับ reverse proxy บน server จริง  
+Caddy ออก TLS certificate จาก **Let's Encrypt อัตโนมัติ** — ไม่ต้องตั้งค่า SSL เอง
+
+### Path routing
+
+| URL | ปลายทาง |
+|---|---|
+| `https://example.com/` | Next.js |
+| `https://example.com/directus/` | Directus Admin + API |
+
+### วิธีตั้งค่า
+
+**1. แก้ `caddy/Caddyfile`** — เปลี่ยน `YOUR_DOMAIN` เป็น domain จริง:
+
+```
+example.com {
+
+    handle_path /directus/* {
+        reverse_proxy bdt_next_direct_directus:8055
+    }
+
+    handle {
+        reverse_proxy bdt_next_direct_nextjs:3000
+    }
+    ...
+}
+```
+
+**2. แก้ `docker-compose.yaml`** — อัปเดต URL ให้ตรงกับ domain:
+
+```yaml
+# Directus
+PUBLIC_URL: https://example.com/directus
+
+# Next.js build args + env
+NEXT_PUBLIC_DIRECTUS_URL: https://example.com/directus
+```
+
+**3. ตรวจสอบว่า port 80 และ 443 เปิดอยู่บน server** แล้ว rebuild:
+
+```bash
+docker compose down
+docker compose up -d --build
+```
+
+Caddy จะดึง certificate จาก Let's Encrypt ให้อัตโนมัติตอน start ครั้งแรก (ต้องการ domain ชี้มาที่ server ก่อน)
+
+### ทดสอบบน localhost (ไม่มี domain)
+
+แก้ `caddy/Caddyfile` ให้ใช้ HTTP แทน:
+
+```
+:80 {
+    handle_path /directus/* {
+        reverse_proxy bdt_next_direct_directus:8055
+    }
+    handle {
+        reverse_proxy bdt_next_direct_nextjs:3000
+    }
+}
+```
+
+> Caddy จะรันที่ `http://localhost` (port 80) โดยไม่พยายามออก TLS certificate
+
+---
+
 ## Deploy Site ผ่าน Directus Admin
 
 โปรเจกต์มีหน้า **Deploy** ใน Directus admin สำหรับ pull code และ restart Next.js โดยไม่ต้องเปิด terminal
@@ -348,7 +416,7 @@ docker compose restart directus
 
 ```
 bdt_next_direct/
-├── docker-compose.yaml   # config รัน service ทั้งหมด
+├── docker-compose.yaml   # config รัน service ทั้งหมด (รวม Caddy)
 ├── dump.sql              # ข้อมูลตั้งต้นของฐานข้อมูล
 ├── install.bat           # Windows one-click installer
 ├── install.command       # Mac one-click installer
@@ -357,6 +425,8 @@ bdt_next_direct/
 ├── update_dump.bat       # Windows อัปเดต dump.sql
 ├── update_dump.command   # Mac อัปเดต dump.sql
 ├── scripts/              # scripts หลัก (install.ps1, install.sh, ...)
+├── caddy/
+│   └── Caddyfile         # config Caddy reverse proxy (เปลี่ยน YOUR_DOMAIN ก่อนใช้)
 ├── directus/
 │   └── uploads/          # ไฟล์ที่อัปโหลดผ่าน Directus
 └── next-app/
