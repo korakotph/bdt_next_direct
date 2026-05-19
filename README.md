@@ -9,7 +9,7 @@
 - **Adminer** — Web UI ดูฐานข้อมูล (port 8057)
 
 **Manager stack** (deploy แยก 1 ชุดต่อ server):
-- **Manager** — Web UI สำหรับจัดการ container ทุกโปรเจคบน server (port 9090)
+- **Manager** — Web UI สำหรับจัดการ container ทุกโปรเจคบน server (port 8090 default, เปลี่ยนได้ด้วย `MANAGER_PORT`)
 
 ---
 
@@ -145,7 +145,7 @@ docker compose up -d
 | Next.js (Frontend) | http://localhost:**3012** |
 | Directus (Admin) | http://localhost:**8056** |
 | PostgreSQL | localhost:**5433** |
-| Manager UI | http://localhost:**9090** |
+| Manager UI | http://localhost:**8090** |
 
 > ถ้าติดตั้งผ่าน `install.bat` / `install.command` — ดู URL และ port จริงได้จากหน้าต่างสรุปตอนจบการติดตั้ง หรือดูค่าใน `docker-compose.yaml`
 
@@ -309,12 +309,14 @@ Manager เป็น standalone container แยกออกจาก project st
 
 ```bash
 # รันจาก project root directory
-export HOST_PROJECTS_ROOT="$(dirname $PWD)"   # path จริงของ parent dir บน host
-docker compose -f manager/docker-compose.yaml up -d
+HOST_PROJECTS_ROOT=/var/www \
+  docker compose -f manager/docker-compose.yaml up -d --build
 
 # เปิดเบราว์เซอร์ไปที่
-http://<server-ip>:9090
+http://<server-ip>:8090
 ```
+
+> เปลี่ยน port ได้ด้วย `MANAGER_PORT=9999 docker compose ...` (default: 8090)
 
 > ถ้าไม่ set `HOST_PROJECTS_ROOT` Manager จะ auto-detect host path ผ่าน `docker inspect`
 
