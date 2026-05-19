@@ -426,8 +426,13 @@ def do_setup(emit, prefix: str):
                 prefix=prefix, compose_file=compose_file, host_dir=host_dir)
     _wait_for_directus(emit, prefix)
 
+    emit("▶ ตั้งค่า Reverse Proxy")
+    write_proxy_conf(prefix)
+    ok, msg = reload_caddy()
+    emit(f"✔ Caddy reload {'สำเร็จ' if ok else f'ล้มเหลว: {msg}'}")
+
     emit("═══ Setup เสร็จสมบูรณ์! ═══")
-    emit(f'  Frontend  : http://<server-ip>:{info["next_port"]}')
+    emit(f'  Frontend  : http://<server-ip>/{prefix}/')
     emit(f'  Directus  : http://<server-ip>:{info["dir_port"]}')
     emit(f'  Adminer   : http://<server-ip>:{info["adminer_port"]}')
     emit(f'  Admin     : http://<server-ip>:{info["dir_port"]}/admin/setup')
@@ -583,8 +588,13 @@ def do_create_project(name: str, template_prefix: str, emit):
     compose_run(["up", "-d", "directus", "nextjs", "adminer"], emit,
                 prefix=prefix, compose_file=compose_path, host_dir=target_h)
 
+    emit("▶ ตั้งค่า Reverse Proxy")
+    write_proxy_conf(prefix)
+    ok, msg = reload_caddy()
+    emit(f"✔ Caddy reload {'สำเร็จ' if ok else f'ล้มเหลว: {msg}'}")
+
     emit("═══ สร้างโปรเจคเสร็จสมบูรณ์! ═══")
-    emit(f"  Frontend  : http://<server-ip>:{next_port}")
+    emit(f"  Frontend  : http://<server-ip>/{prefix}/")
     emit(f"  Directus  : http://<server-ip>:{dir_port}")
     emit(f"  Adminer   : http://<server-ip>:{adminer_port}")
     emit(f"  Admin     : http://<server-ip>:{dir_port}/admin/setup")
