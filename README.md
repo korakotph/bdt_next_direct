@@ -320,6 +320,25 @@ http://<server-ip>:8090
 
 > ถ้าไม่ set `HOST_PROJECTS_ROOT` Manager จะ auto-detect host path ผ่าน `docker inspect`
 
+### ใช้กับ Reverse Proxy (เช่น Caddy) ที่ sub-path
+
+ถ้าต้องการเข้าผ่าน path เช่น `http://<server-ip>/manager/` ให้ตั้ง `BASE_PATH`:
+
+```bash
+HOST_PROJECTS_ROOT=/var/www BASE_PATH=/manager \
+  docker compose -f manager/docker-compose.yaml up -d --build
+```
+
+**Caddyfile:**
+```
+:80 {
+    handle /manager/* {
+        uri strip_prefix /manager
+        reverse_proxy localhost:8090
+    }
+}
+```
+
 ### Adminer (DB GUI ใน Project Stack)
 
 แต่ละโปรเจคมี Adminer container สำหรับดูฐานข้อมูลโดยตรง:
