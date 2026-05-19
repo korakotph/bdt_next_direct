@@ -13,8 +13,6 @@ import zipfile
 from datetime import datetime
 
 from flask import Flask, Response, abort, jsonify, render_template, request, send_from_directory
-from werkzeug.middleware.dispatcher import DispatcherMiddleware
-from werkzeug.wrappers import Response as WerkzeugResponse
 
 app = Flask(__name__)
 
@@ -823,9 +821,4 @@ def api_db_table(table_name: str):
 
 
 if __name__ == "__main__":
-    from werkzeug.serving import run_simple
-    wsgi_app = DispatcherMiddleware(
-        WerkzeugResponse("Not Found", status="404 Not Found"),
-        {BASE_PATH: app},
-    ) if BASE_PATH else app
-    run_simple("0.0.0.0", 9090, wsgi_app, threaded=True, use_reloader=False)
+    app.run(host="0.0.0.0", port=9090, debug=False, threaded=True)
