@@ -1,9 +1,15 @@
 # คู่มือการติดตั้งและเปิดใช้งานบนเครื่อง Local
 
-โปรเจกต์นี้ประกอบด้วย 3 ส่วนหลัก:
+โปรเจกต์นี้ประกอบด้วย 2 compose stack:
+
+**Project stack** (แต่ละโปรเจค มี 4 services):
 - **PostgreSQL** — ฐานข้อมูล
 - **Directus** — CMS / API backend
 - **Next.js** — Frontend
+- **Adminer** — Web UI ดูฐานข้อมูล (port 8057)
+
+**Manager stack** (deploy แยก 1 ชุดต่อ server):
+- **Manager** — Web UI สำหรับจัดการ container ทุกโปรเจคบน server (port 9090)
 
 ---
 
@@ -83,7 +89,7 @@ cd ชื่อโฟลเดอร์
 ```
 
 > **ชื่อโฟลเดอร์สำคัญ** — `install.bat` จะใช้ชื่อโฟลเดอร์เป็น prefix ของ container
-> เช่น โฟลเดอร์ชื่อ `mysite` → container จะเป็น `mysite_db`, `mysite_directus`, `mysite_nextjs`
+> เช่น โฟลเดอร์ชื่อ `mysite` → container จะเป็น `mysite_db`, `mysite_directus`, `mysite_nextjs`, `mysite_manager`
 
 ---
 
@@ -139,6 +145,7 @@ docker compose up -d
 | Next.js (Frontend) | http://localhost:**3012** |
 | Directus (Admin) | http://localhost:**8056** |
 | PostgreSQL | localhost:**5433** |
+| Manager UI | http://localhost:**9090** |
 
 > ถ้าติดตั้งผ่าน `install.bat` / `install.command` — ดู URL และ port จริงได้จากหน้าต่างสรุปตอนจบการติดตั้ง หรือดูค่าใน `docker-compose.yaml`
 
@@ -267,6 +274,10 @@ docker compose logs -f directus
 **Port ชนกัน**
 > `install.bat` จะหา port ที่ว่างให้อัตโนมัติ ไม่ต้องแก้ไขเอง
 
+**Login Directus ชนกันเมื่อรันหลาย project บน server/เครื่องเดียวกัน**
+> แต่ละ project จะมีชื่อ session cookie ของตัวเองโดยอัตโนมัติ (`{prefix}_session_token` / `{prefix}_refresh_token`)
+> ซึ่งถูกกำหนดใน `docker-compose.yaml` และ `install.bat` จะ patch ให้ตรงกับชื่อโฟลเดอร์โดยอัตโนมัติ
+
 **Directus ยังไม่พร้อม**
 > Directus ต้องการเวลา initialize ฐานข้อมูลครั้งแรก รอสัก 30–60 วินาที แล้วลอง refresh
 
@@ -287,6 +298,83 @@ docker compose logs -f directus
 > ```bash
 > docker compose up -d --build
 > ```
+
+---
+
+## ใช้งานบน Server (Manager Web UI)
+
+Manager เป็น standalone container แยกออกจาก project stack — deploy ครั้งเดียวบน server แล้วจัดการได้ทุกโปรเจค
+
+### Deploy Manager (ทำครั้งเดียวต่อ server)
+
+```bash
+# รันจาก project root directory
+export HOST_PROJECTS_ROOT="$(dirname $PWD)"   # path จริงของ parent dir บน host
+docker compose -f manager/docker-compose.yaml up -d
+
+# เปิดเบราว์เซอร์ไปที่
+http://<server-ip>:9090
+```
+
+> ถ้าไม่ set `HOST_PROJECTS_ROOT` Manager จะ auto-detect host path ผ่าน `docker inspect`
+
+### Adminer (DB GUI ใน Project Stack)
+
+แต่ละโปรเจคมี Adminer container สำหรับดูฐานข้อมูลโดยตรง:
+
+```
+http://<server-ip>:{adminer_port}
+```
+
+- Server: `postgres`
+- Username: `directus`
+- Password: `directus`
+- Database: `directus`
+
+### Sub-path Routing (basePath)
+
+ถ้า deploy หลาย project บน server เดียว (เช่นผ่าน reverse proxy) สามารถตั้ง sub-path ให้แต่ละ project ได้ใน `next-app/next.config.mjs`:
+
+```js
+const nextConfig = {
+  output: 'standalone',
+  basePath: '/myproject',      // Next.js frontend อยู่ที่ /myproject
+  assetPrefix: '/myproject',
+  images: { unoptimized: true },
+}
+```
+
+และใน `next-app/.env.local` (หรือ `.env.production`):
+
+```env
+NEXT_PUBLIC_BASE_PATH=/myproject-admin
+NEXT_PUBLIC_DIRECTUS_URL=https://example.com/myproject-admin
+DIRECTUS_INTERNAL_URL=https://example.com/myproject-admin
+```
+
+> **Auto-update:** เมื่อสร้างโปรเจคใหม่ผ่าน Manager หรือรัน `install.sh` บน project ที่มี `basePath` ตั้งไว้แล้ว — ระบบจะเปลี่ยน path โดยอัตโนมัติ:
+> - `/old-project` → `/new-project`
+> - `/old-project-admin` → `/new-project-admin` (suffix ถูกเก็บไว้)
+
+### ฟีเจอร์ใน Manager UI
+
+| ฟีเจอร์ | รายละเอียด |
+|---|---|
+| **All Projects** | ดูรายการ BDT stack ทั้งหมดบน server พร้อมสถานะ — คลิกเพื่อเลือก (auto-refresh ทุก 15 วิ) |
+| **+ New Project** | สร้างโปรเจคใหม่ — เลือก template, กำหนดชื่อ/port อัตโนมัติ, build และ start ทั้งหมด |
+| **Selected Project Status** | สถานะ container (postgres/directus/nextjs/adminer) ของโปรเจคที่เลือก |
+| **Setup / Import Data** | Build Next.js, เริ่ม containers, import `dump.sql`, reset admin — ไม่ต้องใช้ terminal |
+| **Export Data** | Export database + uploads เป็น `.zip` พร้อม download ผ่านเบราว์เซอร์ |
+| **Past Exports** | รายการไฟล์ export ของโปรเจคที่เลือก พร้อม download link |
+| **Database Browser** | ดูข้อมูลในฐานข้อมูลแบบ table — เลือกดูได้ทุกโปรเจค, row count, pagination, ค้นหาข้อมูล |
+
+> ไฟล์ export จะถูกเก็บไว้ในโฟลเดอร์ `_exports/` ภายในโปรเจคนั้นๆ
+>
+> โปรเจคใหม่ที่สร้างผ่าน Manager จะถูกวางไว้ใน parent directory เดียวกับ template ที่เลือก
+
+### ข้อกำหนดของ Manager
+
+Manager ต้องการสิทธิ์เข้าถึง Docker socket (`/var/run/docker.sock`) และ mount parent directory (`..:/projects_root`) ซึ่งกำหนดไว้ใน `manager/docker-compose.yaml` แล้ว
 
 ---
 
@@ -357,6 +445,14 @@ bdt_next_direct/
 ├── update_dump.bat       # Windows อัปเดต dump.sql
 ├── update_dump.command   # Mac อัปเดต dump.sql
 ├── scripts/              # scripts หลัก (install.ps1, install.sh, ...)
+├── manager/              # Manager Web UI (standalone, deploy แยก)
+│   ├── docker-compose.yaml  # deploy manager: docker compose -f manager/docker-compose.yaml up -d
+│   ├── Dockerfile
+│   ├── app.py            # Flask server
+│   ├── requirements.txt
+│   └── templates/
+│       └── index.html    # Dashboard UI
+├── _exports/             # ไฟล์ export จาก Manager (สร้างอัตโนมัติ)
 ├── directus/
 │   └── uploads/          # ไฟล์ที่อัปโหลดผ่าน Directus
 └── next-app/

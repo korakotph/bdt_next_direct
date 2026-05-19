@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BDT Manager</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-950 text-gray-100 min-h-screen">
+<div class="max-w-4xl mx-auto p-6 space-y-5">
+
+  <!-- Header -->
+  <div class="flex items-center justify-between">
+    <div>
+      <h1 class="text-2xl font-bold text-white">BDT Next Direct</h1>
+      <p id="header-label" class="text-gray-500 text-sm mt-0.5">Container Manager</p>
+    </div>
+    <button onclick="loadProjects()"
+      class="text-gray-400 hover:text-white text-sm px-3 py-1.5 rounded border border-gray-700
+             hover:border-gray-500 transition-colors">
+      ↻ Refresh
+    </button>
+  </div>
+
+  <!-- ═══ Projects ═══ -->
+  <div class="bg-gray-900 rounded-xl border border-gray-800 p-5">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-xs font-semibold text-gray-400 uppercase tracking-wider">All Projects</h2>
+      <button onclick="toggleNewProject()"
+        class="text-xs bg-blue-800/50 hover:bg-blue-700/60 border border-blue-700/60
+               hover:border-blue-500 text-blue-300 px-3 py-1.5 rounded-lg transition-colors">
+        + New Project
+      </button>
+    </div>
+
+    <!-- New Project Form -->
+    <div id="new-project-panel" class="hidden mb-4 bg-gray-800/50 rounded-lg p-4 border border-gray-700/60">
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
+        <div class="sm:col-span-1">
+          <label class="text-xs text-gray-400 block mb-1.5">ชื่อโปรเจค (ใช้เป็นชื่อโฟลเดอร์)</label>
+          <input id="new-project-name" type="text" placeholder="my_website"
+            class="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-sm
+                   text-white placeholder-gray-600 focus:outline-none focus:border-blue-500 font-mono"
+            oninput="updateProjectPreview(this.value)"
+            onkeydown="if(event.key==='Enter') createProject()">
+          <p id="project-preview" class="text-xs text-gray-600 mt-1.5 font-mono min-h-[1.2em]"></p>
+        </div>
+        <div class="sm:col-span-1">
+          <label class="text-xs text-gray-400 block mb-1.5">คัดลอกจาก Template</label>
+          <select id="new-project-template"
+            class="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-sm
+                   text-white focus:outline-none focus:border-blue-500 font-mono">
+            <option value="">— เลือก template —</option>
+          </select>
+        </div>
+        <div>
+          <button onclick="createProject()"
+            class="w-full bg-blue-600 hover:bg-blue-500 text-white rounded-lg px-4 py-2
+                   text-sm font-medium transition-colors">
+            ▶ สร้าง
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Projects List -->
+    <div id="projects-list">
+      <span class="text-gray-600 text-sm">Loading...</span>
+    </div>
+  </div>
+
+  <!-- ═══ Selected Project ═══ -->
+  <div id="selected-panel" class="hidden bg-gray-900 rounded-xl border border-gray-800 p-5">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+        Selected: <span id="selected-name" class="text-white font-mono normal-case">—</span>
+      </h2>
+      <button onclick="loadStatus()"
+        class="text-gray-500 hover:text-gray-300 text-xs transition-colors">↻</button>
+    </div>
+
+    <!-- Container Status -->
+    <div id="status-grid" class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
+      <div class="animate-pulse bg-gray-800 rounded-lg h-16"></div>
+      <div class="animate-pulse bg-gray-800 rounded-lg h-16"></div>
+      <div class="animate-pulse bg-gray-800 rounded-lg h-16"></div>
+      <div class="animate-pulse bg-gray-800 rounded-lg h-16"></div>
+    </div>
+
+    <!-- Actions -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <button id="btn-setup" onclick="runAction('setup')"
+        class="bg-blue-900/40 hover:bg-blue-800/50 border border-blue-700/50 hover:border-blue-600
+               rounded-xl p-4 text-left transition-all disabled:opacity-40 disabled:cursor-not-allowed">
+        <div class="text-xl mb-1.5">⚙</div>
+        <div class="font-semibold text-blue-300 mb-1 text-sm">Setup / Import Data</div>
+        <div class="text-xs text-blue-400/70 leading-relaxed">
+          Build Next.js, เริ่ม containers, import dump.sql และ reset admin
+        </div>
+      </button>
+      <button id="btn-export" onclick="runAction('export')"
+        class="bg-emerald-900/40 hover:bg-emerald-800/50 border border-emerald-700/50 hover:border-emerald-600
+               rounded-xl p-4 text-left transition-all disabled:opacity-40 disabled:cursor-not-allowed">
+        <div class="text-xl mb-1.5">📦</div>
+        <div class="font-semibold text-emerald-300 mb-1 text-sm">Export Data</div>
+        <div class="text-xs text-emerald-400/70 leading-relaxed">
+          Export database + uploads เป็น zip พร้อม download
+        </div>
+      </button>
+    </div>
+  </div>
+
+  <!-- ═══ Log Panel ═══ -->
+  <div id="log-panel" class="hidden bg-gray-900 rounded-xl border border-gray-800 p-5">
+    <div class="flex items-center justify-between mb-3">
+      <h2 class="font-semibold text-sm" id="log-title">Log</h2>
+      <span id="log-status"
+        class="text-xs px-2.5 py-1 rounded-full bg-yellow-900/50 text-yellow-400">
+        Running...
+      </span>
+    </div>
+    <pre id="log-output"
+      class="bg-gray-950 rounded-lg p-4 text-xs text-green-400 h-80 overflow-y-auto
+             whitespace-pre-wrap leading-relaxed font-mono"></pre>
+    <div id="dl-section" class="hidden mt-4">
+      <a id="dl-link" href="#" download
+        class="inline-flex items-center gap-2 bg-emerald-700 hover:bg-emerald-600 text-white
+               rounded-lg px-4 py-2 text-sm font-medium transition-colors">
+        ⬇ Download Export
+      </a>
+    </div>
+  </div>
+
+  <!-- ═══ Database Browser ═══ -->
+  <div class="bg-gray-900 rounded-xl border border-gray-800 overflow-hidden">
+    <button onclick="toggleDB()"
+      class="w-full flex items-center justify-between p-5 hover:bg-gray-800/30 transition-colors">
+      <h2 class="text-xs font-semibold text-gray-400 uppercase tracking-wider">🗄 Database Browser</h2>
+      <span id="db-chevron" class="text-gray-500 text-sm">▼</span>
+    </button>
+
+    <div id="db-panel" class="hidden border-t border-gray-800">
+
+      <!-- Project selector -->
+      <div class="p-3 border-b border-gray-800 flex items-center gap-2">
+        <span class="text-xs text-gray-500 shrink-0">Project:</span>
+        <select id="db-project-select" onchange="onDBProjectChange()"
+          class="flex-1 bg-gray-800 border border-gray-700 rounded px-2 py-1.5 text-xs
+                 text-white focus:outline-none focus:border-blue-500 font-mono">
+          <option value="">Loading...</option>
+        </select>
+      </div>
+
+      <div class="flex h-[520px]">
+
+        <!-- Table list -->
+        <div class="w-52 shrink-0 border-r border-gray-800 flex flex-col">
+          <div class="p-3 border-b border-gray-800">
+            <input id="tbl-filter" type="text" placeholder="Filter tables..."
+              class="w-full bg-gray-800 border border-gray-700 rounded px-2 py-1.5 text-xs
+                     text-white placeholder-gray-600 focus:outline-none focus:border-blue-500"
+              oninput="filterTableList(this.value)">
+          </div>
+          <div id="table-list" class="flex-1 overflow-y-auto p-2 space-y-0.5 text-xs">
+            <span class="text-gray-600 p-2 block">Loading...</span>
+          </div>
+        </div>
+
+        <!-- Table content -->
+        <div class="flex-1 min-w-0 flex flex-col">
+
+          <!-- Toolbar -->
+          <div class="flex items-center gap-2 p-3 border-b border-gray-800 shrink-0">
+            <span id="db-table-title" class="text-sm font-mono text-white font-semibold mr-1">—</span>
+            <input id="db-search" type="text" placeholder="ค้นหาในข้อมูล..."
+              class="flex-1 bg-gray-800 border border-gray-700 rounded px-2 py-1.5 text-xs
+                     text-white placeholder-gray-600 focus:outline-none focus:border-blue-500">
+            <span id="db-row-count" class="text-xs text-gray-500 whitespace-nowrap shrink-0"></span>
+          </div>
+
+          <!-- Data table -->
+          <div class="flex-1 overflow-auto">
+            <table class="w-full text-xs border-collapse">
+              <thead id="db-thead"
+                class="sticky top-0 bg-gray-800/95 backdrop-blur text-gray-400 z-10"></thead>
+              <tbody id="db-tbody"
+                class="divide-y divide-gray-800/60 text-gray-300"></tbody>
+            </table>
+          </div>
+
+          <!-- Pagination -->
+          <div class="flex items-center justify-between px-4 py-2.5 border-t border-gray-800
+                      shrink-0 text-xs text-gray-500">
+            <button id="db-prev" onclick="dbPage(-1)"
+              class="hover:text-white transition-colors px-2 py-0.5 rounded
+                     disabled:opacity-30 disabled:cursor-not-allowed">
+              ← Prev
+            </button>
+            <span id="db-pagination">—</span>
+            <button id="db-next" onclick="dbPage(1)"
+              class="hover:text-white transition-colors px-2 py-0.5 rounded
+                     disabled:opacity-30 disabled:cursor-not-allowed">
+              Next →
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ Past Exports ═══ -->
+  <div id="exports-card" class="hidden bg-gray-900 rounded-xl border border-gray-800 p-5">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+        Past Exports — <span id="exports-project-label" class="text-gray-500 font-mono normal-case"></span>
+      </h2>
+      <button onclick="loadExports()"
+        class="text-gray-500 hover:text-gray-300 text-xs transition-colors">↻</button>
+    </div>
+    <div id="exports-list" class="text-sm">
+      <span class="text-gray-600">Loading...</span>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ── constants ──────────────────────────────────────────────────────────────
+
+const STATUS_STYLE = {
+  running:    ['text-emerald-400', '●', 'bg-emerald-900/30 border-emerald-800/40'],
+  exited:     ['text-gray-500',    '○', 'bg-gray-800/60 border-gray-700/40'],
+  not_found:  ['text-red-400',     '✗', 'bg-red-900/20 border-red-800/30'],
+  unknown:    ['text-yellow-400',  '?', 'bg-yellow-900/20 border-yellow-800/30'],
+  paused:     ['text-yellow-400',  '⏸', 'bg-yellow-900/20 border-yellow-800/30'],
+  restarting: ['text-blue-400',    '↻', 'bg-blue-900/20 border-blue-800/30'],
+};
+
+let selectedProject = '';
+let newProjectOpen  = false;
+
+// ── project selection ──────────────────────────────────────────────────────
+
+function selectProject(prefix) {
+  selectedProject = prefix;
+  document.getElementById('header-label').textContent =
+    prefix ? `Selected: ${prefix}` : 'Container Manager';
+  document.getElementById('selected-name').textContent = prefix || '—';
+  document.getElementById('selected-panel').classList.toggle('hidden', !prefix);
+  document.getElementById('exports-card').classList.toggle('hidden', !prefix);
+  if (prefix) {
+    loadStatus();
+    loadExports();
+    // Sync DB browser to selected project
+    const sel = document.getElementById('db-project-select');
+    if (sel.value !== prefix) {
+      sel.value = prefix;
+      if (sel.value === prefix) onDBProjectChange();
+    }
+  }
+  // Update highlight in projects list
+  document.querySelectorAll('.project-row').forEach(row => {
+    const active = row.dataset.prefix === prefix;
+    row.classList.toggle('bg-blue-900/20', active);
+    row.classList.toggle('border-blue-800/40', active);
+    row.classList.toggle('border-gray-800', !active);
+  });
+}
+
+// ── status ─────────────────────────────────────────────────────────────────
+
+function loadStatus() {
+  if (!selectedProject) return;
+  fetch(`/api/status?project=${encodeURIComponent(selectedProject)}`)
+    .then(r => r.json())
+    .then(data => {
+      const grid = document.getElementById('status-grid');
+      const entries = Object.entries(data.containers);
+      if (!entries.length) { grid.innerHTML = ''; return; }
+      grid.innerHTML = entries.map(([name, st]) => {
+        const [cls, dot, bg] = STATUS_STYLE[st] || ['text-gray-400', '?', 'bg-gray-800/60'];
+        return `
+          <div class="${bg} rounded-lg p-3 border">
+            <div class="flex items-center gap-1.5 mb-1.5">
+              <span class="${cls} text-xs leading-none">${dot}</span>
+              <span class="text-xs text-gray-400 capitalize font-medium">${name}</span>
+            </div>
+            <div class="text-xs font-mono ${cls}">${st}</div>
+          </div>`;
+      }).join('');
+    })
+    .catch(() => {});
+}
+
+// ── projects ───────────────────────────────────────────────────────────────
+
+function loadProjects() {
+  fetch('/api/projects').then(r => r.json()).then(projects => {
+    const el = document.getElementById('projects-list');
+
+    if (!projects.length) {
+      el.innerHTML = '<span class="text-gray-600 text-sm">ยังไม่พบโปรเจค</span>';
+      return;
+    }
+
+    // Populate DB browser and template selectors
+    populateDBProjectSelect(projects.map(p => ({ prefix: p.name, is_current: false })));
+    populateTemplateSelect(projects);
+
+    el.innerHTML = projects.map(p => {
+      const svcs = ['db', 'directus', 'nextjs', 'adminer'];
+      const dots = svcs.map(s => {
+        const st = p.services[s] || 'not_found';
+        const [cls, dot] = STATUS_STYLE[st] || ['text-gray-600', '○'];
+        const label = s === 'db' ? 'postgres' : s;
+        return `<span class="${cls} text-xs" title="${label}: ${st}">${dot}</span>`;
+      }).join('');
+
+      const portLinks = [];
+      if (p.ports.directus)
+        portLinks.push(`<a href="http://localhost:${p.ports.directus}" target="_blank"
+          class="text-purple-400 hover:text-purple-300 hover:underline">:${p.ports.directus}</a>`);
+      if (p.ports.nextjs)
+        portLinks.push(`<a href="http://localhost:${p.ports.nextjs}" target="_blank"
+          class="text-emerald-400 hover:text-emerald-300 hover:underline">:${p.ports.nextjs}</a>`);
+      if (p.ports.adminer)
+        portLinks.push(`<a href="http://localhost:${p.ports.adminer}" target="_blank"
+          class="text-orange-400 hover:text-orange-300 hover:underline text-xs">db :${p.ports.adminer}</a>`);
+
+      return `
+        <div class="project-row flex items-center justify-between py-2.5 border-b border-gray-800
+                    last:border-0 gap-3 rounded px-2 -mx-2 cursor-pointer hover:bg-gray-800/40
+                    transition-colors border"
+             data-prefix="${p.name}"
+             onclick="selectProject('${p.name}')">
+          <div class="flex items-center gap-3 min-w-0">
+            <div class="flex gap-1.5 shrink-0">${dots}</div>
+            <span class="font-mono text-sm text-white truncate">${p.name}</span>
+          </div>
+          <div class="flex items-center gap-3 shrink-0 text-xs">
+            ${portLinks.join('')}
+          </div>
+        </div>`;
+    }).join('');
+
+    // Auto-select first project if none selected
+    if (!selectedProject && projects.length) {
+      selectProject(projects[0].name);
+    } else if (selectedProject) {
+      // Re-apply highlight after re-render
+      document.querySelectorAll('.project-row').forEach(row => {
+        const active = row.dataset.prefix === selectedProject;
+        row.classList.toggle('bg-blue-900/20', active);
+        row.classList.toggle('border-blue-800/40', active);
+        row.classList.toggle('border-gray-800', !active);
+      });
+    }
+  }).catch(() => {
+    document.getElementById('projects-list').innerHTML =
+      '<span class="text-red-400 text-sm">ไม่สามารถโหลดได้</span>';
+  });
+}
+
+function populateTemplateSelect(projects) {
+  const sel = document.getElementById('new-project-template');
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">— เลือก template —</option>';
+  projects.forEach(p => {
+    const opt = document.createElement('option');
+    opt.value = p.name;
+    opt.textContent = p.name;
+    if (p.name === cur) opt.selected = true;
+    sel.appendChild(opt);
+  });
+}
+
+function toggleNewProject() {
+  newProjectOpen = !newProjectOpen;
+  const panel = document.getElementById('new-project-panel');
+  panel.classList.toggle('hidden', !newProjectOpen);
+  if (newProjectOpen) {
+    setTimeout(() => document.getElementById('new-project-name').focus(), 50);
+  }
+}
+
+function updateProjectPreview(val) {
+  const prefix = val.toLowerCase().replace(/[^a-z0-9_-]/g, '_')
+    .replace(/_+/g, '_').replace(/^_|_$/g, '');
+  const el = document.getElementById('project-preview');
+  el.textContent = prefix
+    ? `Containers: ${prefix}_db / ${prefix}_directus / ${prefix}_nextjs / ${prefix}_adminer`
+    : '';
+}
+
+function createProject() {
+  const name     = document.getElementById('new-project-name').value.trim();
+  const template = document.getElementById('new-project-template').value;
+  if (!name)     { alert('กรุณาใส่ชื่อโปรเจค'); return; }
+  if (!template) { alert('กรุณาเลือก template'); return; }
+  openLog(`Create: ${name} (from ${template})`);
+  fetch('/api/projects', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name, template }),
+  })
+    .then(r => r.json())
+    .then(({ job_id, error }) => {
+      if (error) { appendLog(`✘ ${error}`); finishLog('error'); return; }
+      streamJob(job_id, () => loadProjects());
+    })
+    .catch(e => { appendLog(`✘ ${e}`); finishLog('error'); });
+}
+
+// ── action buttons ─────────────────────────────────────────────────────────
+
+function runAction(type) {
+  if (!selectedProject) { alert('เลือก project ก่อน'); return; }
+  const btn = document.getElementById(`btn-${type}`);
+  btn.disabled = true;
+  openLog(`${type === 'setup' ? 'Setup' : 'Export'}: ${selectedProject}`);
+
+  fetch(`/api/${type}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ project: selectedProject }),
+  })
+    .then(r => r.json())
+    .then(({ job_id, error }) => {
+      if (error) { appendLog(`✘ ${error}`); finishLog('error'); btn.disabled = false; return; }
+      streamJob(job_id, () => {
+        btn.disabled = false;
+        loadStatus();
+        if (type === 'export') loadExports();
+      });
+    })
+    .catch(() => { btn.disabled = false; });
+}
+
+// ── log streaming ──────────────────────────────────────────────────────────
+
+function openLog(title) {
+  document.getElementById('log-panel').classList.remove('hidden');
+  document.getElementById('log-output').textContent = '';
+  document.getElementById('log-title').textContent = title;
+  document.getElementById('log-status').textContent = 'Running...';
+  document.getElementById('log-status').className =
+    'text-xs px-2.5 py-1 rounded-full bg-yellow-900/50 text-yellow-400';
+  document.getElementById('dl-section').classList.add('hidden');
+  document.getElementById('log-panel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function appendLog(msg) {
+  const out = document.getElementById('log-output');
+  out.textContent += msg + '\n';
+  out.scrollTop = out.scrollHeight;
+}
+
+function finishLog(status) {
+  const el = document.getElementById('log-status');
+  if (status === 'done') {
+    el.textContent = '✓ เสร็จแล้ว';
+    el.className = 'text-xs px-2.5 py-1 rounded-full bg-emerald-900/50 text-emerald-400';
+  } else {
+    el.textContent = 'มีข้อผิดพลาด';
+    el.className = 'text-xs px-2.5 py-1 rounded-full bg-red-900/50 text-red-400';
+  }
+}
+
+function streamJob(job_id, onDone) {
+  const es = new EventSource(`/api/stream/${job_id}`);
+  es.onmessage = e => {
+    const msg = JSON.parse(e.data);
+
+    if (msg === '__DONE__') {
+      es.close();
+      finishLog('done');
+      if (onDone) onDone();
+      return;
+    }
+
+    if (typeof msg === 'string' && msg.startsWith('DOWNLOAD:')) {
+      // Format: DOWNLOAD:{prefix}/{filename}
+      const parts = msg.slice(9);
+      const dl = document.getElementById('dl-link');
+      dl.href = `/api/download/${parts}`;
+      dl.download = parts.split('/').pop();
+      dl.textContent = `⬇ Download ${parts.split('/').pop()}`;
+      document.getElementById('dl-section').classList.remove('hidden');
+      return;
+    }
+
+    appendLog(msg);
+  };
+  es.onerror = () => {
+    es.close();
+    finishLog('error');
+    appendLog('Connection lost.');
+  };
+}
+
+// ── exports ────────────────────────────────────────────────────────────────
+
+function loadExports() {
+  if (!selectedProject) return;
+  document.getElementById('exports-project-label').textContent = selectedProject;
+  fetch(`/api/exports?project=${encodeURIComponent(selectedProject)}`)
+    .then(r => r.json())
+    .then(files => {
+      const el = document.getElementById('exports-list');
+      if (!files.length) {
+        el.innerHTML = '<span class="text-gray-600 text-sm">ยังไม่มี export</span>';
+        return;
+      }
+      el.innerHTML = files.map(f => `
+        <div class="flex items-center justify-between py-3 border-b border-gray-800 last:border-0">
+          <div class="flex items-center gap-3 min-w-0">
+            <span class="text-gray-300 text-sm truncate">${f.name}</span>
+            <span class="text-gray-600 text-xs shrink-0">${f.size_mb} MB</span>
+            <span class="text-gray-700 text-xs shrink-0 hidden sm:inline">${f.created}</span>
+          </div>
+          <a href="/api/download/${encodeURIComponent(selectedProject)}/${encodeURIComponent(f.name)}"
+             download="${f.name}"
+             class="shrink-0 ml-4 text-blue-400 hover:text-blue-300 text-xs px-3 py-1.5 rounded
+                    border border-blue-800 hover:border-blue-600 transition-colors">
+            ⬇ Download
+          </a>
+        </div>`).join('');
+    });
+}
+
+// ── database browser ──────────────────────────────────────────────────────
+
+let db = { open: false, loaded: false, tables: [], table: '', page: 1,
+           search: '', pages: 1, total: 0, searchTimer: null, project: '' };
+
+function populateDBProjectSelect(projects) {
+  const sel = document.getElementById('db-project-select');
+  const current = sel.value || db.project || selectedProject;
+  sel.innerHTML = '';
+  projects.forEach(p => {
+    const opt = document.createElement('option');
+    opt.value = p.prefix;
+    opt.textContent = p.prefix;
+    if (p.prefix === current) opt.selected = true;
+    sel.appendChild(opt);
+  });
+  if (!db.project && sel.value) db.project = sel.value;
+}
+
+function onDBProjectChange() {
+  const sel = document.getElementById('db-project-select');
+  db.project = sel.value;
+  db.loaded  = false;
+  db.table   = '';
+  db.page    = 1;
+  db.search  = '';
+  document.getElementById('db-search').value = '';
+  document.getElementById('tbl-filter').value = '';
+  document.getElementById('table-list').innerHTML = '<span class="text-gray-600 p-2 block">Loading...</span>';
+  document.getElementById('db-thead').innerHTML  = '';
+  document.getElementById('db-tbody').innerHTML  = '';
+  document.getElementById('db-table-title').textContent = '—';
+  document.getElementById('db-row-count').textContent   = '';
+  document.getElementById('db-pagination').textContent  = '';
+  loadDBTables();
+}
+
+function toggleDB() {
+  db.open = !db.open;
+  document.getElementById('db-panel').classList.toggle('hidden', !db.open);
+  document.getElementById('db-chevron').textContent = db.open ? '▲' : '▼';
+  if (db.open && !db.loaded) loadDBTables();
+  if (db.open) {
+    const inp = document.getElementById('db-search');
+    if (!inp._wired) {
+      inp._wired = true;
+      inp.addEventListener('input', e => {
+        clearTimeout(db.searchTimer);
+        db.searchTimer = setTimeout(() => {
+          db.search = e.target.value.trim();
+          db.page = 1;
+          loadTableData();
+        }, 350);
+      });
+    }
+  }
+}
+
+function loadDBTables() {
+  if (!db.project) {
+    document.getElementById('table-list').innerHTML =
+      '<span class="text-gray-600 p-2 block">เลือก project ก่อน</span>';
+    return;
+  }
+  const qs = `?project=${encodeURIComponent(db.project)}`;
+  fetch(`/api/db/tables${qs}`).then(r => r.json()).then(data => {
+    if (data.error) {
+      document.getElementById('table-list').innerHTML =
+        `<span class="text-red-400 p-2 block">${data.error}</span>`;
+      return;
+    }
+    db.tables = data;
+    db.loaded = true;
+    renderTableList('');
+    const first = data.find(t => !t.name.startsWith('directus_')) || data[0];
+    if (first) selectTable(first.name);
+  }).catch(() => {
+    document.getElementById('table-list').innerHTML =
+      `<span class="text-red-400 p-2 block text-xs">Connection failed</span>`;
+  });
+}
+
+function renderTableList(filter) {
+  const el = document.getElementById('table-list');
+  const lower = filter.toLowerCase();
+  const filtered = db.tables.filter(t => !lower || t.name.includes(lower));
+
+  if (!filtered.length) {
+    el.innerHTML = '<span class="text-gray-600 p-2 block">ไม่พบ</span>';
+    return;
+  }
+
+  const system = filtered.filter(t => t.name.startsWith('directus_'));
+  const custom  = filtered.filter(t => !t.name.startsWith('directus_'));
+
+  const renderGroup = (label, items) => items.length === 0 ? '' : `
+    <div class="text-gray-600 px-2 pt-2 pb-0.5 uppercase tracking-wider" style="font-size:10px">
+      ${label}
+    </div>
+    ${items.map(t => `
+      <button onclick="selectTable('${t.name}')"
+        data-table="${t.name}"
+        class="tbl-btn w-full text-left px-2 py-1.5 rounded transition-colors
+               text-gray-400 hover:text-white hover:bg-gray-800">
+        <span class="font-mono">${t.name}</span>
+        ${t.row_count !== null
+          ? `<span class="text-gray-600 ml-1">${t.row_count.toLocaleString()}</span>`
+          : ''}
+      </button>`).join('')}`;
+
+  el.innerHTML = renderGroup('Custom', custom) + renderGroup('Directus', system);
+  highlightSelected();
+}
+
+function filterTableList(val) {
+  renderTableList(val);
+}
+
+function highlightSelected() {
+  document.querySelectorAll('.tbl-btn').forEach(b => {
+    const active = b.dataset.table === db.table;
+    b.classList.toggle('bg-blue-900/50', active);
+    b.classList.toggle('text-white', active);
+    b.classList.toggle('text-gray-400', !active);
+  });
+}
+
+function selectTable(name) {
+  db.table = name;
+  db.page  = 1;
+  db.search = '';
+  document.getElementById('db-search').value = '';
+  document.getElementById('db-table-title').textContent = name;
+  highlightSelected();
+  loadTableData();
+}
+
+function dbPage(delta) {
+  const next = db.page + delta;
+  if (next < 1 || next > db.pages) return;
+  db.page = next;
+  loadTableData();
+}
+
+function loadTableData() {
+  if (!db.table) return;
+  const params = new URLSearchParams({
+    page: db.page, page_size: 50, search: db.search
+  });
+  if (db.project) params.set('project', db.project);
+  document.getElementById('db-pagination').textContent = 'Loading...';
+
+  fetch(`/api/db/table/${encodeURIComponent(db.table)}?${params}`)
+    .then(r => r.json())
+    .then(data => {
+      if (data.error) {
+        document.getElementById('db-tbody').innerHTML =
+          `<tr><td colspan="99" class="p-6 text-red-400 text-center">${data.error}</td></tr>`;
+        document.getElementById('db-thead').innerHTML = '';
+        document.getElementById('db-pagination').textContent = '—';
+        return;
+      }
+
+      db.total = data.total;
+      db.pages = data.pages;
+
+      document.getElementById('db-thead').innerHTML = `<tr>
+        ${data.columns.map(c => `
+          <th class="px-3 py-2 text-left font-semibold whitespace-nowrap border-b border-gray-700">
+            ${c.name}
+            <span class="text-gray-600 font-normal text-xs ml-1">
+              ${c.type.replace('character varying', 'varchar')}
+            </span>
+          </th>`).join('')}
+      </tr>`;
+
+      if (!data.rows.length) {
+        document.getElementById('db-tbody').innerHTML =
+          `<tr><td colspan="99" class="p-6 text-gray-500 text-center">ไม่มีข้อมูล</td></tr>`;
+      } else {
+        document.getElementById('db-tbody').innerHTML = data.rows.map(row => `
+          <tr class="hover:bg-gray-800/40 transition-colors">
+            ${data.columns.map(c => {
+              const val = row[c.name];
+              if (val === null)
+                return `<td class="px-3 py-1.5 font-mono text-gray-600">null</td>`;
+              const truncated = val.length > 100;
+              const display = truncated ? val.slice(0, 100) + '…' : val;
+              const attr = truncated ? ` title="${val.replace(/"/g, '&quot;')}"` : '';
+              return `<td class="px-3 py-1.5 font-mono whitespace-nowrap max-w-xs
+                                 overflow-hidden text-ellipsis"${attr}>${display}</td>`;
+            }).join('')}
+          </tr>`).join('');
+      }
+
+      const from = (data.page - 1) * data.page_size + 1;
+      const to   = Math.min(data.page * data.page_size, data.total);
+      document.getElementById('db-pagination').textContent =
+        `${from.toLocaleString()}–${to.toLocaleString()} จาก ${data.total.toLocaleString()} rows  ·  หน้า ${data.page}/${data.pages}`;
+      document.getElementById('db-row-count').textContent =
+        `${data.total.toLocaleString()} rows`;
+      document.getElementById('db-prev').disabled = data.page <= 1;
+      document.getElementById('db-next').disabled = data.page >= data.pages;
+    });
+}
+
+// ── init ───────────────────────────────────────────────────────────────────
+
+loadProjects();
+setInterval(() => { loadProjects(); if (selectedProject) loadStatus(); }, 15000);
+</script>
+</body>
+</html>

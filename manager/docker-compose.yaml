@@ -1,0 +1,24 @@
+version: "3.9"
+
+# Standalone Manager — deploy with:
+#   docker compose -f manager/docker-compose.yaml up -d
+# Run from the project root directory so that ".." mounts the projects parent.
+
+services:
+  manager:
+    build:
+      context: ./manager
+    container_name: bdt_manager
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    environment:
+      PROJECTS_ROOT: /projects_root
+      # HOST_PROJECTS_ROOT: actual host path of the projects parent directory.
+      # The manager auto-detects this via docker inspect when not set.
+      HOST_PROJECTS_ROOT: ${HOST_PROJECTS_ROOT:-}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ..:/projects_root

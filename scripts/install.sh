@@ -66,11 +66,29 @@ ok "Container runtime: $DOCKER_CMD"
 [ -f "docker-compose.yaml" ] || { err "ไม่พบ docker-compose.yaml"; pause_exit; }
 
 # ── Find free ports ───────────────────────────────────────────
+# Track ports allocated in this run so sequential calls don't collide.
+_ALLOCATED_PORTS=()
+
 find_free_port() {
     local port=$1
-    while nc -z 127.0.0.1 "$port" 2>/dev/null; do
-        ((port++))
+    while true; do
+        # Skip if port is bound on host (running service)
+        if nc -z 127.0.0.1 "$port" 2>/dev/null; then
+            ((port++)); continue
+        fi
+        # Skip if port is reserved by any Docker container (running OR stopped)
+        if docker ps -a --format '{{.Ports}}' 2>/dev/null | grep -q ":${port}->"; then
+            ((port++)); continue
+        fi
+        # Skip if already allocated in this run
+        local taken=false
+        for p in "${_ALLOCATED_PORTS[@]}"; do
+            [[ "$p" == "$port" ]] && taken=true && break
+        done
+        $taken && { ((port++)); continue; }
+        break
     done
+    _ALLOCATED_PORTS+=("$port")
     echo "$port"
 }
 
@@ -78,9 +96,11 @@ step "หา port ที่ว่าง"
 PG_PORT=$(find_free_port 5433)
 DIR_PORT=$(find_free_port 8056)
 NEXT_PORT=$(find_free_port 3012)
+ADM_PORT=$(find_free_port 8057)
 ok "PostgreSQL  → $PG_PORT"
 ok "Directus    → $DIR_PORT"
 ok "Next.js     → $NEXT_PORT"
+ok "Adminer     → $ADM_PORT"
 
 # ── Patch docker-compose.yaml ─────────────────────────────────
 step "อัปเดต docker-compose.yaml"
@@ -91,15 +111,18 @@ ok "Backup → docker-compose.yaml.bak"
 PG_NAME=$(grep  'container_name:' docker-compose.yaml | grep  '_db\b'       | awk '{print $2}' | head -1)
 DIR_NAME=$(grep 'container_name:' docker-compose.yaml | grep  '_directus\b' | awk '{print $2}' | head -1)
 NXT_NAME=$(grep 'container_name:' docker-compose.yaml | grep  '_nextjs\b'   | awk '{print $2}' | head -1)
+ADM_NAME=$(grep 'container_name:' docker-compose.yaml | grep  '_adminer\b'  | awk '{print $2}' | head -1)
 PG_NAME=${PG_NAME:-bdt_directus_db}
 DIR_NAME=${DIR_NAME:-bdt_directus}
 NXT_NAME=${NXT_NAME:-bdt_nextjs}
+ADM_NAME=${ADM_NAME:-bdt_next_direct_adminer}
 
 # Read current host ports
 PG_OLD=$(grep  '".*:5432"' docker-compose.yaml | sed 's/.*"\([0-9]*\):5432".*/\1/')
 DIR_OLD=$(grep '".*:8055"' docker-compose.yaml | sed 's/.*"\([0-9]*\):8055".*/\1/')
 NXT_OLD=$(grep '".*:3000"' docker-compose.yaml | sed 's/.*"\([0-9]*\):3000".*/\1/')
-PG_OLD=${PG_OLD:-5433}; DIR_OLD=${DIR_OLD:-8056}; NXT_OLD=${NXT_OLD:-3012}
+ADM_OLD=$(grep '".*:8080"' docker-compose.yaml | sed 's/.*"\([0-9]*\):8080".*/\1/')
+PG_OLD=${PG_OLD:-5433}; DIR_OLD=${DIR_OLD:-8056}; NXT_OLD=${NXT_OLD:-3012}; ADM_OLD=${ADM_OLD:-8057}
 
 # Read current volume name
 VOL_OLD=$(grep -E '^\s+\w+postgres_data:' docker-compose.yaml \
@@ -110,16 +133,53 @@ VOL_OLD=${VOL_OLD:-postgres_data}
 perl -i -pe "s/\Q${PG_NAME}\E/${PREFIX}_db/g"        docker-compose.yaml
 perl -i -pe "s/\Q${DIR_NAME}\E/${PREFIX}_directus/g"  docker-compose.yaml
 perl -i -pe "s/\Q${NXT_NAME}\E/${PREFIX}_nextjs/g"    docker-compose.yaml
-perl -i -pe "s|\"${PG_OLD}:5432\"|\"${PG_PORT}:5432\"|g"    docker-compose.yaml
-perl -i -pe "s|\"${DIR_OLD}:8055\"|\"${DIR_PORT}:8055\"|g"   docker-compose.yaml
-perl -i -pe "s|\"${NXT_OLD}:3000\"|\"${NEXT_PORT}:3000\"|g"  docker-compose.yaml
+perl -i -pe "s/\Q${ADM_NAME}\E/${PREFIX}_adminer/g"   docker-compose.yaml
+perl -i -pe "s|\"${PG_OLD}:5432\"|\"${PG_PORT}:5432\"|g"   docker-compose.yaml
+perl -i -pe "s|\"${DIR_OLD}:8055\"|\"${DIR_PORT}:8055\"|g"  docker-compose.yaml
+perl -i -pe "s|\"${NXT_OLD}:3000\"|\"${NEXT_PORT}:3000\"|g" docker-compose.yaml
+perl -i -pe "s|\"${ADM_OLD}:8080\"|\"${ADM_PORT}:8080\"|g"  docker-compose.yaml
 perl -i -pe "s|PUBLIC_URL: http://localhost:\d+|PUBLIC_URL: http://localhost:${DIR_PORT}|g" \
     docker-compose.yaml
 perl -i -pe "s|NEXT_PUBLIC_DIRECTUS_URL: http://localhost:\d+|NEXT_PUBLIC_DIRECTUS_URL: http://localhost:${DIR_PORT}|g" \
     docker-compose.yaml
+perl -i -pe "s|SESSION_COOKIE_NAME: \"[^\"]+_session_token\"|SESSION_COOKIE_NAME: \"${PREFIX}_session_token\"|g" \
+    docker-compose.yaml
+perl -i -pe "s|REFRESH_TOKEN_COOKIE_NAME: \"[^\"]+_refresh_token\"|REFRESH_TOKEN_COOKIE_NAME: \"${PREFIX}_refresh_token\"|g" \
+    docker-compose.yaml
 perl -i -pe "s/\Q${VOL_OLD}\E/${PREFIX}_postgres_data/g" docker-compose.yaml
 ok "เสร็จแล้ว"
 PG_CONTAINER="${PREFIX}_db"
+ADM_CONTAINER="${PREFIX}_adminer"
+
+# ── Patch basePath / assetPrefix in next-app config ──────────
+step "อัปเดต base path ใน next-app"
+# Read active (uncommented) basePath from next.config.mjs
+OLD_BASE=$(grep -E '^\s*basePath:' next-app/next.config.mjs 2>/dev/null \
+    | grep -oE "'(/[^']+)'" | tr -d "'" | head -1)
+OLD_BASE=${OLD_BASE:-}
+NEW_BASE="/${PREFIX}"
+
+if [ -n "$OLD_BASE" ] && [ "$OLD_BASE" != "$NEW_BASE" ]; then
+    # Patch next.config.mjs — exact property value replacement
+    perl -i -pe 's,(basePath:\s*['"'"'"])'"${OLD_BASE}"'(['"'"'"]),${1}'"${NEW_BASE}"'${2},g;
+                 s,(assetPrefix:\s*['"'"'"])'"${OLD_BASE}"'(['"'"'"]),${1}'"${NEW_BASE}"'${2},g' \
+        next-app/next.config.mjs 2>/dev/null
+
+    # Patch .env* files — path replacement preserving suffixes (e.g., -admin)
+    for env_file in next-app/.env*; do
+        [ -f "$env_file" ] || continue
+        perl -i -pe 's,\Q'"${OLD_BASE}"'\E(?=[^a-zA-Z0-9_]|$),'"${NEW_BASE}"',g' \
+            "$env_file" 2>/dev/null
+    done
+
+    # Patch NEXT_PUBLIC_BASE_PATH in docker-compose.yaml
+    perl -i -pe 's,(NEXT_PUBLIC_BASE_PATH:\s*")\Q'"${OLD_BASE}"'\E([^"]*"),${1}'"${NEW_BASE}"'${2},g' \
+        docker-compose.yaml 2>/dev/null
+
+    ok "Base path: $OLD_BASE → $NEW_BASE"
+else
+    ok "Base path ไม่มี / ไม่ต้องอัปเดต"
+fi
 
 # ── Build Next.js image first ─────────────────────────────────
 step "Build Next.js image (อาจใช้เวลาหลายนาที)"
@@ -202,12 +262,13 @@ echo -e "${C_CYAN}${SEP}${C_RESET}"
 echo ""
 echo "  Frontend  :  http://localhost:$NEXT_PORT"
 echo "  Directus  :  http://localhost:$DIR_PORT"
+echo "  Adminer   :  http://localhost:$ADM_PORT"
 echo ""
 echo "  Directus Admin Setup"
 echo "    http://localhost:$DIR_PORT/admin/setup"
 echo ""
 echo "  Container names"
-echo "    ${PREFIX}_db  /  ${PREFIX}_directus  /  ${PREFIX}_nextjs"
+echo "    ${PREFIX}_db  /  ${PREFIX}_directus  /  ${PREFIX}_nextjs  /  ${PREFIX}_adminer"
 echo -e "${C_CYAN}${SEP}${C_RESET}"
 
 read -rp $'\nกด Enter เพื่อออก...'
