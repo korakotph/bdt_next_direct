@@ -322,21 +322,19 @@ http://<server-ip>:8090
 
 ### ใช้กับ Reverse Proxy (เช่น Caddy) ที่ sub-path
 
-ถ้าต้องการเข้าผ่าน path เช่น `http://<server-ip>/manager/` ให้ตั้ง `BASE_PATH`:
+ถ้าต้องการเข้าผ่าน path เช่น `http://<server-ip>/manager/` ให้ตั้ง `BASE_PATH` และระบุ network ของ Caddy:
 
 ```bash
 HOST_PROJECTS_ROOT=/var/www BASE_PATH=/manager \
   docker compose -f manager/docker-compose.yaml up -d --build
 ```
 
-เชื่อม `bdt_manager` เข้า network เดียวกับ Caddy (ทำครั้งเดียว):
+`manager/docker-compose.yaml` join `caddy_web` network อัตโนมัติแล้ว — ถ้า Caddy ใช้ชื่อ network อื่น แก้ที่ท้ายไฟล์:
 
-```bash
-# ดู network ที่ Caddy ใช้
-docker inspect caddy --format '{{range $k,$v := .NetworkSettings.Networks}}{{$k}}{{end}}'
-
-# เชื่อม manager เข้า network นั้น (เช่น cms_default)
-docker network connect cms_default bdt_manager
+```yaml
+networks:
+  caddy_web:        # ← เปลี่ยนให้ตรงกับ network ของ Caddy
+    external: true
 ```
 
 **Caddyfile:**
@@ -348,8 +346,6 @@ docker network connect cms_default bdt_manager
     }
 }
 ```
-
-> ใช้ชื่อ container `bdt_manager:9090` (internal port) แทน `localhost:8090` เพราะ Caddy รันใน Docker container
 
 ### Adminer (DB GUI ใน Project Stack)
 
