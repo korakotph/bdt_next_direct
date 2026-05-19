@@ -352,7 +352,14 @@ networks:
 
 ### จัดการ Reverse Proxy ผ่าน Manager UI
 
-Manager มี built-in reverse proxy management — กด **Enable** ในหน้า Selected Project เพื่อให้ Caddy เริ่ม proxy โปรเจคนั้นได้เลย
+Manager จะ **auto-enable reverse proxy อัตโนมัติ** ทุกครั้งที่ Setup หรือสร้างโปรเจคใหม่ — ไม่ต้องกด Enable เอง
+
+สรุปผลหลัง setup จะแสดง:
+```
+Frontend  : http://<server-ip>/{prefix}/
+```
+
+นอกจากนี้ยังกด Enable/Disable ได้เองในหน้า Selected Project
 
 **ต้องทำครั้งเดียวบน server:**
 
