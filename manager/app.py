@@ -19,6 +19,8 @@ app = Flask(__name__)
 PROJECTS_ROOT      = os.environ.get("PROJECTS_ROOT",      "/projects_root")
 HOST_PROJECTS_ROOT = os.environ.get("HOST_PROJECTS_ROOT", "").strip()
 BASE_PATH          = os.environ.get("BASE_PATH",          "").rstrip("/")
+CADDY_CONTAINER    = os.environ.get("CADDY_CONTAINER",    "caddy")
+CADDY_CONF_DIR     = os.path.join(PROJECTS_ROOT, "_caddy")
 
 _jobs: dict = {}
 _lock = threading.Lock()
@@ -588,6 +590,47 @@ def do_create_project(name: str, template_prefix: str, emit):
     emit(f"  Admin     : http://<server-ip>:{dir_port}/admin/setup")
 
 
+# ── reverse proxy (Caddy) ────────────────────────────────────────────────────
+
+def proxy_conf_path(prefix: str) -> str:
+    return os.path.join(CADDY_CONF_DIR, f"{prefix}.conf")
+
+
+def proxy_enabled(prefix: str) -> bool:
+    return os.path.isfile(proxy_conf_path(prefix))
+
+
+def write_proxy_conf(prefix: str):
+    """Write a Caddy config snippet for a project's Next.js frontend."""
+    info = compose_info(prefix)
+    next_port = info["next_port"]
+    os.makedirs(CADDY_CONF_DIR, exist_ok=True)
+    # Next.js uses basePath so keep the /{prefix} prefix intact — no strip_prefix needed
+    conf = (
+        f"# BDT Manager — {prefix} (auto-generated, do not edit)\n"
+        f"handle /{prefix}* {{\n"
+        f"    reverse_proxy host.docker.internal:{next_port}\n"
+        f"}}\n"
+    )
+    with open(proxy_conf_path(prefix), "w") as f:
+        f.write(conf)
+
+
+def remove_proxy_conf(prefix: str):
+    p = proxy_conf_path(prefix)
+    if os.path.isfile(p):
+        os.remove(p)
+
+
+def reload_caddy() -> tuple[bool, str]:
+    r = subprocess.run(
+        ["docker", "exec", CADDY_CONTAINER,
+         "caddy", "reload", "--config", "/etc/caddy/Caddyfile"],
+        capture_output=True, text=True, timeout=10,
+    )
+    return r.returncode == 0, (r.stderr or r.stdout).strip()
+
+
 # ── routes ────────────────────────────────────────────────────────────────────
 
 @app.get("/")
@@ -708,6 +751,33 @@ def api_download(prefix: str, filename: str):
     if ".." in prefix or ".." in filename or "/" in filename:
         abort(400)
     return send_from_directory(get_exports_dir(prefix), filename, as_attachment=True)
+
+
+@app.get("/api/proxy")
+def api_proxy_list():
+    projects = detect_projects()
+    return jsonify([
+        {"prefix": p["name"], "enabled": proxy_enabled(p["name"])}
+        for p in projects
+    ])
+
+
+@app.post("/api/proxy/<prefix>/enable")
+def api_proxy_enable(prefix: str):
+    if not re.match(r"^[a-z0-9_-]+$", prefix):
+        abort(400)
+    write_proxy_conf(prefix)
+    ok, msg = reload_caddy()
+    return jsonify({"ok": ok, "msg": msg})
+
+
+@app.delete("/api/proxy/<prefix>")
+def api_proxy_disable(prefix: str):
+    if not re.match(r"^[a-z0-9_-]+$", prefix):
+        abort(400)
+    remove_proxy_conf(prefix)
+    ok, msg = reload_caddy()
+    return jsonify({"ok": ok, "msg": msg})
 
 
 # ── database browser ─────────────────────────────────────────────────────────

@@ -108,6 +108,23 @@
         </div>
       </button>
     </div>
+
+    <!-- Reverse Proxy -->
+    <div class="mt-4 bg-gray-800/40 rounded-xl border border-gray-700/50 p-4">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <span class="text-sm">🔀</span>
+          <div>
+            <div class="text-sm font-medium text-gray-200">Reverse Proxy</div>
+            <div id="proxy-url" class="text-xs text-gray-500 mt-0.5 font-mono"></div>
+          </div>
+        </div>
+        <button id="btn-proxy" onclick="toggleProxy()"
+          class="text-xs px-4 py-1.5 rounded-lg border transition-colors font-medium">
+        </button>
+      </div>
+      <div id="proxy-msg" class="text-xs text-red-400 mt-2 hidden"></div>
+    </div>
   </div>
 
   <!-- ═══ Log Panel ═══ -->
@@ -254,6 +271,7 @@ function selectProject(prefix) {
   if (prefix) {
     loadStatus();
     loadExports();
+    loadProxy();
     // Sync DB browser to selected project
     const sel = document.getElementById('db-project-select');
     if (sel.value !== prefix) {
@@ -734,6 +752,60 @@ function loadTableData() {
         `${data.total.toLocaleString()} rows`;
       document.getElementById('db-prev').disabled = data.page <= 1;
       document.getElementById('db-next').disabled = data.page >= data.pages;
+    });
+}
+
+// ── reverse proxy ──────────────────────────────────────────────────────────
+
+let proxyEnabled = false;
+
+function renderProxyBtn(enabled) {
+  proxyEnabled = enabled;
+  const btn = document.getElementById('btn-proxy');
+  const urlEl = document.getElementById('proxy-url');
+  if (enabled) {
+    btn.textContent = 'Disable';
+    btn.className = 'text-xs px-4 py-1.5 rounded-lg border transition-colors font-medium ' +
+      'border-red-700/60 text-red-400 hover:bg-red-900/30';
+    urlEl.textContent = `/${selectedProject}/*  →  Next.js`;
+    urlEl.className = 'text-xs text-emerald-400 mt-0.5 font-mono';
+  } else {
+    btn.textContent = 'Enable';
+    btn.className = 'text-xs px-4 py-1.5 rounded-lg border transition-colors font-medium ' +
+      'border-blue-700/60 text-blue-400 hover:bg-blue-900/30';
+    urlEl.textContent = 'ยังไม่ได้เปิด';
+    urlEl.className = 'text-xs text-gray-500 mt-0.5 font-mono';
+  }
+}
+
+function loadProxy() {
+  if (!selectedProject) return;
+  fetch(`${BASE}/api/proxy`)
+    .then(r => r.json())
+    .then(list => {
+      const entry = list.find(p => p.prefix === selectedProject);
+      renderProxyBtn(entry ? entry.enabled : false);
+    }).catch(() => {});
+}
+
+function toggleProxy() {
+  const msg = document.getElementById('proxy-msg');
+  msg.classList.add('hidden');
+  const method = proxyEnabled ? 'DELETE' : 'POST';
+  const url = proxyEnabled
+    ? `${BASE}/api/proxy/${selectedProject}`
+    : `${BASE}/api/proxy/${selectedProject}/enable`;
+  fetch(url, { method })
+    .then(r => r.json())
+    .then(({ ok, msg: m }) => {
+      if (!ok) {
+        msg.textContent = m || 'Caddy reload failed';
+        msg.classList.remove('hidden');
+      }
+      loadProxy();
+    }).catch(e => {
+      msg.textContent = String(e);
+      msg.classList.remove('hidden');
     });
 }
 

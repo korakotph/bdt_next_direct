@@ -19,6 +19,8 @@ services:
       HOST_PROJECTS_ROOT: ${HOST_PROJECTS_ROOT:-}
       # BASE_PATH: sub-path prefix when serving behind a reverse proxy (e.g. /manager)
       BASE_PATH: ${BASE_PATH:-}
+      # CADDY_CONTAINER: name of the Caddy container to reload after proxy changes
+      CADDY_CONTAINER: ${CADDY_CONTAINER:-caddy}
     extra_hosts:
       - "host.docker.internal:host-gateway"
     volumes:
