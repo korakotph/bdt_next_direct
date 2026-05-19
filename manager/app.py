@@ -20,6 +20,7 @@ PROJECTS_ROOT      = os.environ.get("PROJECTS_ROOT",      "/projects_root")
 HOST_PROJECTS_ROOT = os.environ.get("HOST_PROJECTS_ROOT", "").strip()
 BASE_PATH          = os.environ.get("BASE_PATH",          "").rstrip("/")
 CADDY_CONTAINER    = os.environ.get("CADDY_CONTAINER",    "caddy")
+CADDY_NETWORK      = os.environ.get("CADDY_NETWORK",      "caddy_web")
 CADDY_CONF_DIR     = os.path.join(PROJECTS_ROOT, "_caddy")
 
 _jobs: dict = {}
@@ -610,16 +611,24 @@ def proxy_enabled(prefix: str) -> bool:
     return os.path.isfile(proxy_conf_path(prefix))
 
 
+def _network_op(op: str, container: str):
+    """connect or disconnect a container from CADDY_NETWORK, ignore errors."""
+    subprocess.run(
+        ["docker", "network", op, CADDY_NETWORK, container],
+        capture_output=True, timeout=10,
+    )
+
+
 def write_proxy_conf(prefix: str):
-    """Write a Caddy config snippet for a project's Next.js frontend."""
-    info = compose_info(prefix)
-    next_port = info["next_port"]
+    """Connect nextjs container to Caddy network and write config snippet."""
+    nextjs = f"{prefix}_nextjs"
+    _network_op("connect", nextjs)
     os.makedirs(CADDY_CONF_DIR, exist_ok=True)
-    # Next.js uses basePath so keep the /{prefix} prefix intact — no strip_prefix needed
+    # Next.js uses basePath so keep /{prefix} intact — no uri strip_prefix needed
     conf = (
         f"# BDT Manager — {prefix} (auto-generated, do not edit)\n"
         f"handle /{prefix}* {{\n"
-        f"    reverse_proxy host.docker.internal:{next_port}\n"
+        f"    reverse_proxy {nextjs}:3000\n"
         f"}}\n"
     )
     with open(proxy_conf_path(prefix), "w") as f:
@@ -630,6 +639,7 @@ def remove_proxy_conf(prefix: str):
     p = proxy_conf_path(prefix)
     if os.path.isfile(p):
         os.remove(p)
+    _network_op("disconnect", f"{prefix}_nextjs")
 
 
 def reload_caddy() -> tuple[bool, str]:

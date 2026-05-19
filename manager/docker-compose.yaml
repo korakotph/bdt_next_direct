@@ -21,6 +21,8 @@ services:
       BASE_PATH: ${BASE_PATH:-}
       # CADDY_CONTAINER: name of the Caddy container to reload after proxy changes
       CADDY_CONTAINER: ${CADDY_CONTAINER:-caddy}
+      # CADDY_NETWORK: Docker network shared with Caddy (project nextjs containers join this)
+      CADDY_NETWORK: ${CADDY_NETWORK:-caddy_web}
     extra_hosts:
       - "host.docker.internal:host-gateway"
     volumes:
