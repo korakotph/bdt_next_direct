@@ -1,6 +1,23 @@
 ﻿version: "3.9"
 
 services:
+  caddy:
+    image: caddy:2-alpine
+    container_name: bdt_next_direct_caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - bdt_next_direct_caddy_data:/data
+      - bdt_next_direct_caddy_config:/config
+      - bdt_next_direct_caddy_logs:/var/log/caddy
+    depends_on:
+      - directus
+      - nextjs
+
   postgres:
     image: postgres:16
     container_name: bdt_next_direct_db
@@ -45,8 +62,9 @@ services:
       STORAGE_LOCAL_DRIVER: local
       STORAGE_LOCAL_ROOT: /directus/uploads
 
-      # URL สาธารณะของ Directus — ใช้สำหรับ generate asset URL ให้ถูกต้อง
-      PUBLIC_URL: http://localhost:8056
+      # URL สาธารณะของ Directus — ต้องตรงกับ domain + path ที่ Caddy expose
+      # เปลี่ยนเป็น domain จริง เช่น https://example.com/directus
+      PUBLIC_URL: http://localhost:8056/directus
     volumes:
       - ./directus/uploads:/directus/uploads
       - ./directus/migrations:/directus/migrations
@@ -72,3 +90,6 @@ services:
 
 volumes:
   bdt_next_direct_postgres_data:
+  bdt_next_direct_caddy_data:
+  bdt_next_direct_caddy_config:
+  bdt_next_direct_caddy_logs:

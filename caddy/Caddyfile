@@ -1,0 +1,30 @@
+# ══════════════════════════════════════════════════════════════
+#  Caddyfile — BDT Next Direct
+#  เปลี่ยน YOUR_DOMAIN เป็น domain จริง เช่น example.com
+#  Caddy จะออก TLS certificate จาก Let's Encrypt อัตโนมัติ
+#
+#  Path routing:
+#    https://YOUR_DOMAIN/            → Next.js
+#    https://YOUR_DOMAIN/directus/   → Directus CMS + API
+# ══════════════════════════════════════════════════════════════
+
+YOUR_DOMAIN {
+
+    # ── Directus (path: /directus) ─────────────────────────
+    handle_path /directus/* {
+        reverse_proxy bdt_next_direct_directus:8055
+    }
+
+    # ── Next.js (catch-all) ────────────────────────────────
+    handle {
+        reverse_proxy bdt_next_direct_nextjs:3000
+    }
+
+    # ── Logging ────────────────────────────────────────────
+    log {
+        output file /var/log/caddy/access.log {
+            roll_size 10mb
+            roll_keep 5
+        }
+    }
+}
