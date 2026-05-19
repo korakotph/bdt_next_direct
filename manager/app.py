@@ -13,11 +13,14 @@ import zipfile
 from datetime import datetime
 
 from flask import Flask, Response, abort, jsonify, render_template, request, send_from_directory
+from werkzeug.middleware.dispatcher import DispatcherMiddleware
+from werkzeug.wrappers import Response as WerkzeugResponse
 
 app = Flask(__name__)
 
 PROJECTS_ROOT      = os.environ.get("PROJECTS_ROOT",      "/projects_root")
 HOST_PROJECTS_ROOT = os.environ.get("HOST_PROJECTS_ROOT", "").strip()
+BASE_PATH          = os.environ.get("BASE_PATH",          "").rstrip("/")
 
 _jobs: dict = {}
 _lock = threading.Lock()
@@ -591,7 +594,7 @@ def do_create_project(name: str, template_prefix: str, emit):
 
 @app.get("/")
 def index():
-    return render_template("index.html")
+    return render_template("index.html", base_path=BASE_PATH)
 
 
 @app.get("/api/status")
@@ -820,4 +823,9 @@ def api_db_table(table_name: str):
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=9090, debug=False, threaded=True)
+    from werkzeug.serving import run_simple
+    wsgi_app = DispatcherMiddleware(
+        WerkzeugResponse("Not Found", status="404 Not Found"),
+        {BASE_PATH: app},
+    ) if BASE_PATH else app
+    run_simple("0.0.0.0", 9090, wsgi_app, threaded=True, use_reloader=False)

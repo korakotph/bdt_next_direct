@@ -228,6 +228,8 @@
 <script>
 // ── constants ──────────────────────────────────────────────────────────────
 
+const BASE = '{{ base_path }}';
+
 const STATUS_STYLE = {
   running:    ['text-emerald-400', '●', 'bg-emerald-900/30 border-emerald-800/40'],
   exited:     ['text-gray-500',    '○', 'bg-gray-800/60 border-gray-700/40'],
@@ -272,7 +274,7 @@ function selectProject(prefix) {
 
 function loadStatus() {
   if (!selectedProject) return;
-  fetch(`/api/status?project=${encodeURIComponent(selectedProject)}`)
+  fetch(`${BASE}/api/status?project=${encodeURIComponent(selectedProject)}`)
     .then(r => r.json())
     .then(data => {
       const grid = document.getElementById('status-grid');
@@ -296,7 +298,7 @@ function loadStatus() {
 // ── projects ───────────────────────────────────────────────────────────────
 
 function loadProjects() {
-  fetch('/api/projects').then(r => r.json()).then(projects => {
+  fetch(`${BASE}/api/projects`).then(r => r.json()).then(projects => {
     const el = document.getElementById('projects-list');
 
     if (!projects.length) {
@@ -399,7 +401,7 @@ function createProject() {
   if (!name)     { alert('กรุณาใส่ชื่อโปรเจค'); return; }
   if (!template) { alert('กรุณาเลือก template'); return; }
   openLog(`Create: ${name} (from ${template})`);
-  fetch('/api/projects', {
+  fetch(`${BASE}/api/projects`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ name, template }),
@@ -420,7 +422,7 @@ function runAction(type) {
   btn.disabled = true;
   openLog(`${type === 'setup' ? 'Setup' : 'Export'}: ${selectedProject}`);
 
-  fetch(`/api/${type}`, {
+  fetch(`${BASE}/api/${type}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ project: selectedProject }),
@@ -468,7 +470,7 @@ function finishLog(status) {
 }
 
 function streamJob(job_id, onDone) {
-  const es = new EventSource(`/api/stream/${job_id}`);
+  const es = new EventSource(`${BASE}/api/stream/${job_id}`);
   es.onmessage = e => {
     const msg = JSON.parse(e.data);
 
@@ -504,7 +506,7 @@ function streamJob(job_id, onDone) {
 function loadExports() {
   if (!selectedProject) return;
   document.getElementById('exports-project-label').textContent = selectedProject;
-  fetch(`/api/exports?project=${encodeURIComponent(selectedProject)}`)
+  fetch(`${BASE}/api/exports?project=${encodeURIComponent(selectedProject)}`)
     .then(r => r.json())
     .then(files => {
       const el = document.getElementById('exports-list');
@@ -519,7 +521,7 @@ function loadExports() {
             <span class="text-gray-600 text-xs shrink-0">${f.size_mb} MB</span>
             <span class="text-gray-700 text-xs shrink-0 hidden sm:inline">${f.created}</span>
           </div>
-          <a href="/api/download/${encodeURIComponent(selectedProject)}/${encodeURIComponent(f.name)}"
+          <a href="${BASE}/api/download/${encodeURIComponent(selectedProject)}/${encodeURIComponent(f.name)}"
              download="${f.name}"
              class="shrink-0 ml-4 text-blue-400 hover:text-blue-300 text-xs px-3 py-1.5 rounded
                     border border-blue-800 hover:border-blue-600 transition-colors">
@@ -594,7 +596,7 @@ function loadDBTables() {
     return;
   }
   const qs = `?project=${encodeURIComponent(db.project)}`;
-  fetch(`/api/db/tables${qs}`).then(r => r.json()).then(data => {
+  fetch(`${BASE}/api/db/tables${qs}`).then(r => r.json()).then(data => {
     if (data.error) {
       document.getElementById('table-list').innerHTML =
         `<span class="text-red-400 p-2 block">${data.error}</span>`;
@@ -681,7 +683,7 @@ function loadTableData() {
   if (db.project) params.set('project', db.project);
   document.getElementById('db-pagination').textContent = 'Loading...';
 
-  fetch(`/api/db/table/${encodeURIComponent(db.table)}?${params}`)
+  fetch(`${BASE}/api/db/table/${encodeURIComponent(db.table)}?${params}`)
     .then(r => r.json())
     .then(data => {
       if (data.error) {

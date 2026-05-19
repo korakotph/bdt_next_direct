@@ -17,6 +17,8 @@ services:
       # HOST_PROJECTS_ROOT: actual host path of the projects parent directory.
       # The manager auto-detects this via docker inspect when not set.
       HOST_PROJECTS_ROOT: ${HOST_PROJECTS_ROOT:-}
+      # BASE_PATH: sub-path prefix when serving behind a reverse proxy (e.g. /manager)
+      BASE_PATH: ${BASE_PATH:-}
     extra_hosts:
       - "host.docker.internal:host-gateway"
     volumes:
