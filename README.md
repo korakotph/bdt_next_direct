@@ -344,8 +344,45 @@ networks:
         uri strip_prefix /manager
         reverse_proxy bdt_manager:9090
     }
+
+    # Manager จะสร้าง handle blocks ข้างล่างนี้อัตโนมัติ
+    import /etc/caddy/conf.d/*.conf
 }
 ```
+
+### จัดการ Reverse Proxy ผ่าน Manager UI
+
+Manager มี built-in reverse proxy management — กด **Enable** ในหน้า Selected Project เพื่อให้ Caddy เริ่ม proxy โปรเจคนั้นได้เลย
+
+**ต้องทำครั้งเดียวบน server:**
+
+1. สร้าง folder รับ config:
+```bash
+mkdir -p /var/www/_caddy
+```
+
+2. Mount เข้า Caddy container (`docker-compose.yaml` ของ Caddy):
+```yaml
+caddy:
+  extra_hosts:
+    - "host.docker.internal:host-gateway"
+  volumes:
+    - /var/www/_caddy:/etc/caddy/conf.d
+```
+
+3. เพิ่ม `import` ใน Caddyfile:
+```
+import /etc/caddy/conf.d/*.conf
+```
+
+4. Restart Caddy:
+```bash
+docker compose restart caddy
+```
+
+หลังจากนั้นกด **Enable** ใน Manager UI ได้เลย — Manager จะเขียน config และ reload Caddy ให้อัตโนมัติ
+
+> เปลี่ยนชื่อ Caddy container ได้ด้วย `CADDY_CONTAINER=my_caddy docker compose ...` (default: `caddy`)
 
 ### Adminer (DB GUI ใน Project Stack)
 
