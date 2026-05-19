@@ -11,7 +11,7 @@ services:
     container_name: bdt_manager
     restart: unless-stopped
     ports:
-      - "9090:9090"
+      - "${MANAGER_PORT:-8090}:9090"
     environment:
       PROJECTS_ROOT: /projects_root
       # HOST_PROJECTS_ROOT: actual host path of the projects parent directory.
