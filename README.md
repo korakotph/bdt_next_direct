@@ -329,15 +329,27 @@ HOST_PROJECTS_ROOT=/var/www BASE_PATH=/manager \
   docker compose -f manager/docker-compose.yaml up -d --build
 ```
 
+เชื่อม `bdt_manager` เข้า network เดียวกับ Caddy (ทำครั้งเดียว):
+
+```bash
+# ดู network ที่ Caddy ใช้
+docker inspect caddy --format '{{range $k,$v := .NetworkSettings.Networks}}{{$k}}{{end}}'
+
+# เชื่อม manager เข้า network นั้น (เช่น cms_default)
+docker network connect cms_default bdt_manager
+```
+
 **Caddyfile:**
 ```
 :80 {
-    handle /manager/* {
+    handle /manager* {
         uri strip_prefix /manager
-        reverse_proxy localhost:8090
+        reverse_proxy bdt_manager:9090
     }
 }
 ```
+
+> ใช้ชื่อ container `bdt_manager:9090` (internal port) แทน `localhost:8090` เพราะ Caddy รันใน Docker container
 
 ### Adminer (DB GUI ใน Project Stack)
 
