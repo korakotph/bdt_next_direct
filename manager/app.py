@@ -560,6 +560,33 @@ def do_create_project(name: str, template_prefix: str, emit):
     emit(f"  Admin     : http://<server-ip>/{prefix}-admin/admin/setup")
 
 
+# ── delete project ────────────────────────────────────────────────────────────
+
+def do_delete_project(emit, prefix: str, delete_files: bool = False):
+    project_dir  = get_project_dir(prefix)
+    compose_file = os.path.join(project_dir, "docker-compose.yaml")
+    emit(f"═══ ลบโปรเจค: {prefix} ═══")
+
+    emit("▶ ปิด containers และลบ volumes")
+    compose_run(["down", "-v", "--remove-orphans"], emit, prefix=prefix,
+                compose_file=compose_file)
+
+    emit("▶ ลบ reverse proxy config")
+    remove_proxy_conf(prefix)
+    ok, msg = reload_caddy()
+    emit(f"✔ Caddy reload {'สำเร็จ' if ok else f'ล้มเหลว: {msg}'}")
+
+    if delete_files:
+        emit("▶ ลบโฟลเดอร์โปรเจค")
+        if os.path.isdir(project_dir):
+            shutil.rmtree(project_dir)
+            emit(f"✔ ลบ {project_dir} แล้ว")
+        else:
+            emit(f"⚠ ไม่พบโฟลเดอร์ {project_dir}")
+
+    emit("═══ ลบโปรเจคเสร็จสมบูรณ์! ═══")
+
+
 # ── reverse proxy (Caddy) ────────────────────────────────────────────────────
 
 def proxy_conf_path(prefix: str) -> str:
@@ -677,6 +704,16 @@ def api_status():
 @app.get("/api/projects")
 def api_projects():
     return jsonify(detect_projects())
+
+
+@app.delete("/api/projects/<prefix>")
+def api_delete_project(prefix: str):
+    if not re.match(r"^[a-z0-9_-]+$", prefix):
+        abort(400)
+    data         = request.get_json(silent=True) or {}
+    delete_files = bool(data.get("delete_files", False))
+    job_id = start_job(lambda emit: do_delete_project(emit, prefix, delete_files))
+    return jsonify({"job_id": job_id})
 
 
 @app.post("/api/projects")

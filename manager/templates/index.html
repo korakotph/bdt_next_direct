@@ -75,8 +75,15 @@
       <h2 class="text-xs font-semibold text-gray-400 uppercase tracking-wider">
         Selected: <span id="selected-name" class="text-white font-mono normal-case">—</span>
       </h2>
-      <button onclick="loadStatus()"
-        class="text-gray-500 hover:text-gray-300 text-xs transition-colors">↻</button>
+      <div class="flex items-center gap-3">
+        <button onclick="loadStatus()"
+          class="text-gray-500 hover:text-gray-300 text-xs transition-colors">↻</button>
+        <button onclick="confirmDelete()"
+          class="text-xs text-red-500 hover:text-red-400 border border-red-900 hover:border-red-700
+                 px-2.5 py-1 rounded transition-colors">
+          🗑 ลบโปรเจค
+        </button>
+      </div>
     </div>
 
     <!-- Container Status -->
@@ -222,6 +229,34 @@
           </div>
         </div>
 
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ Delete Confirmation Modal ═══ -->
+  <div id="delete-modal" class="hidden fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+    <div class="bg-gray-900 border border-red-900/60 rounded-2xl p-6 w-full max-w-sm shadow-2xl">
+      <div class="text-xl mb-1">⚠️</div>
+      <h3 class="text-white font-semibold mb-1">ลบโปรเจค</h3>
+      <p class="text-gray-400 text-sm mb-4">
+        ยืนยันลบ <span id="delete-project-name" class="text-white font-mono"></span>?
+      </p>
+      <label class="flex items-center gap-2.5 mb-5 cursor-pointer select-none">
+        <input type="checkbox" id="delete-files-check"
+          class="w-4 h-4 rounded accent-red-500">
+        <span class="text-sm text-gray-300">ลบโฟลเดอร์และไฟล์ทั้งหมดด้วย</span>
+      </label>
+      <div class="flex gap-3">
+        <button onclick="closeDeleteModal()"
+          class="flex-1 px-4 py-2 rounded-lg border border-gray-700 text-gray-300
+                 hover:bg-gray-800 text-sm transition-colors">
+          ยกเลิก
+        </button>
+        <button onclick="deleteProject()"
+          class="flex-1 px-4 py-2 rounded-lg bg-red-700 hover:bg-red-600 text-white
+                 text-sm font-medium transition-colors">
+          ลบ
+        </button>
       </div>
     </div>
   </div>
@@ -811,6 +846,47 @@ function toggleProxy() {
       msg.classList.remove('hidden');
     });
 }
+
+// ── delete project ─────────────────────────────────────────────────────────
+
+function confirmDelete() {
+  if (!selectedProject) return;
+  document.getElementById('delete-project-name').textContent = selectedProject;
+  document.getElementById('delete-files-check').checked = false;
+  document.getElementById('delete-modal').classList.remove('hidden');
+}
+
+function closeDeleteModal() {
+  document.getElementById('delete-modal').classList.add('hidden');
+}
+
+function deleteProject() {
+  const deleteFiles = document.getElementById('delete-files-check').checked;
+  const prefix = selectedProject;
+  closeDeleteModal();
+  openLog(`Delete: ${prefix}`);
+  fetch(`${BASE}/api/projects/${encodeURIComponent(prefix)}`, {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ delete_files: deleteFiles }),
+  })
+    .then(r => r.json())
+    .then(({ job_id, error }) => {
+      if (error) { appendLog(`✘ ${error}`); finishLog('error'); return; }
+      streamJob(job_id, () => {
+        selectedProject = '';
+        document.getElementById('selected-panel').classList.add('hidden');
+        document.getElementById('exports-card').classList.add('hidden');
+        loadProjects();
+      });
+    })
+    .catch(e => { appendLog(`✘ ${e}`); finishLog('error'); });
+}
+
+// Close modal on backdrop click
+document.getElementById('delete-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeDeleteModal();
+});
 
 // ── init ───────────────────────────────────────────────────────────────────
 
