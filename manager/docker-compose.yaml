@@ -1,8 +1,8 @@
 version: "3.9"
 
 # Standalone Manager — deploy with:
-#   docker compose -f manager/docker-compose.yaml up -d
-# Run from the project root directory so that ".." mounts the projects parent.
+#   HOST_PROJECTS_ROOT=/var/www BASE_PATH=/manager \
+#   docker compose -f manager/docker-compose.yaml up -d --build
 
 services:
   manager:
@@ -13,21 +13,22 @@ services:
     ports:
       - "${MANAGER_PORT:-8090}:9090"
     environment:
-      PROJECTS_ROOT: /projects_root
-      # HOST_PROJECTS_ROOT: actual host path of the projects parent directory.
-      # The manager auto-detects this via docker inspect when not set.
-      HOST_PROJECTS_ROOT: ${HOST_PROJECTS_ROOT:-}
-      # BASE_PATH: sub-path prefix when serving behind a reverse proxy (e.g. /manager)
+      # PROJECTS_ROOT = HOST_PROJECTS_ROOT so container paths match host paths
+      # This lets docker compose build/up work correctly from inside the container
+      PROJECTS_ROOT: ${HOST_PROJECTS_ROOT}
+      HOST_PROJECTS_ROOT: ${HOST_PROJECTS_ROOT}
+      # BASE_PATH: sub-path prefix when behind a reverse proxy (e.g. /manager)
       BASE_PATH: ${BASE_PATH:-}
       # CADDY_CONTAINER: name of the Caddy container to reload after proxy changes
       CADDY_CONTAINER: ${CADDY_CONTAINER:-caddy}
-      # CADDY_NETWORK: Docker network shared with Caddy (project nextjs containers join this)
+      # CADDY_NETWORK: Docker network shared with Caddy
       CADDY_NETWORK: ${CADDY_NETWORK:-caddy_web}
     extra_hosts:
       - "host.docker.internal:host-gateway"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - ../..:/projects_root
+      # Mount at the same path as host so container paths = host paths
+      - ${HOST_PROJECTS_ROOT}:${HOST_PROJECTS_ROOT}
     networks:
       - caddy_web
 

@@ -2,7 +2,6 @@
 """BDT Next Direct — Management Server"""
 import json
 import os
-import pathlib
 import re
 import shutil
 import subprocess
@@ -16,9 +15,8 @@ from flask import Flask, Response, abort, jsonify, render_template, request, sen
 
 app = Flask(__name__)
 
-PROJECTS_ROOT      = os.environ.get("PROJECTS_ROOT",      "/projects_root")
-HOST_PROJECTS_ROOT = os.environ.get("HOST_PROJECTS_ROOT", "").strip()
-BASE_PATH          = os.environ.get("BASE_PATH",          "").rstrip("/")
+PROJECTS_ROOT   = os.environ.get("PROJECTS_ROOT", "/projects_root")
+BASE_PATH       = os.environ.get("BASE_PATH",     "").rstrip("/")
 CADDY_CONTAINER    = os.environ.get("CADDY_CONTAINER",    "caddy")
 CADDY_NETWORK      = os.environ.get("CADDY_NETWORK",      "caddy_web")
 CADDY_CONF_DIR     = os.path.join(PROJECTS_ROOT, "_caddy")
@@ -30,34 +28,9 @@ _lock = threading.Lock()
 # ── path helpers ──────────────────────────────────────────────────────────────
 
 def get_project_dir(prefix: str) -> str:
-    """Container-internal path for a project via the PROJECTS_ROOT mount."""
+    """Path for a project — same on host and inside manager container."""
     return os.path.join(PROJECTS_ROOT, prefix)
 
-
-def get_project_host_dir(prefix: str) -> str:
-    """Resolve a project's actual host path for docker compose --project-directory.
-
-    Tries HOST_PROJECTS_ROOT env first, then auto-detects via docker inspect by
-    looking at the /directus/uploads bind-mount source on the project's containers.
-    """
-    if HOST_PROJECTS_ROOT:
-        return os.path.join(HOST_PROJECTS_ROOT, prefix)
-    for cname in [f"{prefix}_directus", f"{prefix}_db", f"{prefix}_nextjs"]:
-        try:
-            r = subprocess.run(
-                ["docker", "inspect", "--format",
-                 "{{range .Mounts}}{{.Source}}|{{.Destination}}\n{{end}}", cname],
-                capture_output=True, text=True, timeout=5,
-            )
-            for line in r.stdout.splitlines():
-                if "|" not in line:
-                    continue
-                src, dst = line.split("|", 1)
-                if dst == "/directus/uploads":
-                    return str(pathlib.Path(src).parent.parent)
-        except Exception:
-            pass
-    return ""
 
 
 def get_exports_dir(prefix: str) -> str:
@@ -283,15 +256,13 @@ def stream_cmd(cmd: list, emit, stdin_bytes: bytes = None) -> int:
         return -1
 
 
-def compose_run(args: list, emit, prefix: str,
-                compose_file: str = None, host_dir: str = None) -> int:
+def compose_run(args: list, emit, prefix: str, compose_file: str = None) -> int:
+    project_dir = get_project_dir(prefix)
     if compose_file is None:
-        compose_file = os.path.join(get_project_dir(prefix), "docker-compose.yaml")
-    if host_dir is None:
-        host_dir = get_project_host_dir(prefix)
+        compose_file = os.path.join(project_dir, "docker-compose.yaml")
     return stream_cmd(
         ["docker", "compose", "-f", compose_file,
-         "--project-directory", host_dir, "-p", prefix] + args,
+         "--project-directory", project_dir, "-p", prefix] + args,
         emit,
     )
 
@@ -399,23 +370,17 @@ def _import_dump(emit, pg: str, dump_path: str):
 
 def do_setup(emit, prefix: str):
     project_dir  = get_project_dir(prefix)
-    host_dir     = get_project_host_dir(prefix)
     compose_file = os.path.join(project_dir, "docker-compose.yaml")
     info = compose_info(prefix)
     pg   = info["pg"]
     emit(f"═══ Setup: {prefix} ═══")
 
-    if not host_dir:
-        emit("✘ ไม่พบ host path ของโปรเจค — ตรวจสอบ HOST_PROJECTS_ROOT")
-        return
-
     emit("▶ Build Next.js image (อาจใช้เวลาหลายนาที)")
-    compose_run(["build", "nextjs"], emit, prefix=prefix,
-                compose_file=compose_file, host_dir=host_dir)
+    compose_run(["build", "nextjs"], emit, prefix=prefix, compose_file=compose_file)
 
     emit("▶ เริ่ม PostgreSQL")
     if compose_run(["up", "-d", "postgres"], emit, prefix=prefix,
-                   compose_file=compose_file, host_dir=host_dir) != 0:
+                   compose_file=compose_file) != 0:
         emit("✘ ไม่สามารถเริ่ม postgres ได้")
         return
 
@@ -424,7 +389,7 @@ def do_setup(emit, prefix: str):
 
     emit("▶ เริ่ม Directus, Next.js และ Adminer")
     compose_run(["up", "-d", "directus", "nextjs", "adminer"], emit,
-                prefix=prefix, compose_file=compose_file, host_dir=host_dir)
+                prefix=prefix, compose_file=compose_file)
     _wait_for_directus(emit, prefix)
 
     emit("▶ ตั้งค่า Reverse Proxy")
@@ -503,11 +468,8 @@ def do_create_project(name: str, template_prefix: str, emit):
         emit("✘ ชื่อโปรเจคไม่ถูกต้อง")
         return
 
-    template_dir  = get_project_dir(template_prefix)
-    template_host = get_project_host_dir(template_prefix)
-    target_c      = get_project_dir(prefix)
-    host_parent   = os.path.dirname(template_host) if template_host else ""
-    target_h      = os.path.join(host_parent, prefix) if host_parent else ""
+    template_dir = get_project_dir(template_prefix)
+    target_c     = get_project_dir(prefix)
 
     if os.path.exists(target_c):
         emit(f"✘ โฟลเดอร์ {prefix} มีอยู่แล้ว")
@@ -515,8 +477,7 @@ def do_create_project(name: str, template_prefix: str, emit):
 
     emit(f"═══ สร้างโปรเจค: {prefix} ═══")
     emit(f"   Template : {template_prefix}")
-    if target_h:
-        emit(f"   โฟลเดอร์ : {target_h}")
+    emit(f"   โฟลเดอร์ : {target_c}")
 
     emit("▶ คัดลอก template")
     shutil.copytree(template_dir, target_c,
@@ -575,19 +536,17 @@ def do_create_project(name: str, template_prefix: str, emit):
     patch_base_paths(target_c, old_base, f"/{prefix}", emit)
 
     emit("▶ Build Next.js image (อาจใช้เวลาหลายนาที)")
-    compose_run(["build", "nextjs"], emit, prefix=prefix,
-                compose_file=compose_path, host_dir=target_h)
+    compose_run(["build", "nextjs"], emit, prefix=prefix, compose_file=compose_path)
 
     emit("▶ เริ่ม PostgreSQL")
-    compose_run(["up", "-d", "postgres"], emit, prefix=prefix,
-                compose_file=compose_path, host_dir=target_h)
+    compose_run(["up", "-d", "postgres"], emit, prefix=prefix, compose_file=compose_path)
 
     if _wait_for_pg(emit, f"{prefix}_db", retries=30):
         _import_dump(emit, f"{prefix}_db", os.path.join(target_c, "dump.sql"))
 
     emit("▶ เริ่ม containers ทั้งหมด")
     compose_run(["up", "-d", "directus", "nextjs", "adminer"], emit,
-                prefix=prefix, compose_file=compose_path, host_dir=target_h)
+                prefix=prefix, compose_file=compose_path)
 
     emit("▶ ตั้งค่า Reverse Proxy")
     write_proxy_conf(prefix)
