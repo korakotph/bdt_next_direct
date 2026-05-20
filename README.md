@@ -307,22 +307,21 @@ Manager เป็น standalone container แยกออกจาก project st
 
 ### Deploy Manager (ทำครั้งเดียวต่อ server)
 
+**`HOST_PROJECTS_ROOT` เป็น required** — path บน host ที่เก็บ project ทุกโปรเจค (parent folder)
+
 ```bash
-# รันจาก project root directory
-HOST_PROJECTS_ROOT=/var/www \
+HOST_PROJECTS_ROOT=/var/www BASE_PATH=/manager \
   docker compose -f manager/docker-compose.yaml up -d --build
 
 # เปิดเบราว์เซอร์ไปที่
-http://<server-ip>:8090
+http://<server-ip>/manager
 ```
 
-> เปลี่ยน port ได้ด้วย `MANAGER_PORT=9999 docker compose ...` (default: 8090)
+Manager จะ mount `/var/www` ไว้ที่ `/var/www` ในตัวมันเองด้วย — ทำให้ `docker compose build/up` ทำงานได้ถูกต้องจากใน container
 
-> ถ้าไม่ set `HOST_PROJECTS_ROOT` Manager จะ auto-detect host path ผ่าน `docker inspect`
+> เปลี่ยน port ได้ด้วย `MANAGER_PORT=9999` (default: 8090) | เปลี่ยน Caddy network ด้วย `CADDY_NETWORK=my_net` (default: `caddy_web`)
 
 ### ใช้กับ Reverse Proxy (เช่น Caddy) ที่ sub-path
-
-ถ้าต้องการเข้าผ่าน path เช่น `http://<server-ip>/manager/` ให้ตั้ง `BASE_PATH` และระบุ network ของ Caddy:
 
 ```bash
 HOST_PROJECTS_ROOT=/var/www BASE_PATH=/manager \
