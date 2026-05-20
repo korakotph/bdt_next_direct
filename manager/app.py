@@ -393,7 +393,7 @@ def do_setup(emit, prefix: str):
     _wait_for_directus(emit, prefix)
 
     emit("▶ ตั้งค่า Reverse Proxy")
-    write_proxy_conf(prefix)
+    write_proxy_conf(prefix, emit)
     ok, msg = reload_caddy()
     emit(f"✔ Caddy reload {'สำเร็จ' if ok else f'ล้มเหลว: {msg}'}")
 
@@ -549,7 +549,7 @@ def do_create_project(name: str, template_prefix: str, emit):
                 prefix=prefix, compose_file=compose_path)
 
     emit("▶ ตั้งค่า Reverse Proxy")
-    write_proxy_conf(prefix)
+    write_proxy_conf(prefix, emit)
     ok, msg = reload_caddy()
     emit(f"✔ Caddy reload {'สำเร็จ' if ok else f'ล้มเหลว: {msg}'}")
 
@@ -570,21 +570,46 @@ def proxy_enabled(prefix: str) -> bool:
     return os.path.isfile(proxy_conf_path(prefix))
 
 
-def _network_op(op: str, container: str):
-    """connect or disconnect a container from CADDY_NETWORK, ignore errors."""
+def _network_connect(container: str, emit=None, retries: int = 10) -> bool:
+    """Connect container to CADDY_NETWORK, retry until container exists."""
+    for i in range(retries):
+        r = subprocess.run(
+            ["docker", "network", "connect", CADDY_NETWORK, container],
+            capture_output=True, text=True, timeout=10,
+        )
+        if r.returncode == 0:
+            if emit:
+                emit(f"   ✔ {container} → {CADDY_NETWORK}")
+            return True
+        stderr = r.stderr.strip()
+        # Already connected — treat as success
+        if "already exists" in stderr:
+            if emit:
+                emit(f"   ✔ {container} → {CADDY_NETWORK} (already connected)")
+            return True
+        # Container not found yet — wait and retry
+        if emit:
+            emit(f"   รอ {container}... ({i + 1}/{retries})")
+        time.sleep(2)
+    if emit:
+        emit(f"   ⚠ ไม่สามารถ connect {container}: {stderr}")
+    return False
+
+
+def _network_disconnect(container: str):
     subprocess.run(
-        ["docker", "network", op, CADDY_NETWORK, container],
+        ["docker", "network", "disconnect", CADDY_NETWORK, container],
         capture_output=True, timeout=10,
     )
 
 
-def write_proxy_conf(prefix: str):
-    """Connect project containers to Caddy network and write 3 route config."""
+def write_proxy_conf(prefix: str, emit=None):
+    """Connect project containers to Caddy network and write 3-route config."""
     nextjs   = f"{prefix}_nextjs"
     directus = f"{prefix}_directus"
     adminer  = f"{prefix}_adminer"
     for c in [nextjs, directus, adminer]:
-        _network_op("connect", c)
+        _network_connect(c, emit)
     os.makedirs(CADDY_CONF_DIR, exist_ok=True)
     conf = (
         f"# BDT Manager — {prefix} (auto-generated, do not edit)\n"
@@ -612,7 +637,7 @@ def remove_proxy_conf(prefix: str):
     if os.path.isfile(p):
         os.remove(p)
     for c in [f"{prefix}_nextjs", f"{prefix}_directus", f"{prefix}_adminer"]:
-        _network_op("disconnect", c)
+        _network_disconnect(c)
 
 
 def reload_caddy() -> tuple[bool, str]:
@@ -759,9 +784,10 @@ def api_proxy_list():
 def api_proxy_enable(prefix: str):
     if not re.match(r"^[a-z0-9_-]+$", prefix):
         abort(400)
-    write_proxy_conf(prefix)
+    messages = []
+    write_proxy_conf(prefix, emit=messages.append)
     ok, msg = reload_caddy()
-    return jsonify({"ok": ok, "msg": msg})
+    return jsonify({"ok": ok, "msg": msg, "log": messages})
 
 
 @app.delete("/api/proxy/<prefix>")
