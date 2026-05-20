@@ -82,78 +82,20 @@ def container_status(name: str) -> str:
         return "unknown"
 
 
-def detect_base_path(project_dir: str) -> str:
-    """Return the active (uncommented) basePath value from next-app/next.config.mjs.
-
-    Returns a string like '/suqa', or '' if not set.
-    """
-    config = os.path.join(project_dir, "next-app", "next.config.mjs")
+def list_templates() -> list[str]:
+    """Return names of directories in PROJECTS_ROOT that contain a next-app/ subdir."""
+    result = []
     try:
-        for line in open(config):
-            if line.lstrip().startswith("//"):
+        for entry in sorted(os.scandir(PROJECTS_ROOT), key=lambda e: e.name):
+            if not entry.is_dir():
                 continue
-            m = re.search(r"basePath:\s*['\"](/[^'\"]+)['\"]", line)
-            if m:
-                return m.group(1)
+            if entry.name.startswith(("_", ".")):
+                continue
+            if os.path.isdir(os.path.join(entry.path, "next-app")):
+                result.append(entry.name)
     except Exception:
         pass
-    return ""
-
-
-def patch_base_paths(project_dir: str, old_base: str, new_base: str, emit=None):
-    """Replace old_base path prefix with new_base in next-app config and .env files.
-
-    Handles suffixes correctly: '/old-admin' becomes '/new-admin' because
-    only the '/old' part is replaced (using a word-boundary lookahead).
-    Also updates NEXT_PUBLIC_BASE_PATH in docker-compose.yaml.
-    """
-    if not old_base or old_base == new_base:
-        return
-
-    old_esc = re.escape(old_base)
-    # Match old_base when NOT followed by a word character (letter/digit/_)
-    # so /suqa matches in /suqa-admin but not in /suqaapp
-    path_pat = rf"{old_esc}(?=[^a-zA-Z0-9_]|$)"
-
-    patched = []
-
-    # next.config.mjs — replace exact property values only
-    config = os.path.join(project_dir, "next-app", "next.config.mjs")
-    if os.path.isfile(config):
-        txt = open(config).read()
-        txt = re.sub(rf"(basePath:\s*['\"]){old_esc}(['\"])",
-                     rf"\g<1>{new_base}\g<2>", txt)
-        txt = re.sub(rf"(assetPrefix:\s*['\"]){old_esc}(['\"])",
-                     rf"\g<1>{new_base}\g<2>", txt)
-        open(config, "w").write(txt)
-        patched.append("next.config.mjs")
-
-    # .env* files in next-app
-    next_dir = os.path.join(project_dir, "next-app")
-    if os.path.isdir(next_dir):
-        for fname in sorted(os.listdir(next_dir)):
-            if not fname.startswith(".env"):
-                continue
-            fpath = os.path.join(next_dir, fname)
-            if not os.path.isfile(fpath):
-                continue
-            txt = open(fpath).read()
-            txt = re.sub(path_pat, new_base, txt)
-            open(fpath, "w").write(txt)
-            patched.append(fname)
-
-    # docker-compose.yaml — NEXT_PUBLIC_BASE_PATH build arg + env
-    compose = os.path.join(project_dir, "docker-compose.yaml")
-    if os.path.isfile(compose):
-        txt = open(compose).read()
-        txt = re.sub(
-            rf'(NEXT_PUBLIC_BASE_PATH:\s*"){old_esc}([^"]*")',
-            rf'\g<1>{new_base}\g<2>', txt,
-        )
-        open(compose, "w").write(txt)
-
-    if emit and patched:
-        emit(f"✔ Base path {old_base} → {new_base}  ({', '.join(patched)})")
+    return result
 
 
 def used_host_ports() -> set:
@@ -459,7 +401,90 @@ def do_export(emit, prefix: str):
     emit(f"DOWNLOAD:{prefix}/{zip_name}")
 
 
-# ── create project ────────────────────────────────────────────────────────────
+# ── create instance ───────────────────────────────────────────────────────────
+
+def _generate_compose(prefix: str, template_dir: str,
+                      pg_port: int, dir_port: int,
+                      next_port: int, adminer_port: int) -> str:
+    return f"""\
+services:
+  postgres:
+    image: postgres:16
+    container_name: {prefix}_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: directus
+      POSTGRES_PASSWORD: directus
+      POSTGRES_DB: directus
+    volumes:
+      - {prefix}_postgres_data:/var/lib/postgresql/data
+    ports:
+      - "{pg_port}:5432"
+
+  directus:
+    image: directus/directus:latest
+    container_name: {prefix}_directus
+    restart: unless-stopped
+    depends_on:
+      - postgres
+    ports:
+      - "{dir_port}:8055"
+    environment:
+      CORS_ENABLED: "true"
+      CORS_ORIGIN: "*"
+      CORS_METHODS: "GET,POST,PATCH,DELETE,OPTIONS"
+      CORS_HEADERS: "Content-Type,Authorization"
+      KEY: "supersecretkey"
+      SECRET: "supersecretsecret"
+      DB_CLIENT: "pg"
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_DATABASE: directus
+      DB_USER: directus
+      DB_PASSWORD: directus
+      STORAGE_LOCATIONS: local
+      STORAGE_LOCAL_DRIVER: local
+      STORAGE_LOCAL_ROOT: /directus/uploads
+      PUBLIC_URL: http://localhost:{dir_port}
+      SESSION_COOKIE_NAME: "{prefix}_session_token"
+      REFRESH_TOKEN_COOKIE_NAME: "{prefix}_refresh_token"
+    volumes:
+      - ./directus/uploads:/directus/uploads
+      - {template_dir}/directus/migrations:/directus/migrations
+      - {template_dir}/directus/extensions:/directus/extensions
+
+  nextjs:
+    build:
+      context: {template_dir}/next-app
+      args:
+        NEXT_PUBLIC_DIRECTUS_URL: http://localhost:{dir_port}
+        NEXT_PUBLIC_BASE_PATH: "/{prefix}"
+    container_name: {prefix}_nextjs
+    restart: unless-stopped
+    ports:
+      - "{next_port}:3000"
+    environment:
+      DIRECTUS_INTERNAL_URL: http://{prefix}_directus:8055
+      NEXT_PUBLIC_DIRECTUS_URL: http://localhost:{dir_port}
+      NEXT_PUBLIC_BASE_PATH: "/{prefix}"
+    depends_on:
+      - directus
+
+  adminer:
+    image: adminer
+    container_name: {prefix}_adminer
+    restart: unless-stopped
+    ports:
+      - "{adminer_port}:8080"
+    environment:
+      ADMINER_DEFAULT_SERVER: postgres
+    depends_on:
+      - postgres
+
+volumes:
+  {prefix}_postgres_data:
+"""
+
 
 def do_create_project(name: str, template_prefix: str, emit):
     prefix = re.sub(r"[^a-z0-9_-]", "_", name.lower().strip())
@@ -469,23 +494,18 @@ def do_create_project(name: str, template_prefix: str, emit):
         return
 
     template_dir = get_project_dir(template_prefix)
-    target_c     = get_project_dir(prefix)
+    if not os.path.isdir(os.path.join(template_dir, "next-app")):
+        emit(f"✘ template '{template_prefix}' ไม่มีโฟลเดอร์ next-app/")
+        return
 
-    if os.path.exists(target_c):
+    instance_dir = get_project_dir(prefix)
+    if os.path.exists(instance_dir):
         emit(f"✘ โฟลเดอร์ {prefix} มีอยู่แล้ว")
         return
 
-    emit(f"═══ สร้างโปรเจค: {prefix} ═══")
-    emit(f"   Template : {template_prefix}")
-    emit(f"   โฟลเดอร์ : {target_c}")
-
-    emit("▶ คัดลอก template")
-    shutil.copytree(template_dir, target_c,
-                    ignore=shutil.ignore_patterns(".git", "_exports", "*.bak"))
-    up = os.path.join(target_c, "directus", "uploads")
-    shutil.rmtree(up, ignore_errors=True)
-    os.makedirs(up, exist_ok=True)
-    emit("✔ คัดลอกเสร็จ")
+    emit(f"═══ สร้าง instance: {prefix} ═══")
+    emit(f"   Template  : {template_prefix}  ({template_dir}/next-app)")
+    emit(f"   Instance  : {instance_dir}")
 
     emit("▶ หา port ที่ว่าง")
     ports = find_free_ports([
@@ -503,37 +523,14 @@ def do_create_project(name: str, template_prefix: str, emit):
     emit(f"   Next.js    → {next_port}")
     emit(f"   Adminer    → {adminer_port}")
 
-    emit("▶ ตั้งค่า docker-compose.yaml")
-    compose_path = os.path.join(target_c, "docker-compose.yaml")
-    with open(compose_path) as f:
-        txt = f.read()
+    emit("▶ สร้างโครงสร้าง instance")
+    os.makedirs(os.path.join(instance_dir, "directus", "uploads"), exist_ok=True)
 
-    for svc in ("db", "directus", "nextjs", "adminer"):
-        m = re.search(rf"container_name:\s*(\S+_{svc})\b", txt)
-        if m:
-            txt = txt.replace(m.group(1), f"{prefix}_{svc}")
-
-    txt = re.sub(r'"(\d+):5432"', f'"{pg_port}:5432"',        txt)
-    txt = re.sub(r'"(\d+):8055"', f'"{dir_port}:8055"',       txt)
-    txt = re.sub(r'"(\d+):3000"', f'"{next_port}:3000"',      txt)
-    txt = re.sub(r'"(\d+):8080"', f'"{adminer_port}:8080"',   txt)
-    txt = re.sub(r"PUBLIC_URL: http://localhost:\d+",
-                 f"PUBLIC_URL: http://localhost:{dir_port}", txt)
-    txt = re.sub(r"NEXT_PUBLIC_DIRECTUS_URL: http://localhost:\d+",
-                 f"NEXT_PUBLIC_DIRECTUS_URL: http://localhost:{dir_port}", txt)
-    txt = re.sub(r'SESSION_COOKIE_NAME: "[^"]+_session_token"',
-                 f'SESSION_COOKIE_NAME: "{prefix}_session_token"', txt)
-    txt = re.sub(r'REFRESH_TOKEN_COOKIE_NAME: "[^"]+_refresh_token"',
-                 f'REFRESH_TOKEN_COOKIE_NAME: "{prefix}_refresh_token"', txt)
-    txt = re.sub(r"\S+_postgres_data", f"{prefix}_postgres_data", txt)
-
+    compose_path = os.path.join(instance_dir, "docker-compose.yaml")
     with open(compose_path, "w") as f:
-        f.write(txt)
-    emit("✔ ตั้งค่าเสร็จ")
-
-    # Patch basePath / assetPrefix / NEXT_PUBLIC_BASE_PATH to match new prefix
-    old_base = detect_base_path(template_dir)
-    patch_base_paths(target_c, old_base, f"/{prefix}", emit)
+        f.write(_generate_compose(prefix, template_dir,
+                                  pg_port, dir_port, next_port, adminer_port))
+    emit("✔ docker-compose.yaml พร้อม")
 
     emit("▶ Build Next.js image (อาจใช้เวลาหลายนาที)")
     compose_run(["build", "nextjs"], emit, prefix=prefix, compose_file=compose_path)
@@ -541,8 +538,12 @@ def do_create_project(name: str, template_prefix: str, emit):
     emit("▶ เริ่ม PostgreSQL")
     compose_run(["up", "-d", "postgres"], emit, prefix=prefix, compose_file=compose_path)
 
+    # Import dump.sql from instance dir if present, else fall back to template dir
+    dump_path = os.path.join(instance_dir, "dump.sql")
+    if not os.path.isfile(dump_path):
+        dump_path = os.path.join(template_dir, "dump.sql")
     if _wait_for_pg(emit, f"{prefix}_db", retries=30):
-        _import_dump(emit, f"{prefix}_db", os.path.join(target_c, "dump.sql"))
+        _import_dump(emit, f"{prefix}_db", dump_path)
 
     emit("▶ เริ่ม containers ทั้งหมด")
     compose_run(["up", "-d", "directus", "nextjs", "adminer"], emit,
@@ -553,7 +554,7 @@ def do_create_project(name: str, template_prefix: str, emit):
     ok, msg = reload_caddy()
     emit(f"✔ Caddy reload {'สำเร็จ' if ok else f'ล้มเหลว: {msg}'}")
 
-    emit("═══ สร้างโปรเจคเสร็จสมบูรณ์! ═══")
+    emit("═══ สร้าง instance เสร็จสมบูรณ์! ═══")
     emit(f"  Frontend  : http://<server-ip>/{prefix}/")
     emit(f"  Directus  : http://<server-ip>/{prefix}-admin/")
     emit(f"  Adminer   : http://<server-ip>/{prefix}-db/")
@@ -704,6 +705,11 @@ def api_status():
 @app.get("/api/projects")
 def api_projects():
     return jsonify(detect_projects())
+
+
+@app.get("/api/templates")
+def api_templates():
+    return jsonify(list_templates())
 
 
 @app.delete("/api/projects/<prefix>")

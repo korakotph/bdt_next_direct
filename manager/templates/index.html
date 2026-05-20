@@ -46,7 +46,7 @@
           <p id="project-preview" class="text-xs text-gray-600 mt-1.5 font-mono min-h-[1.2em]"></p>
         </div>
         <div class="sm:col-span-1">
-          <label class="text-xs text-gray-400 block mb-1.5">คัดลอกจาก Template</label>
+          <label class="text-xs text-gray-400 block mb-1.5">Template (source code)</label>
           <select id="new-project-template"
             class="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-sm
                    text-white focus:outline-none focus:border-blue-500 font-mono">
@@ -351,6 +351,7 @@ function loadStatus() {
 // ── projects ───────────────────────────────────────────────────────────────
 
 function loadProjects() {
+  loadTemplateSelect();
   fetch(`${BASE}/api/projects`).then(r => r.json()).then(projects => {
     const el = document.getElementById('projects-list');
 
@@ -359,9 +360,8 @@ function loadProjects() {
       return;
     }
 
-    // Populate DB browser and template selectors
+    // Populate DB browser selector
     populateDBProjectSelect(projects.map(p => ({ prefix: p.name, is_current: false })));
-    populateTemplateSelect(projects);
 
     el.innerHTML = projects.map(p => {
       const svcs = ['db', 'directus', 'nextjs', 'adminer'];
@@ -417,17 +417,22 @@ function loadProjects() {
   });
 }
 
-function populateTemplateSelect(projects) {
+function loadTemplateSelect() {
   const sel = document.getElementById('new-project-template');
   const cur = sel.value;
-  sel.innerHTML = '<option value="">— เลือก template —</option>';
-  projects.forEach(p => {
-    const opt = document.createElement('option');
-    opt.value = p.name;
-    opt.textContent = p.name;
-    if (p.name === cur) opt.selected = true;
-    sel.appendChild(opt);
-  });
+  fetch(`${BASE}/api/templates`)
+    .then(r => r.json())
+    .then(names => {
+      sel.innerHTML = '<option value="">— เลือก template —</option>';
+      names.forEach(n => {
+        const opt = document.createElement('option');
+        opt.value = n;
+        opt.textContent = n;
+        if (n === cur) opt.selected = true;
+        sel.appendChild(opt);
+      });
+    })
+    .catch(() => {});
 }
 
 function toggleNewProject() {
