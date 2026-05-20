@@ -423,23 +423,23 @@ http://<server-ip>:{adminer_port}
 
 ### Sub-path Routing (basePath)
 
-ถ้า deploy หลาย project บน server เดียว (เช่นผ่าน reverse proxy) สามารถตั้ง sub-path ให้แต่ละ project ได้ใน `next-app/next.config.mjs`:
+`next.config.mjs` อ่าน basePath จาก environment variable อัตโนมัติ:
 
 ```js
 const nextConfig = {
   output: 'standalone',
-  basePath: '/myproject',      // Next.js frontend อยู่ที่ /myproject
-  assetPrefix: '/myproject',
+  basePath: process.env.NEXT_PUBLIC_BASE_PATH || '',
+  assetPrefix: process.env.NEXT_PUBLIC_BASE_PATH || '',
   images: { unoptimized: true },
 }
 ```
 
-และใน `next-app/.env.local` (หรือ `.env.production`):
+เมื่อสร้าง instance ผ่าน Manager, ค่า `NEXT_PUBLIC_BASE_PATH=/{prefix}` จะถูกส่งเป็น Docker build ARG โดยอัตโนมัติ — ไม่ต้องแก้ไขไฟล์เอง
 
-```env
-NEXT_PUBLIC_BASE_PATH=/myproject-admin
-NEXT_PUBLIC_DIRECTUS_URL=https://example.com/myproject-admin
-DIRECTUS_INTERNAL_URL=https://example.com/myproject-admin
+สำหรับ template หลัก (รันตรงโดยไม่ผ่าน Manager) ให้ตั้งค่าใน `docker-compose.yaml`:
+```yaml
+args:
+  NEXT_PUBLIC_BASE_PATH: ""   # หรือ "/myproject" ถ้าต้องการ sub-path
 ```
 
 ### ฟีเจอร์ใน Manager UI
