@@ -24,3 +24,4 @@ Thumbs.db
 install_log.txt
 export_log.txt
 directus/extensions/site-deploy/node_modules
+.claude/settings.local.json
