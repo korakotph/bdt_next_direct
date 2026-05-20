@@ -442,16 +442,12 @@ NEXT_PUBLIC_DIRECTUS_URL=https://example.com/myproject-admin
 DIRECTUS_INTERNAL_URL=https://example.com/myproject-admin
 ```
 
-> **Auto-update:** เมื่อสร้างโปรเจคใหม่ผ่าน Manager หรือรัน `install.sh` บน project ที่มี `basePath` ตั้งไว้แล้ว — ระบบจะเปลี่ยน path โดยอัตโนมัติ:
-> - `/old-project` → `/new-project`
-> - `/old-project-admin` → `/new-project-admin` (suffix ถูกเก็บไว้)
-
 ### ฟีเจอร์ใน Manager UI
 
 | ฟีเจอร์ | รายละเอียด |
 |---|---|
 | **All Projects** | ดูรายการ BDT stack ทั้งหมดบน server พร้อมสถานะ — คลิกเพื่อเลือก (auto-refresh ทุก 15 วิ) |
-| **+ New Project** | สร้างโปรเจคใหม่ — เลือก template, กำหนดชื่อ/port อัตโนมัติ, build และ start ทั้งหมด |
+| **+ New Project** | สร้าง instance ใหม่จาก template — ใช้ source code ร่วมกัน, กำหนดชื่อ/port อัตโนมัติ, build และ start ทั้งหมด |
 | **Selected Project Status** | สถานะ container (postgres/directus/nextjs/adminer) ของโปรเจคที่เลือก |
 | **Setup / Import Data** | Build Next.js, เริ่ม containers, import `dump.sql`, reset admin — ไม่ต้องใช้ terminal |
 | **Export Data** | Export database + uploads เป็น `.zip` พร้อม download ผ่านเบราว์เซอร์ |
@@ -459,9 +455,9 @@ DIRECTUS_INTERNAL_URL=https://example.com/myproject-admin
 | **Database Browser** | ดูข้อมูลในฐานข้อมูลแบบ table — เลือกดูได้ทุกโปรเจค, row count, pagination, ค้นหาข้อมูล |
 | **ลบโปรเจค** | หยุด containers, ลบ volumes, ลบ reverse proxy config, reload Caddy — ลบไฟล์ทั้งหมดในโฟลเดอร์โปรเจคด้วย (default เปิด, ยกเลิกได้ในหน้ายืนยัน) |
 
-> ไฟล์ export จะถูกเก็บไว้ในโฟลเดอร์ `_exports/` ภายในโปรเจคนั้นๆ
+> **Instance model:** แต่ละ instance ที่สร้างผ่าน Manager มีเฉพาะ `directus/uploads/` และ `docker-compose.yaml` ของตัวเอง — ไม่ copy source code แต่ชี้ Next.js build context ไปยัง `template/next-app` โดยตรง ทำให้ทุก instance ใช้ source code ชุดเดียวกันแต่มี database และ basePath (`/{prefix}`) เป็นของตัวเอง
 >
-> โปรเจคใหม่ที่สร้างผ่าน Manager จะถูกวางไว้ใน parent directory เดียวกับ template ที่เลือก
+> ไฟล์ export จะถูกเก็บไว้ในโฟลเดอร์ `_exports/` ภายในแต่ละ instance
 
 ### ข้อกำหนดของ Manager
 
