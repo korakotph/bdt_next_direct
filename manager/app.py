@@ -336,7 +336,7 @@ def do_setup(emit, prefix: str):
 
     emit("▶ ตั้งค่า Reverse Proxy")
     write_proxy_conf(prefix, emit)
-    ok, msg = reload_caddy()
+    ok, msg = sync_caddyfile(emit)
     emit(f"✔ Caddy reload {'สำเร็จ' if ok else f'ล้มเหลว: {msg}'}")
 
     emit("═══ Setup เสร็จสมบูรณ์! ═══")
@@ -551,7 +551,7 @@ def do_create_project(name: str, template_prefix: str, emit):
 
     emit("▶ ตั้งค่า Reverse Proxy")
     write_proxy_conf(prefix, emit)
-    ok, msg = reload_caddy()
+    ok, msg = sync_caddyfile(emit)
     emit(f"✔ Caddy reload {'สำเร็จ' if ok else f'ล้มเหลว: {msg}'}")
 
     emit("═══ สร้าง instance เสร็จสมบูรณ์! ═══")
@@ -574,7 +574,7 @@ def do_delete_project(emit, prefix: str, delete_files: bool = False):
 
     emit("▶ ลบ reverse proxy config")
     remove_proxy_conf(prefix)
-    ok, msg = reload_caddy()
+    ok, msg = sync_caddyfile(emit)
     emit(f"✔ Caddy reload {'สำเร็จ' if ok else f'ล้มเหลว: {msg}'}")
 
     if delete_files:
@@ -590,12 +590,89 @@ def do_delete_project(emit, prefix: str, delete_files: bool = False):
 
 # ── reverse proxy (Caddy) ────────────────────────────────────────────────────
 
+CADDY_CONF_FILE = "/etc/caddy/Caddyfile"
+BDT_START = "    # BDT-MANAGED-START"
+BDT_END   = "    # BDT-MANAGED-END"
+
+
 def proxy_conf_path(prefix: str) -> str:
     return os.path.join(CADDY_CONF_DIR, f"{prefix}.conf")
 
 
 def proxy_enabled(prefix: str) -> bool:
     return os.path.isfile(proxy_conf_path(prefix))
+
+
+def _caddy_read_caddyfile() -> str | None:
+    r = subprocess.run(
+        ["docker", "exec", CADDY_CONTAINER, "cat", CADDY_CONF_FILE],
+        capture_output=True, text=True, timeout=10,
+    )
+    return r.stdout if r.returncode == 0 else None
+
+
+def _caddy_write_caddyfile(content: str) -> bool:
+    r = subprocess.run(
+        ["docker", "exec", "-i", CADDY_CONTAINER,
+         "sh", "-c", f"cat > {CADDY_CONF_FILE}"],
+        input=content, capture_output=True, text=True, timeout=10,
+    )
+    return r.returncode == 0
+
+
+def _build_bdt_block() -> str:
+    """Build the BDT routes block from all .conf files in CADDY_CONF_DIR."""
+    lines = []
+    if not os.path.isdir(CADDY_CONF_DIR):
+        return ""
+    for fname in sorted(os.listdir(CADDY_CONF_DIR)):
+        if not fname.endswith(".conf"):
+            continue
+        try:
+            raw = open(os.path.join(CADDY_CONF_DIR, fname)).read()
+            for line in raw.splitlines():
+                if line.startswith("#"):
+                    continue
+                lines.append(("    " + line) if line.strip() else "")
+            lines.append("")
+        except Exception:
+            pass
+    return "\n".join(lines).rstrip()
+
+
+def sync_caddyfile(emit=None) -> tuple[bool, str]:
+    """Rebuild BDT section in the live Caddyfile and reload Caddy."""
+    content = _caddy_read_caddyfile()
+    if content is None:
+        msg = "ไม่สามารถอ่าน Caddyfile จาก Caddy container"
+        if emit:
+            emit(f"⚠ {msg}")
+        return False, msg
+
+    bdt_block = _build_bdt_block()
+    inner = f"\n{bdt_block}\n" if bdt_block else "\n"
+
+    if BDT_START in content and BDT_END in content:
+        si = content.index(BDT_START)
+        ei = content.index(BDT_END) + len(BDT_END)
+        new_content = content[:si] + BDT_START + inner + BDT_END + content[ei:]
+    else:
+        # First time: insert before catch-all `handle {` (no path)
+        m = re.search(r'\n(\s*handle\s*\{)', content)
+        insertion = f"\n{BDT_START}{inner}{BDT_END}"
+        if m:
+            new_content = content[: m.start()] + insertion + content[m.start():]
+        else:
+            idx = content.rfind("}")
+            new_content = content[:idx] + insertion + "\n}"
+
+    if not _caddy_write_caddyfile(new_content):
+        msg = "ไม่สามารถเขียน Caddyfile"
+        if emit:
+            emit(f"⚠ {msg}")
+        return False, msg
+
+    return reload_caddy()
 
 
 def _network_connect(container: str, emit=None, retries: int = 10) -> bool:
@@ -610,12 +687,10 @@ def _network_connect(container: str, emit=None, retries: int = 10) -> bool:
                 emit(f"   ✔ {container} → {CADDY_NETWORK}")
             return True
         stderr = r.stderr.strip()
-        # Already connected — treat as success
         if "already exists" in stderr:
             if emit:
                 emit(f"   ✔ {container} → {CADDY_NETWORK} (already connected)")
             return True
-        # Container not found yet — wait and retry
         if emit:
             emit(f"   รอ {container}... ({i + 1}/{retries})")
         time.sleep(2)
@@ -632,7 +707,7 @@ def _network_disconnect(container: str):
 
 
 def write_proxy_conf(prefix: str, emit=None):
-    """Connect project containers to Caddy network and write 3-route config."""
+    """Connect containers to Caddy network, save .conf file, sync Caddyfile."""
     nextjs   = f"{prefix}_nextjs"
     directus = f"{prefix}_directus"
     adminer  = f"{prefix}_adminer"
@@ -640,17 +715,14 @@ def write_proxy_conf(prefix: str, emit=None):
         _network_connect(c, emit)
     os.makedirs(CADDY_CONF_DIR, exist_ok=True)
     conf = (
-        f"# BDT Manager — {prefix} (auto-generated, do not edit)\n"
-        # Next.js uses basePath so keep /{prefix} prefix — no strip needed
+        f"# BDT Manager — {prefix} (auto-generated)\n"
         f"handle /{prefix}* {{\n"
         f"    reverse_proxy {nextjs}:3000\n"
         f"}}\n"
-        # Directus admin — strip prefix before forwarding
         f"handle /{prefix}-admin* {{\n"
         f"    uri strip_prefix /{prefix}-admin\n"
         f"    reverse_proxy {directus}:8055\n"
         f"}}\n"
-        # Adminer — strip prefix before forwarding
         f"handle /{prefix}-db* {{\n"
         f"    uri strip_prefix /{prefix}-db\n"
         f"    reverse_proxy {adminer}:8080\n"
@@ -671,10 +743,22 @@ def remove_proxy_conf(prefix: str):
 def reload_caddy() -> tuple[bool, str]:
     r = subprocess.run(
         ["docker", "exec", CADDY_CONTAINER,
-         "caddy", "reload", "--config", "/etc/caddy/Caddyfile"],
+         "caddy", "reload", "--config", CADDY_CONF_FILE],
         capture_output=True, text=True, timeout=10,
     )
     return r.returncode == 0, (r.stderr or r.stdout).strip()
+
+
+def _startup_caddy_sync():
+    """Re-sync Caddy on manager startup (restores routes if Caddy was restarted)."""
+    time.sleep(5)
+    if os.path.isdir(CADDY_CONF_DIR) and any(
+        f.endswith(".conf") for f in os.listdir(CADDY_CONF_DIR)
+    ):
+        sync_caddyfile()
+
+
+threading.Thread(target=_startup_caddy_sync, daemon=True).start()
 
 
 # ── routes ────────────────────────────────────────────────────────────────────
@@ -829,7 +913,7 @@ def api_proxy_enable(prefix: str):
         abort(400)
     messages = []
     write_proxy_conf(prefix, emit=messages.append)
-    ok, msg = reload_caddy()
+    ok, msg = sync_caddyfile(emit=messages.append)
     return jsonify({"ok": ok, "msg": msg, "log": messages})
 
 
@@ -838,7 +922,7 @@ def api_proxy_disable(prefix: str):
     if not re.match(r"^[a-z0-9_-]+$", prefix):
         abort(400)
     remove_proxy_conf(prefix)
-    ok, msg = reload_caddy()
+    ok, msg = sync_caddyfile()
     return jsonify({"ok": ok, "msg": msg})
 
 
