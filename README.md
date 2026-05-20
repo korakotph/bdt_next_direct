@@ -457,6 +457,7 @@ DIRECTUS_INTERNAL_URL=https://example.com/myproject-admin
 | **Export Data** | Export database + uploads เป็น `.zip` พร้อม download ผ่านเบราว์เซอร์ |
 | **Past Exports** | รายการไฟล์ export ของโปรเจคที่เลือก พร้อม download link |
 | **Database Browser** | ดูข้อมูลในฐานข้อมูลแบบ table — เลือกดูได้ทุกโปรเจค, row count, pagination, ค้นหาข้อมูล |
+| **ลบโปรเจค** | หยุด containers, ลบ volumes, ลบ reverse proxy config, reload Caddy — และ (optional) ลบไฟล์ทั้งหมดในโฟลเดอร์โปรเจค |
 
 > ไฟล์ export จะถูกเก็บไว้ในโฟลเดอร์ `_exports/` ภายในโปรเจคนั้นๆ
 >
