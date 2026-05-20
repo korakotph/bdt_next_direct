@@ -857,7 +857,7 @@ function toggleProxy() {
 function confirmDelete() {
   if (!selectedProject) return;
   document.getElementById('delete-project-name').textContent = selectedProject;
-  document.getElementById('delete-files-check').checked = false;
+  document.getElementById('delete-files-check').checked = true;
   document.getElementById('delete-modal').classList.remove('hidden');
 }
 
