@@ -767,8 +767,11 @@ function renderProxyBtn(enabled) {
     btn.textContent = 'Disable';
     btn.className = 'text-xs px-4 py-1.5 rounded-lg border transition-colors font-medium ' +
       'border-red-700/60 text-red-400 hover:bg-red-900/30';
-    urlEl.textContent = `/${selectedProject}/*  →  Next.js`;
-    urlEl.className = 'text-xs text-emerald-400 mt-0.5 font-mono';
+    urlEl.innerHTML =
+      `<span class="text-emerald-400">/${selectedProject}/</span>` +
+      ` &nbsp;·&nbsp; <span class="text-purple-400">/${selectedProject}-admin/</span>` +
+      ` &nbsp;·&nbsp; <span class="text-orange-400">/${selectedProject}-db/</span>`;
+    urlEl.className = 'text-xs mt-0.5 font-mono';
   } else {
     btn.textContent = 'Enable';
     btn.className = 'text-xs px-4 py-1.5 rounded-lg border transition-colors font-medium ' +

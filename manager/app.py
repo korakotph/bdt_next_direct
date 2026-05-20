@@ -399,9 +399,9 @@ def do_setup(emit, prefix: str):
 
     emit("═══ Setup เสร็จสมบูรณ์! ═══")
     emit(f'  Frontend  : http://<server-ip>/{prefix}/')
-    emit(f'  Directus  : http://<server-ip>:{info["dir_port"]}')
-    emit(f'  Adminer   : http://<server-ip>:{info["adminer_port"]}')
-    emit(f'  Admin     : http://<server-ip>:{info["dir_port"]}/admin/setup')
+    emit(f'  Directus  : http://<server-ip>/{prefix}-admin/')
+    emit(f'  Adminer   : http://<server-ip>/{prefix}-db/')
+    emit(f'  Admin     : http://<server-ip>/{prefix}-admin/admin/setup')
 
 
 # ── export ────────────────────────────────────────────────────────────────────
@@ -555,9 +555,9 @@ def do_create_project(name: str, template_prefix: str, emit):
 
     emit("═══ สร้างโปรเจคเสร็จสมบูรณ์! ═══")
     emit(f"  Frontend  : http://<server-ip>/{prefix}/")
-    emit(f"  Directus  : http://<server-ip>:{dir_port}")
-    emit(f"  Adminer   : http://<server-ip>:{adminer_port}")
-    emit(f"  Admin     : http://<server-ip>:{dir_port}/admin/setup")
+    emit(f"  Directus  : http://<server-ip>/{prefix}-admin/")
+    emit(f"  Adminer   : http://<server-ip>/{prefix}-db/")
+    emit(f"  Admin     : http://<server-ip>/{prefix}-admin/admin/setup")
 
 
 # ── reverse proxy (Caddy) ────────────────────────────────────────────────────
@@ -579,15 +579,28 @@ def _network_op(op: str, container: str):
 
 
 def write_proxy_conf(prefix: str):
-    """Connect nextjs container to Caddy network and write config snippet."""
-    nextjs = f"{prefix}_nextjs"
-    _network_op("connect", nextjs)
+    """Connect project containers to Caddy network and write 3 route config."""
+    nextjs   = f"{prefix}_nextjs"
+    directus = f"{prefix}_directus"
+    adminer  = f"{prefix}_adminer"
+    for c in [nextjs, directus, adminer]:
+        _network_op("connect", c)
     os.makedirs(CADDY_CONF_DIR, exist_ok=True)
-    # Next.js uses basePath so keep /{prefix} intact — no uri strip_prefix needed
     conf = (
         f"# BDT Manager — {prefix} (auto-generated, do not edit)\n"
+        # Next.js uses basePath so keep /{prefix} prefix — no strip needed
         f"handle /{prefix}* {{\n"
         f"    reverse_proxy {nextjs}:3000\n"
+        f"}}\n"
+        # Directus admin — strip prefix before forwarding
+        f"handle /{prefix}-admin* {{\n"
+        f"    uri strip_prefix /{prefix}-admin\n"
+        f"    reverse_proxy {directus}:8055\n"
+        f"}}\n"
+        # Adminer — strip prefix before forwarding
+        f"handle /{prefix}-db* {{\n"
+        f"    uri strip_prefix /{prefix}-db\n"
+        f"    reverse_proxy {adminer}:8080\n"
         f"}}\n"
     )
     with open(proxy_conf_path(prefix), "w") as f:
@@ -598,7 +611,8 @@ def remove_proxy_conf(prefix: str):
     p = proxy_conf_path(prefix)
     if os.path.isfile(p):
         os.remove(p)
-    _network_op("disconnect", f"{prefix}_nextjs")
+    for c in [f"{prefix}_nextjs", f"{prefix}_directus", f"{prefix}_adminer"]:
+        _network_op("disconnect", c)
 
 
 def reload_caddy() -> tuple[bool, str]:
