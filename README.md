@@ -344,8 +344,10 @@ networks:
         reverse_proxy bdt_manager:9090
     }
 
-    # Manager จะสร้าง handle blocks ข้างล่างนี้อัตโนมัติ
-    import /etc/caddy/conf.d/*.conf
+    # Manager จะเพิ่ม BDT-MANAGED block ลงตรงนี้อัตโนมัติ
+    handle {
+        reverse_proxy app:3000
+    }
 }
 ```
 
@@ -365,46 +367,24 @@ Admin     : http://<server-ip>/{prefix}-admin/admin/setup
 
 Manager ใช้ชื่อ container โดยตรงและ **auto-connect** ทั้ง 3 containers (`_nextjs`, `_directus`, `_adminer`) เข้า Caddy network อัตโนมัติ
 
-**Config ที่ถูก generate (ตัวอย่าง project `cms`):**
+**Config ที่ถูก inject ลง Caddyfile (ตัวอย่าง project `cms`):**
 ```
-handle /cms* {
-    reverse_proxy cms_nextjs:3000
-}
-handle /cms-admin* {
-    uri strip_prefix /cms-admin
-    reverse_proxy cms_directus:8055
-}
-handle /cms-db* {
-    uri strip_prefix /cms-db
-    reverse_proxy cms_adminer:8080
-}
-```
-
-**ต้องทำครั้งเดียวบน server:**
-
-1. สร้าง folder รับ config:
-```bash
-mkdir -p /var/www/_caddy
+    # BDT-MANAGED-START
+    handle /cms* {
+        reverse_proxy cms_nextjs:3000
+    }
+    handle /cms-admin* {
+        uri strip_prefix /cms-admin
+        reverse_proxy cms_directus:8055
+    }
+    handle /cms-db* {
+        uri strip_prefix /cms-db
+        reverse_proxy cms_adminer:8080
+    }
+    # BDT-MANAGED-END
 ```
 
-2. Mount เข้า Caddy container (`docker-compose.yaml` ของ Caddy):
-```yaml
-caddy:
-  volumes:
-    - /var/www/_caddy:/etc/caddy/conf.d
-```
-
-3. เพิ่ม `import` ใน Caddyfile:
-```
-import /etc/caddy/conf.d/*.conf
-```
-
-4. Restart Caddy:
-```bash
-docker compose restart caddy
-```
-
-หลังจากนั้น Manager จะจัดการ config และ network ให้อัตโนมัติทุกครั้งที่ setup/create โปรเจค
+**ไม่ต้องตั้งค่าพิเศษเพิ่มเติม** — Manager เขียน routes ลง Caddyfile ของ Caddy container โดยตรงผ่าน `docker exec` แล้ว reload อัตโนมัติ เมื่อ Manager restart ก็จะ sync routes กลับคืนให้เองในกรณีที่ Caddy ถูก restart ไปก่อน
 
 > env vars ที่ปรับได้: `CADDY_CONTAINER` (default: `caddy`), `CADDY_NETWORK` (default: `caddy_web`)
 
