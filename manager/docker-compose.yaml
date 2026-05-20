@@ -1,5 +1,3 @@
-version: "3.9"
-
 # Standalone Manager — deploy with:
 #   HOST_PROJECTS_ROOT=/var/www BASE_PATH=/manager \
 #   docker compose -f manager/docker-compose.yaml up -d --build
