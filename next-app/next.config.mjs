@@ -1,14 +1,11 @@
 /** @type {import('next').NextConfig} */
-// const nextConfig = {
-//   output: 'standalone',
-//   basePath: '/greenoffice',
-//   assetPrefix: '/greenoffice',
-//   images: {
-//     unoptimized: true,
-//   },
-// }
 const nextConfig = {
   output: 'standalone',
+  basePath: process.env.NEXT_PUBLIC_BASE_PATH || '',
+  assetPrefix: process.env.NEXT_PUBLIC_BASE_PATH || '',
+  images: {
+    unoptimized: true,
+  },
 }
 
 export default nextConfig
