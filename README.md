@@ -356,16 +356,27 @@ Manager จะ **auto-enable reverse proxy อัตโนมัติ** ทุ�
 สรุปผลหลัง setup จะแสดง:
 ```
 Frontend  : http://<server-ip>/{prefix}/
+Directus  : http://<server-ip>/{prefix}-admin/
+Adminer   : http://<server-ip>/{prefix}-db/
+Admin     : http://<server-ip>/{prefix}-admin/admin/setup
 ```
 
 นอกจากนี้ยังกด Enable/Disable ได้เองในหน้า Selected Project
 
-Manager ใช้ชื่อ container โดยตรง (เช่น `cms_nextjs:3000`) และ **auto-connect** container เข้า Caddy network อัตโนมัติเมื่อ enable — ไม่ต้องใช้ `host.docker.internal`
+Manager ใช้ชื่อ container โดยตรงและ **auto-connect** ทั้ง 3 containers (`_nextjs`, `_directus`, `_adminer`) เข้า Caddy network อัตโนมัติ
 
-**Config ที่ถูก generate:**
+**Config ที่ถูก generate (ตัวอย่าง project `cms`):**
 ```
 handle /cms* {
     reverse_proxy cms_nextjs:3000
+}
+handle /cms-admin* {
+    uri strip_prefix /cms-admin
+    reverse_proxy cms_directus:8055
+}
+handle /cms-db* {
+    uri strip_prefix /cms-db
+    reverse_proxy cms_adminer:8080
 }
 ```
 
