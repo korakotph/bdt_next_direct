@@ -507,6 +507,7 @@ def do_import_zip(emit, prefix: str, zip_path: str, server_url: str = ""):
         if uploads_src:
             uploads_dst = os.path.join(project_dir, "directus", "uploads")
             os.makedirs(uploads_dst, exist_ok=True)
+            os.chmod(uploads_dst, 0o777)
             count = 0
             for src_file in pathlib.Path(uploads_src).rglob("*"):
                 if not src_file.is_file():
@@ -657,7 +658,9 @@ def do_create_project(name: str, template_prefix: str, emit, server_url: str = "
     emit(f"   Adminer    → {adminer_port}")
 
     emit("▶ สร้างโครงสร้าง instance")
-    os.makedirs(os.path.join(instance_dir, "directus", "uploads"), exist_ok=True)
+    uploads_dir = os.path.join(instance_dir, "directus", "uploads")
+    os.makedirs(uploads_dir, exist_ok=True)
+    os.chmod(uploads_dir, 0o777)
 
     compose_path = os.path.join(instance_dir, "docker-compose.yaml")
     with open(compose_path, "w") as f:
