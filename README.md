@@ -329,7 +329,7 @@ Manager จะ mount `/var/www` ไว้ที่ `/var/www` ในตัวม
 | `CADDY_CONTAINER` | `caddy` | ชื่อ container ของ Caddy |
 | `CADDY_NETWORK` | `caddy_web` | Docker network ที่ share กับ Caddy |
 
-> Manager auto-detect server URL จาก `X-Forwarded-Host` / `Host` header ทุกครั้งที่สร้าง project หรือ import ZIP เพื่อตั้ง Directus `PUBLIC_URL` ให้ถูกต้องโดยอัตโนมัติ
+> Manager auto-detect server URL จาก `X-Forwarded-Host` / `Host` header ทุกครั้งที่สร้าง project หรือ import ZIP เพื่อตั้ง Directus `PUBLIC_URL` และ `NEXT_PUBLIC_DIRECTUS_URL` ให้ถูกต้องโดยอัตโนมัติ (`http://<server>/{prefix}-admin`)
 
 ### ใช้กับ Reverse Proxy (เช่น Caddy) ที่ sub-path
 
@@ -432,7 +432,14 @@ const nextConfig = {
 }
 ```
 
-เมื่อสร้าง instance ผ่าน Manager, ค่า `NEXT_PUBLIC_BASE_PATH=/{prefix}` จะถูกส่งเป็น Docker build ARG โดยอัตโนมัติ — ไม่ต้องแก้ไขไฟล์เอง
+เมื่อสร้าง instance ผ่าน Manager, ค่าต่อไปนี้จะถูกตั้งเป็น Docker build ARG โดยอัตโนมัติ — ไม่ต้องแก้ไขไฟล์เอง:
+
+| Build ARG | ค่า |
+|---|---|
+| `NEXT_PUBLIC_BASE_PATH` | `/{prefix}` |
+| `NEXT_PUBLIC_DIRECTUS_URL` | `http://<server>/{prefix}-admin` |
+
+> `NEXT_PUBLIC_DIRECTUS_URL` ถูก bake เข้า JS bundle ตอน build เพื่อให้ browser เรียก Directus API ผ่าน reverse proxy ถูก URL — ถ้า domain เปลี่ยนหลัง deploy แล้ว ให้กดปุ่ม **Fix URL** ใน Manager เพื่อ patch compose file และ rebuild อัตโนมัติ
 
 สำหรับ template หลัก (รันตรงโดยไม่ผ่าน Manager) ให้ตั้งค่าใน `docker-compose.yaml`:
 ```yaml
@@ -449,7 +456,8 @@ args:
 | **Selected Project Status** | สถานะ container (postgres/directus/nextjs/adminer) ของโปรเจคที่เลือก |
 | **Setup** | Build Next.js, เริ่ม containers, import `dump.sql`, reset admin — ไม่ต้องใช้ terminal |
 | **Export Data** | Export database + uploads เป็น `.zip` พร้อม download ผ่านเบราว์เซอร์ |
-| **Import ZIP** | อัพโหลดไฟล์ `.zip` (format เดียวกับ Export) เพื่อนำเข้า database และ uploads ทับข้อมูลเดิม |
+| **Import ZIP** | อัพโหลดไฟล์ `.zip` (format เดียวกับ Export) เพื่อนำเข้า database และ uploads ทับข้อมูลเดิม — auto-replace `localhost` URL ในฐานข้อมูล และ rebuild Next.js หลัง import |
+| **Fix URL** | อัพเดต `PUBLIC_URL` (Directus) + `NEXT_PUBLIC_DIRECTUS_URL` (Next.js) ให้ใช้ URL ปัจจุบัน แล้ว rebuild Next.js — ใช้เมื่อ domain เปลี่ยนโดยไม่ต้อง import ใหม่ |
 | **Past Exports** | รายการไฟล์ export ของโปรเจคที่เลือก พร้อม download link |
 | **Database Browser** | ดูข้อมูลในฐานข้อมูลแบบ table — เลือกดูได้ทุกโปรเจค, row count, pagination, ค้นหาข้อมูล |
 | **ลบโปรเจค** | หยุด containers, ลบ volumes, ลบ reverse proxy config, reload Caddy — ลบไฟล์ทั้งหมดในโฟลเดอร์โปรเจคด้วย (default เปิด, ยกเลิกได้ในหน้ายืนยัน) |
