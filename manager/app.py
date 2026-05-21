@@ -404,14 +404,37 @@ def do_export(emit, prefix: str):
     emit(f"DOWNLOAD:{prefix}/{zip_name}")
 
 
-def do_import_zip(emit, prefix: str, zip_path: str):
+def _directus_public_url(prefix: str, server_url: str = "") -> str:
+    base = server_url.rstrip("/") or PUBLIC_HOST.rstrip("/")
+    if base:
+        return f"{base}/{prefix}-admin"
+    info = compose_info(prefix)
+    return f"http://localhost:{info.get('dir_port', '8055')}"
+
+
+def _patch_directus_public_url(emit, prefix: str, server_url: str):
+    """Rewrite PUBLIC_URL in the project's docker-compose.yaml and restart Directus."""
+    new_url = _directus_public_url(prefix, server_url)
+    compose_path = os.path.join(get_project_dir(prefix), "docker-compose.yaml")
+    if not os.path.isfile(compose_path):
+        return
+    with open(compose_path, "r") as f:
+        content = f.read()
+    updated = re.sub(r'PUBLIC_URL:.*', f'PUBLIC_URL: {new_url}', content)
+    if updated == content:
+        emit(f"   PUBLIC_URL ถูกต้องแล้ว: {new_url}")
+        return
+    with open(compose_path, "w") as f:
+        f.write(updated)
+    emit(f"✔ PUBLIC_URL → {new_url}")
+    compose_run(["restart", "directus"], emit, prefix=prefix)
+
+
+def do_import_zip(emit, prefix: str, zip_path: str, server_url: str = ""):
     project_dir = get_project_dir(prefix)
     info = compose_info(prefix)
-    pg   = info.get("pg", f"{prefix}_db")
-    new_url = (
-        f"{PUBLIC_HOST}/{prefix}-admin" if PUBLIC_HOST
-        else f"http://localhost:{info.get('dir_port', '')}"
-    ).rstrip("/")
+    pg      = info.get("pg", f"{prefix}_db")
+    new_url = _directus_public_url(prefix, server_url)
     emit(f"═══ Import ZIP: {prefix} ═══")
 
     tmp = zip_path + "_extracted"
@@ -466,6 +489,9 @@ def do_import_zip(emit, prefix: str, zip_path: str):
         else:
             emit("⚠ ไม่พบ directus/uploads/ ใน zip — ข้าม")
 
+        emit("▶ อัพเดต PUBLIC_URL และ restart Directus")
+        _patch_directus_public_url(emit, prefix, server_url)
+
         emit("═══ Import เสร็จสมบูรณ์! ═══")
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
@@ -476,11 +502,9 @@ def do_import_zip(emit, prefix: str, zip_path: str):
 
 def _generate_compose(prefix: str, template_dir: str,
                       pg_port: int, dir_port: int,
-                      next_port: int, adminer_port: int) -> str:
-    directus_public_url = (
-        f"{PUBLIC_HOST}/{prefix}-admin" if PUBLIC_HOST
-        else f"http://localhost:{dir_port}"
-    )
+                      next_port: int, adminer_port: int,
+                      server_url: str = "") -> str:
+    directus_public_url = _directus_public_url(prefix, server_url)
     return f"""\
 services:
   postgres:
@@ -561,7 +585,7 @@ volumes:
 """
 
 
-def do_create_project(name: str, template_prefix: str, emit):
+def do_create_project(name: str, template_prefix: str, emit, server_url: str = ""):
     prefix = re.sub(r"[^a-z0-9_-]", "_", name.lower().strip())
     prefix = re.sub(r"_+", "_", prefix).strip("_")
     if not prefix:
@@ -604,7 +628,8 @@ def do_create_project(name: str, template_prefix: str, emit):
     compose_path = os.path.join(instance_dir, "docker-compose.yaml")
     with open(compose_path, "w") as f:
         f.write(_generate_compose(prefix, template_dir,
-                                  pg_port, dir_port, next_port, adminer_port))
+                                  pg_port, dir_port, next_port, adminer_port,
+                                  server_url))
     emit("✔ docker-compose.yaml พร้อม")
 
     emit("▶ Build Next.js image (อาจใช้เวลาหลายนาที)")
@@ -902,7 +927,10 @@ def api_create_project():
         return jsonify({"error": "name required"}), 400
     if not template:
         return jsonify({"error": "template required"}), 400
-    job_id = start_job(lambda emit: do_create_project(name, template, emit))
+    scheme = request.headers.get("X-Forwarded-Proto", "http")
+    host   = request.headers.get("X-Forwarded-Host") or request.host.split(":")[0]
+    server_url = PUBLIC_HOST or f"{scheme}://{host}"
+    job_id = start_job(lambda emit: do_create_project(name, template, emit, server_url))
     return jsonify({"job_id": job_id})
 
 
@@ -928,7 +956,10 @@ def api_import(prefix: str):
     tmp_path = os.path.join(get_exports_dir(prefix), f"import_{uuid.uuid4().hex}.zip")
     os.makedirs(get_exports_dir(prefix), exist_ok=True)
     f.save(tmp_path)
-    job_id = start_job(lambda emit: do_import_zip(emit, prefix, tmp_path))
+    scheme = request.headers.get("X-Forwarded-Proto", "http")
+    host   = request.headers.get("X-Forwarded-Host") or request.host.split(":")[0]
+    server_url = PUBLIC_HOST or f"{scheme}://{host}"
+    job_id = start_job(lambda emit: do_import_zip(emit, prefix, tmp_path, server_url))
     return jsonify({"job_id": job_id})
 
 
