@@ -978,7 +978,7 @@ def api_db_tables():
     pg = f"{project}_db"
     try:
         tables = pg_query(pg, """
-            SELECT t.table_name,
+            SELECT t.table_name AS name,
                    s.n_live_tup AS row_count,
                    COUNT(c.column_name) AS col_count
             FROM information_schema.tables t
