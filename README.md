@@ -312,7 +312,6 @@ Manager เป็น standalone container แยกออกจาก project st
 ```bash
 HOST_PROJECTS_ROOT=/var/www \
   BASE_PATH=/manager \
-  PUBLIC_HOST=http://<server-ip> \
   docker compose -f manager/docker-compose.yaml up -d --build
 
 # เปิดเบราว์เซอร์ไปที่
@@ -325,12 +324,12 @@ Manager จะ mount `/var/www` ไว้ที่ `/var/www` ในตัวม
 |---|---|---|
 | `HOST_PROJECTS_ROOT` | *(required)* | path บน host ที่เก็บทุกโปรเจค |
 | `BASE_PATH` | (ว่าง) | sub-path ที่ Manager อยู่ เช่น `/manager` |
-| `PUBLIC_HOST` | (ว่าง) | URL สาธารณะของ server เช่น `http://192.168.1.10` หรือ `https://example.com` — ใช้ตั้ง Directus `PUBLIC_URL` ให้ถูกต้อง |
+| `PUBLIC_HOST` | (ว่าง) | override URL สาธารณะของ server เช่น `https://example.com` — ถ้าไม่ตั้งค่า Manager จะ auto-detect จาก HTTP request headers แทน |
 | `MANAGER_PORT` | `8090` | port ที่ expose Manager ออก host |
 | `CADDY_CONTAINER` | `caddy` | ชื่อ container ของ Caddy |
 | `CADDY_NETWORK` | `caddy_web` | Docker network ที่ share กับ Caddy |
 
-> **หมายเหตุ**: `PUBLIC_HOST` ใช้ตั้ง `PUBLIC_URL` ให้ Directus รู้ว่าอยู่ที่ path ไหน — Directus admin panel เข้าผ่าน direct port เสมอ (ไม่ใช่ sub-path)
+> Manager auto-detect server URL จาก `X-Forwarded-Host` / `Host` header ทุกครั้งที่สร้าง project หรือ import ZIP เพื่อตั้ง Directus `PUBLIC_URL` ให้ถูกต้องโดยอัตโนมัติ
 
 ### ใช้กับ Reverse Proxy (เช่น Caddy) ที่ sub-path
 
