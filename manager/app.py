@@ -2,6 +2,7 @@
 """BDT Next Direct — Management Server"""
 import json
 import os
+import pathlib
 import re
 import shutil
 import subprocess
@@ -14,6 +15,7 @@ from datetime import datetime
 from flask import Flask, Response, abort, jsonify, render_template, request, send_from_directory
 
 app = Flask(__name__)
+app.config["MAX_CONTENT_LENGTH"] = 2 * 1024 * 1024 * 1024  # 2 GB
 
 PROJECTS_ROOT   = os.environ.get("PROJECTS_ROOT", "/projects_root")
 BASE_PATH       = os.environ.get("BASE_PATH",     "").rstrip("/")
@@ -400,6 +402,51 @@ def do_export(emit, prefix: str):
     emit(f"✔ {zip_name} ({mb:.1f} MB)")
     emit("═══ Export เสร็จสมบูรณ์! ═══")
     emit(f"DOWNLOAD:{prefix}/{zip_name}")
+
+
+def do_import_zip(emit, prefix: str, zip_path: str):
+    project_dir = get_project_dir(prefix)
+    info = compose_info(prefix)
+    pg   = info.get("pg", f"{prefix}_db")
+    emit(f"═══ Import ZIP: {prefix} ═══")
+
+    tmp = zip_path + "_extracted"
+    try:
+        emit("▶ แตก zip")
+        with zipfile.ZipFile(zip_path, "r") as zf:
+            zf.extractall(tmp)
+        emit("✔ แตกไฟล์สำเร็จ")
+
+        dump_path = os.path.join(tmp, "dump.sql")
+        if os.path.isfile(dump_path):
+            if not _wait_for_pg(emit, pg, retries=10):
+                emit("✘ PostgreSQL ไม่พร้อม — ยกเลิก import database")
+            else:
+                _import_dump(emit, pg, dump_path)
+        else:
+            emit("⚠ ไม่พบ dump.sql ใน zip — ข้าม import database")
+
+        uploads_src = os.path.join(tmp, "directus", "uploads")
+        if os.path.isdir(uploads_src):
+            uploads_dst = os.path.join(project_dir, "directus", "uploads")
+            os.makedirs(uploads_dst, exist_ok=True)
+            count = 0
+            for src_file in pathlib.Path(uploads_src).rglob("*"):
+                if not src_file.is_file():
+                    continue
+                rel = src_file.relative_to(uploads_src)
+                dst_file = pathlib.Path(uploads_dst) / rel
+                dst_file.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(str(src_file), str(dst_file))
+                count += 1
+            emit(f"✔ คัดลอก uploads {count} ไฟล์")
+        else:
+            emit("⚠ ไม่พบ directus/uploads/ ใน zip — ข้าม")
+
+        emit("═══ Import เสร็จสมบูรณ์! ═══")
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
+        os.remove(zip_path)
 
 
 # ── create instance ───────────────────────────────────────────────────────────
@@ -843,6 +890,22 @@ def api_setup():
     if not prefix:
         return jsonify({"error": "project required"}), 400
     job_id = start_job(lambda emit: do_setup(emit, prefix))
+    return jsonify({"job_id": job_id})
+
+
+@app.post("/api/import/<prefix>")
+def api_import(prefix: str):
+    if not re.match(r"^[a-z0-9_-]+$", prefix):
+        abort(400)
+    f = request.files.get("file")
+    if not f:
+        return jsonify({"error": "file required"}), 400
+    if not f.filename.endswith(".zip"):
+        return jsonify({"error": "ต้องเป็นไฟล์ .zip เท่านั้น"}), 400
+    tmp_path = os.path.join(get_exports_dir(prefix), f"import_{uuid.uuid4().hex}.zip")
+    os.makedirs(get_exports_dir(prefix), exist_ok=True)
+    f.save(tmp_path)
+    job_id = start_job(lambda emit: do_import_zip(emit, prefix, tmp_path))
     return jsonify({"job_id": job_id})
 
 
