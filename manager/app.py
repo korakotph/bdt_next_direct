@@ -560,10 +560,10 @@ def do_create_project(name: str, template_prefix: str, emit):
     emit(f"✔ Caddy reload {'สำเร็จ' if ok else f'ล้มเหลว: {msg}'}")
 
     emit("═══ สร้าง instance เสร็จสมบูรณ์! ═══")
-    emit(f"  Frontend  : http://<server-ip>/{prefix}/")
-    emit(f"  Directus  : http://<server-ip>/{prefix}-admin/")
-    emit(f"  Adminer   : http://<server-ip>/{prefix}-db/")
-    emit(f"  Admin     : http://<server-ip>/{prefix}-admin/admin/setup")
+    emit(f"  Frontend       : http://<server-ip>/{prefix}/")
+    emit(f"  Directus API   : http://<server-ip>/{prefix}-admin/  (สำหรับ Next.js)")
+    emit(f"  Directus Admin : http://<server-ip>:{dir_port}/admin/setup")
+    emit(f"  Adminer        : http://<server-ip>/{prefix}-db/")
 
 
 # ── delete project ────────────────────────────────────────────────────────────

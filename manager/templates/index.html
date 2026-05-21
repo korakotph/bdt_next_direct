@@ -293,6 +293,7 @@ const STATUS_STYLE = {
 
 let selectedProject = '';
 let newProjectOpen  = false;
+let projectPortMap  = {};  // prefix → {directus, nextjs, adminer}
 
 // ── project selection ──────────────────────────────────────────────────────
 
@@ -360,6 +361,9 @@ function loadProjects() {
       return;
     }
 
+    // Store port info for proxy links
+    projects.forEach(p => { projectPortMap[p.name] = p.ports || {}; });
+
     // Populate DB browser selector
     populateDBProjectSelect(projects.map(p => ({ prefix: p.name, is_current: false })));
 
@@ -372,16 +376,17 @@ function loadProjects() {
         return `<span class="${cls} text-xs" title="${label}: ${st}">${dot}</span>`;
       }).join('');
 
+      const h = window.location.hostname;
       const portLinks = [];
       if (p.ports.directus)
-        portLinks.push(`<a href="http://localhost:${p.ports.directus}" target="_blank"
-          class="text-purple-400 hover:text-purple-300 hover:underline">:${p.ports.directus}</a>`);
+        portLinks.push(`<a href="http://${h}:${p.ports.directus}/admin/" target="_blank"
+          class="text-purple-400 hover:text-purple-300 hover:underline" title="Directus Admin">admin :${p.ports.directus}</a>`);
       if (p.ports.nextjs)
-        portLinks.push(`<a href="http://localhost:${p.ports.nextjs}" target="_blank"
-          class="text-emerald-400 hover:text-emerald-300 hover:underline">:${p.ports.nextjs}</a>`);
+        portLinks.push(`<a href="http://${h}:${p.ports.nextjs}" target="_blank"
+          class="text-emerald-400 hover:text-emerald-300 hover:underline" title="Next.js">next :${p.ports.nextjs}</a>`);
       if (p.ports.adminer)
-        portLinks.push(`<a href="http://localhost:${p.ports.adminer}" target="_blank"
-          class="text-orange-400 hover:text-orange-300 hover:underline text-xs">db :${p.ports.adminer}</a>`);
+        portLinks.push(`<a href="http://${h}:${p.ports.adminer}" target="_blank"
+          class="text-orange-400 hover:text-orange-300 hover:underline" title="Adminer">db :${p.ports.adminer}</a>`);
 
       return `
         <div class="project-row flex items-center justify-between py-2.5 border-b border-gray-800
@@ -808,9 +813,14 @@ function renderProxyBtn(enabled) {
     btn.className = 'text-xs px-4 py-1.5 rounded-lg border transition-colors font-medium ' +
       'border-red-700/60 text-red-400 hover:bg-red-900/30';
     const orig = window.location.origin;
+    const h = window.location.hostname;
+    const ports = projectPortMap[selectedProject] || {};
+    const adminLink = ports.directus
+      ? `<a href="http://${h}:${ports.directus}/admin/" target="_blank" class="text-purple-400 hover:underline">admin :${ports.directus}</a>`
+      : `<span class="text-purple-400/50">/${selectedProject}-admin/</span>`;
     urlEl.innerHTML =
       `<a href="${orig}/${selectedProject}/" target="_blank" class="text-emerald-400 hover:underline">/${selectedProject}/</a>` +
-      ` &nbsp;·&nbsp; <a href="${orig}/${selectedProject}-admin/" target="_blank" class="text-purple-400 hover:underline">/${selectedProject}-admin/</a>` +
+      ` &nbsp;·&nbsp; ${adminLink}` +
       ` &nbsp;·&nbsp; <a href="${orig}/${selectedProject}-db/" target="_blank" class="text-orange-400 hover:underline">/${selectedProject}-db/</a>`;
     urlEl.className = 'text-xs mt-0.5 font-mono';
   } else {
