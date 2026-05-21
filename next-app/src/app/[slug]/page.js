@@ -21,9 +21,11 @@ export default async function Page({ params }) {
   const { blocks } = page
 
   return (
-    <main className="font-prompt">
+    <main className="font-prompt flex flex-col min-h-screen">
       <Navbar settings={setting}/>
-      <BlockRenderer blocks={blocks}/>
+      <div className="flex-1">
+        <BlockRenderer blocks={blocks}/>
+      </div>
       <Footer settings={setting}/>
     </main>
   )
