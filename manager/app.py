@@ -404,7 +404,7 @@ def do_export(emit, prefix: str):
     emit(f"DOWNLOAD:{prefix}/{zip_name}")
 
 
-def do_import_zip(emit, prefix: str, zip_path: str, old_url: str = ""):
+def do_import_zip(emit, prefix: str, zip_path: str):
     project_dir = get_project_dir(prefix)
     info = compose_info(prefix)
     pg   = info.get("pg", f"{prefix}_db")
@@ -426,15 +426,16 @@ def do_import_zip(emit, prefix: str, zip_path: str, old_url: str = ""):
 
         dump_path = os.path.join(tmp, "dump.sql")
         if os.path.isfile(dump_path):
-            src = old_url.rstrip("/") if old_url else ""
-            if src and new_url and src != new_url:
-                emit(f"▶ Replace URL: {src} → {new_url}")
+            if new_url:
                 with open(dump_path, "r", encoding="utf-8", errors="replace") as f:
                     sql = f.read()
-                sql = sql.replace(src, new_url)
-                with open(dump_path, "w", encoding="utf-8") as f:
-                    f.write(sql)
-                emit("✔ URL replaced ใน dump.sql")
+                # Replace every http://localhost:PORT occurrence with the new URL
+                replaced = re.sub(r'http://localhost:\d+', new_url, sql)
+                if replaced != sql:
+                    count = len(re.findall(r'http://localhost:\d+', sql))
+                    with open(dump_path, "w", encoding="utf-8") as f:
+                        f.write(replaced)
+                    emit(f"✔ Replace localhost URLs → {new_url} ({count} จุด)")
             if not _wait_for_pg(emit, pg, retries=10):
                 emit("✘ PostgreSQL ไม่พร้อม — ยกเลิก import database")
             else:
@@ -927,8 +928,7 @@ def api_import(prefix: str):
     tmp_path = os.path.join(get_exports_dir(prefix), f"import_{uuid.uuid4().hex}.zip")
     os.makedirs(get_exports_dir(prefix), exist_ok=True)
     f.save(tmp_path)
-    old_url = (request.form.get("old_url") or "").strip()
-    job_id = start_job(lambda emit: do_import_zip(emit, prefix, tmp_path, old_url))
+    job_id = start_job(lambda emit: do_import_zip(emit, prefix, tmp_path))
     return jsonify({"job_id": job_id})
 
 

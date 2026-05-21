@@ -244,31 +244,6 @@
     </div>
   </div>
 
-  <!-- ═══ Import ZIP Modal ═══ -->
-  <div id="import-modal" class="hidden fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-    <div class="bg-gray-900 border border-amber-900/60 rounded-2xl p-6 w-full max-w-sm shadow-2xl">
-      <div class="text-xl mb-1">📥</div>
-      <h3 class="text-white font-semibold mb-1">Import ZIP</h3>
-      <p class="text-gray-400 text-xs mb-4 leading-relaxed">
-        ถ้า URL รูปภาพใน database ชี้ไปที่ server เดิม ให้ใส่ URL เดิมเพื่อ replace อัตโนมัติ
-      </p>
-      <label class="block text-xs text-gray-400 mb-1">Old Directus URL (ถ้ามี)</label>
-      <input id="import-old-url" type="text" placeholder="http://localhost:8056"
-        class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white
-               placeholder-gray-600 focus:outline-none focus:border-amber-500 mb-4 font-mono">
-      <div class="flex gap-3 justify-end">
-        <button onclick="closeImportModal()"
-          class="px-4 py-2 rounded-lg border border-gray-700 text-gray-400 text-sm hover:bg-gray-800">
-          ยกเลิก
-        </button>
-        <button onclick="confirmImport()"
-          class="px-4 py-2 rounded-lg bg-amber-700 hover:bg-amber-600 text-white text-sm font-medium">
-          เลือกไฟล์ →
-        </button>
-      </div>
-    </div>
-  </div>
-
   <!-- ═══ Delete Confirmation Modal ═══ -->
   <div id="delete-modal" class="hidden fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
     <div class="bg-gray-900 border border-red-900/60 rounded-2xl p-6 w-full max-w-sm shadow-2xl">
@@ -515,21 +490,8 @@ function createProject() {
 
 // ── import zip ──────────────────────────────────────────────────────────────
 
-let _importOldUrl = '';
-
 function triggerImport() {
   if (!selectedProject) { alert('เลือก project ก่อน'); return; }
-  document.getElementById('import-modal').classList.remove('hidden');
-  document.getElementById('import-old-url').value = '';
-}
-
-function closeImportModal() {
-  document.getElementById('import-modal').classList.add('hidden');
-}
-
-function confirmImport() {
-  _importOldUrl = (document.getElementById('import-old-url').value || '').trim();
-  closeImportModal();
   document.getElementById('import-file-input').value = '';
   document.getElementById('import-file-input').click();
 }
@@ -543,7 +505,6 @@ function uploadImportFile(input) {
 
   const form = new FormData();
   form.append('file', file);
-  if (_importOldUrl) form.append('old_url', _importOldUrl);
   fetch(`${BASE}/api/import/${encodeURIComponent(selectedProject)}`, {
     method: 'POST', body: form,
   })
