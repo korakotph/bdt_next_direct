@@ -716,9 +716,6 @@ def write_proxy_conf(prefix: str, emit=None):
     os.makedirs(CADDY_CONF_DIR, exist_ok=True)
     conf = (
         f"# BDT Manager — {prefix} (auto-generated)\n"
-        f"handle /{prefix}* {{\n"
-        f"    reverse_proxy {nextjs}:3000\n"
-        f"}}\n"
         f"handle /{prefix}-admin* {{\n"
         f"    uri strip_prefix /{prefix}-admin\n"
         f"    reverse_proxy {directus}:8055\n"
@@ -726,6 +723,9 @@ def write_proxy_conf(prefix: str, emit=None):
         f"handle /{prefix}-db* {{\n"
         f"    uri strip_prefix /{prefix}-db\n"
         f"    reverse_proxy {adminer}:8080\n"
+        f"}}\n"
+        f"handle /{prefix}* {{\n"
+        f"    reverse_proxy {nextjs}:3000\n"
         f"}}\n"
     )
     with open(proxy_conf_path(prefix), "w") as f:
