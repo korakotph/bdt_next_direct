@@ -414,7 +414,10 @@ def do_import_zip(emit, prefix: str, zip_path: str):
     try:
         emit("▶ แตก zip")
         with zipfile.ZipFile(zip_path, "r") as zf:
-            zf.extractall(tmp)
+            # Normalize Windows backslash paths before extracting
+            for member in zf.infolist():
+                member.filename = member.filename.replace("\\", "/")
+                zf.extract(member, tmp)
         emit("✔ แตกไฟล์สำเร็จ")
 
         dump_path = os.path.join(tmp, "dump.sql")
@@ -426,8 +429,14 @@ def do_import_zip(emit, prefix: str, zip_path: str):
         else:
             emit("⚠ ไม่พบ dump.sql ใน zip — ข้าม import database")
 
-        uploads_src = os.path.join(tmp, "directus", "uploads")
-        if os.path.isdir(uploads_src):
+        # Find uploads directory (supports both / and \ ZIP path formats)
+        uploads_src = None
+        for root, dirs, _ in os.walk(tmp):
+            if (os.path.basename(root) == "uploads" and
+                    os.path.basename(os.path.dirname(root)) == "directus"):
+                uploads_src = root
+                break
+        if uploads_src:
             uploads_dst = os.path.join(project_dir, "directus", "uploads")
             os.makedirs(uploads_dst, exist_ok=True)
             count = 0
