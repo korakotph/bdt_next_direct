@@ -7,7 +7,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-950 text-gray-100 min-h-screen">
-<div class="max-w-4xl mx-auto p-6 space-y-5">
+<div class="max-w-full mx-auto p-6 space-y-5">
 
   <!-- Header -->
   <div class="flex items-center justify-between">
@@ -204,7 +204,7 @@
 
           <!-- Data table -->
           <div class="flex-1 overflow-auto">
-            <table class="w-full text-xs border-collapse">
+            <table class="w-full text-xs border-collapse table-fixed">
               <thead id="db-thead"
                 class="sticky top-0 bg-gray-800/95 backdrop-blur text-gray-400 z-10"></thead>
               <tbody id="db-tbody"
@@ -743,6 +743,23 @@ function dbPage(delta) {
   loadTableData();
 }
 
+function initColResize() {
+  const thead = document.getElementById('db-thead');
+  thead.querySelectorAll('.col-resizer').forEach(handle => {
+    const th = handle.parentElement;
+    let startX, startW;
+    handle.addEventListener('mousedown', e => {
+      e.preventDefault();
+      startX = e.clientX;
+      startW = th.offsetWidth;
+      const onMove = ev => { th.style.width = Math.max(60, startW + ev.clientX - startX) + 'px'; };
+      const onUp   = ()  => { document.removeEventListener('mousemove', onMove); document.removeEventListener('mouseup', onUp); };
+      document.addEventListener('mousemove', onMove);
+      document.addEventListener('mouseup', onUp);
+    });
+  });
+}
+
 function loadTableData() {
   if (!db.table) return;
   const params = new URLSearchParams({
@@ -767,13 +784,15 @@ function loadTableData() {
 
       document.getElementById('db-thead').innerHTML = `<tr>
         ${data.columns.map(c => `
-          <th class="px-3 py-2 text-left font-semibold whitespace-nowrap border-b border-gray-700">
+          <th class="relative px-3 py-2 text-left font-semibold whitespace-nowrap border-b border-gray-700 select-none" style="min-width:80px">
             ${c.name}
             <span class="text-gray-600 font-normal text-xs ml-1">
               ${c.type.replace('character varying', 'varchar')}
             </span>
+            <div class="col-resizer absolute right-0 top-0 h-full w-2 cursor-col-resize hover:bg-blue-500/40 active:bg-blue-500/60"></div>
           </th>`).join('')}
       </tr>`;
+      initColResize();
 
       if (!data.rows.length) {
         document.getElementById('db-tbody').innerHTML =
