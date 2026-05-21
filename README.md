@@ -448,8 +448,9 @@ args:
 | **All Projects** | ดูรายการ BDT stack ทั้งหมดบน server พร้อมสถานะ — คลิกเพื่อเลือก (auto-refresh ทุก 15 วิ) |
 | **+ New Project** | สร้าง instance ใหม่จาก template — ใช้ source code ร่วมกัน, กำหนดชื่อ/port อัตโนมัติ, build และ start ทั้งหมด |
 | **Selected Project Status** | สถานะ container (postgres/directus/nextjs/adminer) ของโปรเจคที่เลือก |
-| **Setup / Import Data** | Build Next.js, เริ่ม containers, import `dump.sql`, reset admin — ไม่ต้องใช้ terminal |
+| **Setup** | Build Next.js, เริ่ม containers, import `dump.sql`, reset admin — ไม่ต้องใช้ terminal |
 | **Export Data** | Export database + uploads เป็น `.zip` พร้อม download ผ่านเบราว์เซอร์ |
+| **Import ZIP** | อัพโหลดไฟล์ `.zip` (format เดียวกับ Export) เพื่อนำเข้า database และ uploads ทับข้อมูลเดิม |
 | **Past Exports** | รายการไฟล์ export ของโปรเจคที่เลือก พร้อม download link |
 | **Database Browser** | ดูข้อมูลในฐานข้อมูลแบบ table — เลือกดูได้ทุกโปรเจค, row count, pagination, ค้นหาข้อมูล |
 | **ลบโปรเจค** | หยุด containers, ลบ volumes, ลบ reverse proxy config, reload Caddy — ลบไฟล์ทั้งหมดในโฟลเดอร์โปรเจคด้วย (default เปิด, ยกเลิกได้ในหน้ายืนยัน) |
