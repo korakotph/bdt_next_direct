@@ -551,7 +551,9 @@ def do_create_project(name: str, template_prefix: str, emit):
         _import_dump(emit, f"{prefix}_db", dump_path)
 
     emit("▶ เริ่ม containers ทั้งหมด")
-    compose_run(["up", "-d", "directus", "nextjs", "adminer"], emit,
+    compose_run(["up", "-d", "--no-build", "directus", "adminer"], emit,
+                prefix=prefix, compose_file=compose_path)
+    compose_run(["up", "-d", "nextjs"], emit,
                 prefix=prefix, compose_file=compose_path)
 
     emit("▶ ตั้งค่า Reverse Proxy")
