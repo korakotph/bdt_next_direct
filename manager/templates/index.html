@@ -123,6 +123,15 @@
           นำเข้าข้อมูล database + รูปภาพจากไฟล์ zip
         </div>
       </button>
+      <button onclick="runFixUrl()"
+        class="bg-violet-900/40 hover:bg-violet-800/50 border border-violet-700/50 hover:border-violet-600
+               rounded-xl p-4 text-left transition-all disabled:opacity-40 disabled:cursor-not-allowed">
+        <div class="text-xl mb-1.5">🔗</div>
+        <div class="font-semibold text-violet-300 mb-1 text-sm">Fix URL</div>
+        <div class="text-xs text-violet-400/70 leading-relaxed">
+          อัพเดต PUBLIC_URL + rebuild Next.js ให้ใช้ URL ปัจจุบัน
+        </div>
+      </button>
     </div>
     <input type="file" id="import-file-input" accept=".zip" class="hidden"
            onchange="uploadImportFile(this)">
@@ -514,6 +523,20 @@ function uploadImportFile(input) {
     streamJob(data.job_id, () => {});
   })
   .catch(err => { log.textContent += `✘ Upload failed: ${err}\n`; });
+}
+
+// ── fix url ─────────────────────────────────────────────────────────────────
+
+function runFixUrl() {
+  if (!selectedProject) { alert('เลือก project ก่อน'); return; }
+  openLog(`Fix URL: ${selectedProject}`);
+  fetch(`${BASE}/api/fix-url/${encodeURIComponent(selectedProject)}`, { method: 'POST' })
+    .then(r => r.json())
+    .then(({ job_id, error }) => {
+      if (error) { appendLog(`✘ ${error}`); finishLog('error'); return; }
+      streamJob(job_id, () => loadStatus());
+    })
+    .catch(e => { appendLog(`✘ ${e}`); finishLog('error'); });
 }
 
 // ── action buttons ─────────────────────────────────────────────────────────

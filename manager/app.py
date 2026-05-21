@@ -313,12 +313,15 @@ def _import_dump(emit, pg: str, dump_path: str):
 
 # ── setup ─────────────────────────────────────────────────────────────────────
 
-def do_setup(emit, prefix: str):
+def do_setup(emit, prefix: str, server_url: str = ""):
     project_dir  = get_project_dir(prefix)
     compose_file = os.path.join(project_dir, "docker-compose.yaml")
     info = compose_info(prefix)
     pg   = info["pg"]
     emit(f"═══ Setup: {prefix} ═══")
+
+    emit("▶ อัพเดต NEXT_PUBLIC_DIRECTUS_URL ใน compose")
+    _patch_nextjs_directus_url_compose_only(emit, prefix, server_url)
 
     emit("▶ Build Next.js image (อาจใช้เวลาหลายนาที)")
     compose_run(["build", "nextjs"], emit, prefix=prefix, compose_file=compose_file)
@@ -430,6 +433,32 @@ def _patch_directus_public_url(emit, prefix: str, server_url: str):
     compose_run(["restart", "directus"], emit, prefix=prefix)
 
 
+def _patch_nextjs_directus_url_compose_only(emit, prefix: str, server_url: str) -> bool:
+    """Rewrite NEXT_PUBLIC_DIRECTUS_URL in compose file only. Returns True if changed."""
+    new_url = _directus_public_url(prefix, server_url)
+    compose_path = os.path.join(get_project_dir(prefix), "docker-compose.yaml")
+    if not os.path.isfile(compose_path):
+        return False
+    with open(compose_path, "r") as f:
+        content = f.read()
+    updated = re.sub(r'NEXT_PUBLIC_DIRECTUS_URL:.*', f'NEXT_PUBLIC_DIRECTUS_URL: {new_url}', content)
+    if updated == content:
+        emit(f"   NEXT_PUBLIC_DIRECTUS_URL ถูกต้องแล้ว: {new_url}")
+        return False
+    with open(compose_path, "w") as f:
+        f.write(updated)
+    emit(f"✔ NEXT_PUBLIC_DIRECTUS_URL → {new_url}")
+    return True
+
+
+def _patch_nextjs_directus_url(emit, prefix: str, server_url: str):
+    """Rewrite NEXT_PUBLIC_DIRECTUS_URL in compose and rebuild+restart nextjs."""
+    changed = _patch_nextjs_directus_url_compose_only(emit, prefix, server_url)
+    if changed:
+        emit("▶ rebuild + restart nextjs (อาจใช้เวลา 1-2 นาที)")
+        compose_run(["up", "-d", "--build", "nextjs"], emit, prefix=prefix)
+
+
 def do_import_zip(emit, prefix: str, zip_path: str, server_url: str = ""):
     project_dir = get_project_dir(prefix)
     info = compose_info(prefix)
@@ -491,6 +520,9 @@ def do_import_zip(emit, prefix: str, zip_path: str, server_url: str = ""):
 
         emit("▶ อัพเดต PUBLIC_URL และ restart Directus")
         _patch_directus_public_url(emit, prefix, server_url)
+
+        emit("▶ อัพเดต NEXT_PUBLIC_DIRECTUS_URL และ rebuild Next.js")
+        _patch_nextjs_directus_url(emit, prefix, server_url)
 
         emit("═══ Import เสร็จสมบูรณ์! ═══")
     finally:
@@ -556,7 +588,7 @@ services:
     build:
       context: {template_dir}/next-app
       args:
-        NEXT_PUBLIC_DIRECTUS_URL: http://localhost:{dir_port}
+        NEXT_PUBLIC_DIRECTUS_URL: {directus_public_url}
         NEXT_PUBLIC_BASE_PATH: "/{prefix}"
     container_name: {prefix}_nextjs
     restart: unless-stopped
@@ -564,7 +596,7 @@ services:
       - "{next_port}:3000"
     environment:
       DIRECTUS_INTERNAL_URL: http://{prefix}_directus:8055
-      NEXT_PUBLIC_DIRECTUS_URL: http://localhost:{dir_port}
+      NEXT_PUBLIC_DIRECTUS_URL: {directus_public_url}
       NEXT_PUBLIC_BASE_PATH: "/{prefix}"
     depends_on:
       - directus
@@ -940,7 +972,29 @@ def api_setup():
     prefix = (data.get("project") or "").strip()
     if not prefix:
         return jsonify({"error": "project required"}), 400
-    job_id = start_job(lambda emit: do_setup(emit, prefix))
+    scheme = request.headers.get("X-Forwarded-Proto", "http")
+    host   = request.headers.get("X-Forwarded-Host") or request.host.split(":")[0]
+    server_url = PUBLIC_HOST or f"{scheme}://{host}"
+    job_id = start_job(lambda emit: do_setup(emit, prefix, server_url))
+    return jsonify({"job_id": job_id})
+
+
+@app.post("/api/fix-url/<prefix>")
+def api_fix_url(prefix: str):
+    """Patch PUBLIC_URL + NEXT_PUBLIC_DIRECTUS_URL and rebuild nextjs for an existing project."""
+    if not re.match(r"^[a-z0-9_-]+$", prefix):
+        abort(400)
+    scheme = request.headers.get("X-Forwarded-Proto", "http")
+    host   = request.headers.get("X-Forwarded-Host") or request.host.split(":")[0]
+    server_url = PUBLIC_HOST or f"{scheme}://{host}"
+    def _fix(emit):
+        emit(f"═══ Fix URL: {prefix} ═══")
+        emit("▶ อัพเดต PUBLIC_URL (Directus)")
+        _patch_directus_public_url(emit, prefix, server_url)
+        emit("▶ อัพเดต NEXT_PUBLIC_DIRECTUS_URL (Next.js) + rebuild")
+        _patch_nextjs_directus_url(emit, prefix, server_url)
+        emit("═══ เสร็จสมบูรณ์! ═══")
+    job_id = start_job(_fix)
     return jsonify({"job_id": job_id})
 
 
