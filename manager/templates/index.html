@@ -807,10 +807,11 @@ function renderProxyBtn(enabled) {
     btn.textContent = 'Disable';
     btn.className = 'text-xs px-4 py-1.5 rounded-lg border transition-colors font-medium ' +
       'border-red-700/60 text-red-400 hover:bg-red-900/30';
+    const orig = window.location.origin;
     urlEl.innerHTML =
-      `<span class="text-emerald-400">/${selectedProject}/</span>` +
-      ` &nbsp;·&nbsp; <span class="text-purple-400">/${selectedProject}-admin/</span>` +
-      ` &nbsp;·&nbsp; <span class="text-orange-400">/${selectedProject}-db/</span>`;
+      `<a href="${orig}/${selectedProject}/" target="_blank" class="text-emerald-400 hover:underline">/${selectedProject}/</a>` +
+      ` &nbsp;·&nbsp; <a href="${orig}/${selectedProject}-admin/" target="_blank" class="text-purple-400 hover:underline">/${selectedProject}-admin/</a>` +
+      ` &nbsp;·&nbsp; <a href="${orig}/${selectedProject}-db/" target="_blank" class="text-orange-400 hover:underline">/${selectedProject}-db/</a>`;
     urlEl.className = 'text-xs mt-0.5 font-mono';
   } else {
     btn.textContent = 'Enable';
