@@ -635,8 +635,10 @@ function toggleDB() {
   db.open = !db.open;
   document.getElementById('db-panel').classList.toggle('hidden', !db.open);
   document.getElementById('db-chevron').textContent = db.open ? '▲' : '▼';
-  if (db.open && !db.loaded) loadDBTables();
   if (db.open) {
+    const sel = document.getElementById('db-project-select');
+    if (!db.project && sel.value) { db.project = sel.value; db.loaded = false; }
+    if (!db.loaded) loadDBTables();
     const inp = document.getElementById('db-search');
     if (!inp._wired) {
       inp._wired = true;
@@ -658,11 +660,13 @@ function loadDBTables() {
       '<span class="text-gray-600 p-2 block">เลือก project ก่อน</span>';
     return;
   }
+  document.getElementById('table-list').innerHTML =
+    '<span class="text-gray-500 p-2 block text-xs animate-pulse">Loading tables…</span>';
   const qs = `?project=${encodeURIComponent(db.project)}`;
   fetch(`${BASE}/api/db/tables${qs}`).then(r => r.json()).then(data => {
     if (data.error) {
       document.getElementById('table-list').innerHTML =
-        `<span class="text-red-400 p-2 block">${data.error}</span>`;
+        `<span class="text-red-400 p-2 block text-xs">⚠ ${data.error}</span>`;
       return;
     }
     db.tables = data;
@@ -670,9 +674,10 @@ function loadDBTables() {
     renderTableList('');
     const first = data.find(t => !t.name.startsWith('directus_')) || data[0];
     if (first) selectTable(first.name);
-  }).catch(() => {
+  }).catch(err => {
     document.getElementById('table-list').innerHTML =
-      `<span class="text-red-400 p-2 block text-xs">Connection failed</span>`;
+      `<span class="text-red-400 p-2 block text-xs">⚠ Connection failed</span>`;
+    console.error('DB tables fetch error:', err);
   });
 }
 
