@@ -1,5 +1,5 @@
 # Standalone Manager — deploy with:
-#   HOST_PROJECTS_ROOT=/var/www BASE_PATH=/manager \
+#   HOST_PROJECTS_ROOT=/var/www BASE_PATH=/manager PUBLIC_HOST=http://192.168.1.10 \
 #   docker compose -f manager/docker-compose.yaml up -d --build
 
 services:
@@ -21,6 +21,9 @@ services:
       CADDY_CONTAINER: ${CADDY_CONTAINER:-caddy}
       # CADDY_NETWORK: Docker network shared with Caddy
       CADDY_NETWORK: ${CADDY_NETWORK:-caddy_web}
+      # PUBLIC_HOST: public URL of this server (e.g. http://192.168.1.10 or https://example.com)
+      # Used to set Directus PUBLIC_URL correctly for sub-path routing
+      PUBLIC_HOST: ${PUBLIC_HOST:-}
     extra_hosts:
       - "host.docker.internal:host-gateway"
     volumes:

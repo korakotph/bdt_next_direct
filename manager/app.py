@@ -20,6 +20,7 @@ BASE_PATH       = os.environ.get("BASE_PATH",     "").rstrip("/")
 CADDY_CONTAINER    = os.environ.get("CADDY_CONTAINER",    "caddy")
 CADDY_NETWORK      = os.environ.get("CADDY_NETWORK",      "caddy_web")
 CADDY_CONF_DIR     = os.path.join(PROJECTS_ROOT, "_caddy")
+PUBLIC_HOST        = os.environ.get("PUBLIC_HOST", "").rstrip("/")
 
 _jobs: dict = {}
 _lock = threading.Lock()
@@ -406,6 +407,10 @@ def do_export(emit, prefix: str):
 def _generate_compose(prefix: str, template_dir: str,
                       pg_port: int, dir_port: int,
                       next_port: int, adminer_port: int) -> str:
+    directus_public_url = (
+        f"{PUBLIC_HOST}/{prefix}-admin" if PUBLIC_HOST
+        else f"http://localhost:{dir_port}"
+    )
     return f"""\
 services:
   postgres:
@@ -445,7 +450,7 @@ services:
       STORAGE_LOCATIONS: local
       STORAGE_LOCAL_DRIVER: local
       STORAGE_LOCAL_ROOT: /directus/uploads
-      PUBLIC_URL: http://localhost:{dir_port}
+      PUBLIC_URL: {directus_public_url}
       SESSION_COOKIE_NAME: "{prefix}_session_token"
       REFRESH_TOKEN_COOKIE_NAME: "{prefix}_refresh_token"
     volumes:
