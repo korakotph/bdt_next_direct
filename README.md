@@ -310,7 +310,9 @@ Manager เป็น standalone container แยกออกจาก project st
 **`HOST_PROJECTS_ROOT` เป็น required** — path บน host ที่เก็บ project ทุกโปรเจค (parent folder)
 
 ```bash
-HOST_PROJECTS_ROOT=/var/www BASE_PATH=/manager \
+HOST_PROJECTS_ROOT=/var/www \
+  BASE_PATH=/manager \
+  PUBLIC_HOST=http://<server-ip> \
   docker compose -f manager/docker-compose.yaml up -d --build
 
 # เปิดเบราว์เซอร์ไปที่
@@ -319,7 +321,16 @@ http://<server-ip>/manager
 
 Manager จะ mount `/var/www` ไว้ที่ `/var/www` ในตัวมันเองด้วย — ทำให้ `docker compose build/up` ทำงานได้ถูกต้องจากใน container
 
-> เปลี่ยน port ได้ด้วย `MANAGER_PORT=9999` (default: 8090) | เปลี่ยน Caddy network ด้วย `CADDY_NETWORK=my_net` (default: `caddy_web`)
+| Env var | Default | คำอธิบาย |
+|---|---|---|
+| `HOST_PROJECTS_ROOT` | *(required)* | path บน host ที่เก็บทุกโปรเจค |
+| `BASE_PATH` | (ว่าง) | sub-path ที่ Manager อยู่ เช่น `/manager` |
+| `PUBLIC_HOST` | (ว่าง) | URL สาธารณะของ server เช่น `http://192.168.1.10` หรือ `https://example.com` — ใช้ตั้ง Directus `PUBLIC_URL` ให้ถูกต้อง |
+| `MANAGER_PORT` | `8090` | port ที่ expose Manager ออก host |
+| `CADDY_CONTAINER` | `caddy` | ชื่อ container ของ Caddy |
+| `CADDY_NETWORK` | `caddy_web` | Docker network ที่ share กับ Caddy |
+
+> **สำคัญ**: ถ้าไม่ตั้ง `PUBLIC_HOST` Directus admin panel จะ load ไม่ได้เมื่อเข้าผ่าน reverse proxy เพราะ SPA จะ call API ผิด URL
 
 ### ใช้กับ Reverse Proxy (เช่น Caddy) ที่ sub-path
 
