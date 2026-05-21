@@ -369,12 +369,9 @@ Manager จะ **auto-enable reverse proxy อัตโนมัติ** ทุ�
 สรุปผลหลัง setup จะแสดง:
 ```
 Frontend       : http://<server-ip>/{prefix}/
-Directus API   : http://<server-ip>/{prefix}-admin/  (สำหรับ Next.js เรียก API)
-Directus Admin : http://<server-ip>:{dir_port}/admin/setup
+Directus Admin : http://<server-ip>/{prefix}-admin/admin/
 Adminer        : http://<server-ip>/{prefix}-db/
 ```
-
-> **หมายเหตุ**: Directus admin panel ต้องเข้าผ่าน **direct port** (เช่น `:8056`) ไม่ใช่ sub-path — เพราะ Directus admin SPA มี asset paths แบบ `/admin/assets/...` ที่ hardcoded ใน Docker image ทำให้ไม่สามารถ proxy ผ่าน sub-path ได้
 
 นอกจากนี้ยังกด Enable/Disable ได้เองในหน้า Selected Project
 
@@ -383,8 +380,12 @@ Manager ใช้ชื่อ container โดยตรงและ **auto-conne
 **Config ที่ถูก inject ลง Caddyfile (ตัวอย่าง project `cms`):**
 ```
     # BDT-MANAGED-START
-    handle /cms* {
-        reverse_proxy cms_nextjs:3000
+    @cms_admin_ref {
+        path /admin*
+        header Referer */cms-admin*
+    }
+    handle @cms_admin_ref {
+        reverse_proxy cms_directus:8055
     }
     handle /cms-admin* {
         uri strip_prefix /cms-admin
@@ -394,8 +395,13 @@ Manager ใช้ชื่อ container โดยตรงและ **auto-conne
         uri strip_prefix /cms-db
         reverse_proxy cms_adminer:8080
     }
+    handle /cms* {
+        reverse_proxy cms_nextjs:3000
+    }
     # BDT-MANAGED-END
 ```
+
+`@cms_admin_ref` คือ named matcher สำหรับ asset paths (`/admin/assets/...`) ที่ Directus admin SPA request โดยตรง — ใช้ `Referer` header เพื่อแยกแต่ละ instance ออกจากกัน รองรับ multi-instance
 
 **ไม่ต้องตั้งค่าพิเศษเพิ่มเติม** — Manager เขียน routes ลง Caddyfile ของ Caddy container โดยตรงผ่าน `docker exec` แล้ว reload อัตโนมัติ เมื่อ Manager restart ก็จะ sync routes กลับคืนให้เองในกรณีที่ Caddy ถูก restart ไปก่อน
 
