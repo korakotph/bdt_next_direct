@@ -20,6 +20,10 @@ COPY . .
 # build Next.js (NEXT_PUBLIC_* จะถูก bake เข้า bundle ตรงนี้)
 RUN npm run build
 
+# standalone ต้องการ static + public files อยู่ใน standalone dir
+RUN cp -r .next/static .next/standalone/.next/static && \
+    cp -r public .next/standalone/public 2>/dev/null || true
+
 EXPOSE 3000
 
-CMD ["npm", "start"]
+CMD ["node", ".next/standalone/server.js"]
