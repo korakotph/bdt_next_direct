@@ -719,8 +719,18 @@ def write_proxy_conf(prefix: str, emit=None):
     for c in [nextjs, directus, adminer]:
         _network_connect(c, emit)
     os.makedirs(CADDY_CONF_DIR, exist_ok=True)
+    # Named matcher catches /admin/* asset requests that originate from this
+    # instance's admin page (identified by Referer header). Required because
+    # Directus admin SPA has hardcoded /admin/assets/... paths.
     conf = (
         f"# BDT Manager — {prefix} (auto-generated)\n"
+        f"@{prefix}_admin_ref {{\n"
+        f"    path /admin*\n"
+        f"    header Referer */{prefix}-admin*\n"
+        f"}}\n"
+        f"handle @{prefix}_admin_ref {{\n"
+        f"    reverse_proxy {directus}:8055\n"
+        f"}}\n"
         f"handle /{prefix}-admin* {{\n"
         f"    uri strip_prefix /{prefix}-admin\n"
         f"    reverse_proxy {directus}:8055\n"

@@ -813,14 +813,9 @@ function renderProxyBtn(enabled) {
     btn.className = 'text-xs px-4 py-1.5 rounded-lg border transition-colors font-medium ' +
       'border-red-700/60 text-red-400 hover:bg-red-900/30';
     const orig = window.location.origin;
-    const h = window.location.hostname;
-    const ports = projectPortMap[selectedProject] || {};
-    const adminLink = ports.directus
-      ? `<a href="http://${h}:${ports.directus}/admin/" target="_blank" class="text-purple-400 hover:underline">admin :${ports.directus}</a>`
-      : `<span class="text-purple-400/50">/${selectedProject}-admin/</span>`;
     urlEl.innerHTML =
       `<a href="${orig}/${selectedProject}/" target="_blank" class="text-emerald-400 hover:underline">/${selectedProject}/</a>` +
-      ` &nbsp;·&nbsp; ${adminLink}` +
+      ` &nbsp;·&nbsp; <a href="${orig}/${selectedProject}-admin/admin/" target="_blank" class="text-purple-400 hover:underline">/${selectedProject}-admin/</a>` +
       ` &nbsp;·&nbsp; <a href="${orig}/${selectedProject}-db/" target="_blank" class="text-orange-400 hover:underline">/${selectedProject}-db/</a>`;
     urlEl.className = 'text-xs mt-0.5 font-mono';
   } else {
