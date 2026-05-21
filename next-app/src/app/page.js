@@ -1,5 +1,8 @@
 import { redirect } from "next/navigation";
+import { getSiteSettings } from "@/lib/site-settings";
 
-export default function RootPage() {
-  redirect("/");
+export default async function RootPage() {
+  const settings = await getSiteSettings();
+  const firstPage = settings?.first_page;
+  redirect(firstPage ? `/${firstPage}` : "/");
 }
