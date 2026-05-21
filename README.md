@@ -519,7 +519,7 @@ docker compose restart directus
 | `header_theme` | รูปแบบ Navbar: `1` = แถวเดียว (โลโก้ซ้าย เมนูขวา), `2` = สองแถว (แถว 1 โลโก้, แถว 2 เมนู) |
 | `footer_color` / `footer_text_color` | สีของ Footer |
 | `footer_theme` | รูปแบบ Footer: `1` = กึ่งกลาง (footer_name อย่างเดียว), `2` = footer_name ซ้าย / footer_content ขวา |
-| `first_page` | slug ของหน้าแรก |
+| `first_page` | slug ของหน้าแรก — เมื่อเข้า URL หลัก (`/`) จะ redirect ไปยัง `/{first_page}` อัตโนมัติ |
 | `landing` | เปิด/ปิด popup ข่าว |
 
 > **Favicon อัตโนมัติ:** เมื่อตั้งค่า `logo` ใน Site Settings, Next.js จะใช้รูปนั้นเป็น favicon (`<link rel="icon">`) โดยอัตโนมัติ หากยังไม่ได้ตั้งค่า logo จะใช้ไฟล์ `favicon.ico` เริ่มต้น
