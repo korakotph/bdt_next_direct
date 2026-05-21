@@ -330,7 +330,7 @@ Manager จะ mount `/var/www` ไว้ที่ `/var/www` ในตัวม
 | `CADDY_CONTAINER` | `caddy` | ชื่อ container ของ Caddy |
 | `CADDY_NETWORK` | `caddy_web` | Docker network ที่ share กับ Caddy |
 
-> **สำคัญ**: ถ้าไม่ตั้ง `PUBLIC_HOST` Directus admin panel จะ load ไม่ได้เมื่อเข้าผ่าน reverse proxy เพราะ SPA จะ call API ผิด URL
+> **หมายเหตุ**: `PUBLIC_HOST` ใช้ตั้ง `PUBLIC_URL` ให้ Directus รู้ว่าอยู่ที่ path ไหน — Directus admin panel เข้าผ่าน direct port เสมอ (ไม่ใช่ sub-path)
 
 ### ใช้กับ Reverse Proxy (เช่น Caddy) ที่ sub-path
 
@@ -368,11 +368,13 @@ Manager จะ **auto-enable reverse proxy อัตโนมัติ** ทุ�
 
 สรุปผลหลัง setup จะแสดง:
 ```
-Frontend  : http://<server-ip>/{prefix}/
-Directus  : http://<server-ip>/{prefix}-admin/
-Adminer   : http://<server-ip>/{prefix}-db/
-Admin     : http://<server-ip>/{prefix}-admin/admin/setup
+Frontend       : http://<server-ip>/{prefix}/
+Directus API   : http://<server-ip>/{prefix}-admin/  (สำหรับ Next.js เรียก API)
+Directus Admin : http://<server-ip>:{dir_port}/admin/setup
+Adminer        : http://<server-ip>/{prefix}-db/
 ```
+
+> **หมายเหตุ**: Directus admin panel ต้องเข้าผ่าน **direct port** (เช่น `:8056`) ไม่ใช่ sub-path — เพราะ Directus admin SPA มี asset paths แบบ `/admin/assets/...` ที่ hardcoded ใน Docker image ทำให้ไม่สามารถ proxy ผ่าน sub-path ได้
 
 นอกจากนี้ยังกด Enable/Disable ได้เองในหน้า Selected Project
 
