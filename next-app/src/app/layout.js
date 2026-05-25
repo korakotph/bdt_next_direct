@@ -21,7 +21,7 @@ export default async function RootLayout({ children }) {
   return (
     <html lang="th">
       <head>
-        <link rel="stylesheet" href="/fonts.css" />
+        <link rel="stylesheet" href={`${process.env.NEXT_PUBLIC_BASE_PATH || ''}/fonts.css`} />
       </head>
       <body>
         {children}
