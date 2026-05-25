@@ -610,7 +610,7 @@ function streamJob(job_id, onDone) {
       // Format: DOWNLOAD:{prefix}/{filename}
       const parts = msg.slice(9);
       const dl = document.getElementById('dl-link');
-      dl.href = `/api/download/${parts}`;
+      dl.href = `${BASE}/api/download/${parts}`;
       dl.download = parts.split('/').pop();
       dl.textContent = `⬇ Download ${parts.split('/').pop()}`;
       document.getElementById('dl-section').classList.remove('hidden');
