@@ -166,11 +166,15 @@
     <pre id="log-output"
       class="bg-gray-950 rounded-lg p-4 text-xs text-green-400 h-80 overflow-y-auto
              whitespace-pre-wrap leading-relaxed font-mono"></pre>
-    <div id="dl-section" class="hidden mt-4">
+    <div id="dl-section" class="hidden mt-4 flex flex-col gap-2">
       <a id="dl-link" href="#" download
         class="inline-flex items-center gap-2 bg-emerald-700 hover:bg-emerald-600 text-white
                rounded-lg px-4 py-2 text-sm font-medium transition-colors">
         ⬇ Download Export
+      </a>
+      <a id="dl-link-http" href="#"
+        class="inline-flex items-center gap-2 text-yellow-400 hover:text-yellow-300 text-xs">
+        ⬇ HTTP link (ถ้าดาวน์โหลดไม่ได้ผ่าน HTTPS)
       </a>
     </div>
   </div>
@@ -610,9 +614,13 @@ function streamJob(job_id, onDone) {
       // Format: DOWNLOAD:{prefix}/{filename}
       const parts = msg.slice(9);
       const dl = document.getElementById('dl-link');
+      const dlFile = parts.split('/').pop();
       dl.href = `${BASE}/api/download/${parts}`;
-      dl.download = parts.split('/').pop();
-      dl.textContent = `⬇ Download ${parts.split('/').pop()}`;
+      dl.download = dlFile;
+      dl.textContent = `⬇ Download ${dlFile}`;
+      const dlHttp = document.getElementById('dl-link-http');
+      dlHttp.href = `http://${window.location.hostname}${BASE}/api/download/${parts}`;
+      dlHttp.download = dlFile;
       document.getElementById('dl-section').classList.remove('hidden');
       return;
     }
