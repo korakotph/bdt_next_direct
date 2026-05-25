@@ -457,8 +457,9 @@ def _patch_nextjs_directus_url(emit, prefix: str, server_url: str):
     if changed:
         emit("▶ rebuild + restart nextjs (อาจใช้เวลา 1-2 นาที)")
         compose_run(["up", "-d", "--build", "nextjs"], emit, prefix=prefix)
-    emit(f"▶ re-connect {prefix}_nextjs → {CADDY_NETWORK}")
-    _network_connect(f"{prefix}_nextjs", emit)
+    emit(f"▶ re-connect containers → {CADDY_NETWORK}")
+    for c in [f"{prefix}_nextjs", f"{prefix}_directus", f"{prefix}_adminer"]:
+        _network_connect(c, emit)
 
 
 def do_import_zip(emit, prefix: str, zip_path: str, server_url: str = ""):
