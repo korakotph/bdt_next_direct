@@ -615,12 +615,14 @@ function streamJob(job_id, onDone) {
       const parts = msg.slice(9);
       const dl = document.getElementById('dl-link');
       const dlFile = parts.split('/').pop();
-      dl.href = `${BASE}/api/download/${parts}`;
+      const httpBase = `http://${window.location.hostname}${BASE}`;
+      dl.href = `${httpBase}/api/download/${parts}`;
       dl.download = dlFile;
       dl.textContent = `⬇ Download ${dlFile}`;
-      const dlHttp = document.getElementById('dl-link-http');
-      dlHttp.href = `http://${window.location.hostname}${BASE}/api/download/${parts}`;
-      dlHttp.download = dlFile;
+      const dlHttps = document.getElementById('dl-link-http');
+      dlHttps.href = `${BASE}/api/download/${parts}`;
+      dlHttps.download = dlFile;
+      dlHttps.textContent = `⬇ HTTPS link (สำรอง)`;
       document.getElementById('dl-section').classList.remove('hidden');
       return;
     }
@@ -654,7 +656,7 @@ function loadExports() {
             <span class="text-gray-600 text-xs shrink-0">${f.size_mb} MB</span>
             <span class="text-gray-700 text-xs shrink-0 hidden sm:inline">${f.created}</span>
           </div>
-          <a href="${BASE}/api/download/${encodeURIComponent(selectedProject)}/${encodeURIComponent(f.name)}"
+          <a href="http://${window.location.hostname}${BASE}/api/download/${encodeURIComponent(selectedProject)}/${encodeURIComponent(f.name)}"
              download="${f.name}"
              class="shrink-0 ml-4 text-blue-400 hover:text-blue-300 text-xs px-3 py-1.5 rounded
                     border border-blue-800 hover:border-blue-600 transition-colors">
