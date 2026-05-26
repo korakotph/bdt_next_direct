@@ -708,6 +708,9 @@ def do_delete_project(emit, prefix: str, delete_files: bool = False):
     compose_file = os.path.join(project_dir, "docker-compose.yaml")
     emit(f"═══ ลบโปรเจค: {prefix} ═══")
 
+    emit("▶ หยุด containers (รวมถึงที่กำลัง restart)")
+    compose_run(["kill"], emit, prefix=prefix, compose_file=compose_file)
+
     emit("▶ ปิด containers และลบ volumes")
     compose_run(["down", "-v", "--remove-orphans"], emit, prefix=prefix,
                 compose_file=compose_file)
