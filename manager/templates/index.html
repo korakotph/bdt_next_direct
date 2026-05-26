@@ -509,27 +509,46 @@ function triggerImport() {
   document.getElementById('import-file-input').click();
 }
 
-function uploadImportFile(input) {
+async function uploadImportFile(input) {
   const file = input.files[0];
   if (!file) return;
   openLog(`Import ZIP: ${selectedProject}`);
   const log = document.getElementById('log-output');
-  log.textContent = `กำลังอัพโหลด ${file.name} (${(file.size/1024/1024).toFixed(1)} MB)…\n`;
 
-  const form = new FormData();
-  form.append('file', file);
-  fetch(`${BASE}/api/import/${encodeURIComponent(selectedProject)}`, {
-    method: 'POST', body: form,
-  })
-  .then(r => {
-    if (!r.ok) return r.text().then(t => { throw new Error(`HTTP ${r.status}: ${t.slice(0, 300)}`); });
-    return r.json();
-  })
-  .then(data => {
-    if (data.error) { log.textContent += `✘ ${data.error}\n`; return; }
-    streamJob(data.job_id, () => {});
-  })
-  .catch(err => { log.textContent += `✘ Upload failed: ${err}\n`; });
+  const CHUNK_SIZE = 800 * 1024; // 800 KB per chunk
+  const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
+  const uploadId = crypto.randomUUID().replace(/-/g, '');
+  const url = `${BASE}/api/import/${encodeURIComponent(selectedProject)}/chunk`;
+
+  log.textContent = `กำลังอัพโหลด ${file.name} (${(file.size/1024/1024).toFixed(1)} MB) — ${totalChunks} chunks…\n`;
+
+  try {
+    let jobId = null;
+    for (let i = 0; i < totalChunks; i++) {
+      const start = i * CHUNK_SIZE;
+      const chunk = file.slice(start, start + CHUNK_SIZE);
+      const form = new FormData();
+      form.append('chunk', chunk, file.name);
+      form.append('chunk_index', i);
+      form.append('total_chunks', totalChunks);
+      form.append('upload_id', uploadId);
+
+      const r = await fetch(url, { method: 'POST', body: form });
+      if (!r.ok) {
+        const t = await r.text();
+        throw new Error(`HTTP ${r.status}: ${t.slice(0, 300)}`);
+      }
+      const data = await r.json();
+      if (data.error) throw new Error(data.error);
+
+      log.textContent = `กำลังอัพโหลด chunk ${i + 1}/${totalChunks}…\n`;
+      if (data.job_id) jobId = data.job_id;
+    }
+    log.textContent += `✔ อัพโหลดสำเร็จ กำลังประมวลผล…\n`;
+    streamJob(jobId, () => {});
+  } catch (err) {
+    log.textContent += `✘ Upload failed: ${err}\n`;
+  }
 }
 
 // ── fix url ─────────────────────────────────────────────────────────────────

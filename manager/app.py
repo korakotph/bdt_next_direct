@@ -1037,6 +1037,45 @@ def api_import(prefix: str):
     return jsonify({"job_id": job_id})
 
 
+@app.post("/api/import/<prefix>/chunk")
+def api_import_chunk(prefix: str):
+    if not re.match(r"^[a-z0-9_-]+$", prefix):
+        abort(400)
+    chunk_index = int(request.form.get("chunk_index", 0))
+    total_chunks = int(request.form.get("total_chunks", 1))
+    upload_id    = request.form.get("upload_id", "")
+    if not re.match(r"^[a-f0-9]+$", upload_id):
+        return jsonify({"error": "invalid upload_id"}), 400
+
+    chunk_data = request.files.get("chunk")
+    if not chunk_data:
+        return jsonify({"error": "chunk required"}), 400
+
+    exports_dir = get_exports_dir(prefix)
+    os.makedirs(exports_dir, exist_ok=True)
+    chunk_dir = os.path.join(exports_dir, f"_chunks_{upload_id}")
+    os.makedirs(chunk_dir, exist_ok=True)
+    chunk_data.save(os.path.join(chunk_dir, f"{chunk_index:05d}"))
+
+    if chunk_index + 1 < total_chunks:
+        return jsonify({"status": "chunk_received", "chunk": chunk_index})
+
+    # All chunks received — assemble
+    tmp_path = os.path.join(exports_dir, f"import_{upload_id}.zip")
+    with open(tmp_path, "wb") as out:
+        for i in range(total_chunks):
+            part = os.path.join(chunk_dir, f"{i:05d}")
+            with open(part, "rb") as p:
+                out.write(p.read())
+    shutil.rmtree(chunk_dir, ignore_errors=True)
+
+    scheme = request.headers.get("X-Forwarded-Proto", "http")
+    host   = request.headers.get("X-Forwarded-Host") or request.host.split(":")[0]
+    server_url = PUBLIC_HOST or f"{scheme}://{host}"
+    job_id = start_job(lambda emit: do_import_zip(emit, prefix, tmp_path, server_url))
+    return jsonify({"status": "done", "job_id": job_id})
+
+
 @app.post("/api/export")
 def api_export():
     data   = request.get_json(silent=True) or {}
