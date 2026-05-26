@@ -10,16 +10,32 @@
 <div class="max-w-full mx-auto p-6 space-y-5">
 
   <!-- Header -->
-  <div class="flex items-center justify-between">
+  <div class="flex items-center justify-between gap-4 flex-wrap">
     <div>
       <h1 class="text-2xl font-bold text-white">BDT Next Direct</h1>
       <p id="header-label" class="text-gray-500 text-sm mt-0.5">Container Manager</p>
     </div>
-    <button onclick="loadProjects()"
-      class="text-gray-400 hover:text-white text-sm px-3 py-1.5 rounded border border-gray-700
-             hover:border-gray-500 transition-colors">
-      ↻ Refresh
-    </button>
+    <div class="flex items-center gap-3 flex-wrap">
+      <!-- Disk Usage -->
+      <div class="flex items-center gap-2 bg-gray-900 border border-gray-800 rounded-lg px-3 py-1.5">
+        <span class="text-xs text-gray-500">Disk</span>
+        <div class="w-24 h-1.5 bg-gray-700 rounded-full overflow-hidden">
+          <div id="disk-bar" class="h-full rounded-full transition-all" style="width:0%"></div>
+        </div>
+        <span id="disk-text" class="text-xs text-gray-400 font-mono">—</span>
+        <button onclick="pruneDocker()"
+          title="docker system prune -af"
+          class="text-xs text-orange-400 hover:text-orange-300 border border-orange-900 hover:border-orange-700
+                 px-2 py-0.5 rounded transition-colors ml-1">
+          🧹 Clear
+        </button>
+      </div>
+      <button onclick="loadProjects(); loadDisk()"
+        class="text-gray-400 hover:text-white text-sm px-3 py-1.5 rounded border border-gray-700
+               hover:border-gray-500 transition-colors">
+        ↻ Refresh
+      </button>
+    </div>
   </div>
 
   <!-- ═══ Projects ═══ -->
@@ -1017,10 +1033,40 @@ document.getElementById('delete-modal').addEventListener('click', function(e) {
   if (e.target === this) closeDeleteModal();
 });
 
+// ── disk ────────────────────────────────────────────────────────────────────
+
+function loadDisk() {
+  fetch(`${BASE}/api/disk`).then(r => r.json()).then(d => {
+    if (d.error) return;
+    const gb = v => (v / 1024 / 1024 / 1024).toFixed(1);
+    const pct = d.percent;
+    const bar = document.getElementById('disk-bar');
+    const txt = document.getElementById('disk-text');
+    bar.style.width = pct + '%';
+    bar.className = `h-full rounded-full transition-all ${
+      pct >= 85 ? 'bg-red-500' : pct >= 70 ? 'bg-yellow-500' : 'bg-green-500'
+    }`;
+    txt.textContent = `${gb(d.free)}GB free`;
+    txt.className = `text-xs font-mono ${
+      pct >= 85 ? 'text-red-400' : pct >= 70 ? 'text-yellow-400' : 'text-gray-400'
+    }`;
+  }).catch(() => {});
+}
+
+function pruneDocker() {
+  if (!confirm('ลบ Docker images, containers และ build cache ที่ไม่ได้ใช้ทั้งหมด?\n(docker system prune -af)')) return;
+  openLog('Clear Docker');
+  fetch(`${BASE}/api/prune`, { method: 'POST' })
+    .then(r => r.json())
+    .then(({ job_id }) => streamJob(job_id, () => loadDisk()));
+}
+
 // ── init ───────────────────────────────────────────────────────────────────
 
 loadProjects();
+loadDisk();
 setInterval(() => { loadProjects(); if (selectedProject) loadStatus(); }, 15000);
+setInterval(loadDisk, 30000);
 </script>
 </body>
 </html>
