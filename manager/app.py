@@ -933,6 +933,30 @@ def index():
     return render_template("index.html", base_path=BASE_PATH)
 
 
+@app.get("/api/disk")
+def api_disk():
+    try:
+        usage = shutil.disk_usage(PROJECTS_ROOT)
+        return jsonify({
+            "total":   usage.total,
+            "used":    usage.used,
+            "free":    usage.free,
+            "percent": round(usage.used / usage.total * 100, 1),
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.post("/api/prune")
+def api_prune():
+    def _prune(emit):
+        emit("▶ docker system prune -af")
+        stream_cmd(["docker", "system", "prune", "-af"], emit)
+        emit("✔ เคลียร์เสร็จสมบูรณ์")
+    job_id = start_job(_prune)
+    return jsonify({"job_id": job_id})
+
+
 @app.get("/api/status")
 def api_status():
     prefix = request.args.get("project", "").strip()
