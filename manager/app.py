@@ -193,7 +193,10 @@ def stream_cmd(cmd: list, emit, stdin_bytes: bytes = None) -> int:
             p.stdin.write(stdin_bytes)
             p.stdin.close()
         for raw in iter(p.stdout.readline, b""):
-            emit(raw.decode("utf-8", errors="replace").rstrip())
+            line = raw.decode("utf-8", errors="replace").rstrip()
+            if "connection lost" in line.lower():
+                line = "⏳ สัญญาณขาดหาย กำลัง retry..."
+            emit(line)
         p.wait()
         return p.returncode
     except Exception as e:
@@ -678,9 +681,12 @@ def do_create_project(name: str, template_prefix: str, emit, server_url: str = "
 
     emit("▶ Build Next.js image (อาจใช้เวลาหลายนาที)")
     rc = compose_run(["build", "--no-cache", "nextjs"], emit, prefix=prefix, compose_file=compose_path)
-    if rc != 0:
-        emit("⚠ Build ขัดข้อง (อาจเกิด connection lost) กำลัง retry...")
-        compose_run(["up", "-d", "--build", "nextjs"], emit, prefix=prefix, compose_file=compose_path)
+    attempt = 1
+    while rc != 0:
+        attempt += 1
+        emit(f"⏳ สัญญาณขาดหาย กำลัง retry ({attempt})...")
+        time.sleep(3)
+        rc = compose_run(["build", "nextjs"], emit, prefix=prefix, compose_file=compose_path)
 
     emit("▶ เริ่ม PostgreSQL")
     compose_run(["up", "-d", "postgres"], emit, prefix=prefix, compose_file=compose_path)
