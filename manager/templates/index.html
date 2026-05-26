@@ -521,7 +521,10 @@ function uploadImportFile(input) {
   fetch(`${BASE}/api/import/${encodeURIComponent(selectedProject)}`, {
     method: 'POST', body: form,
   })
-  .then(r => r.json())
+  .then(r => {
+    if (!r.ok) return r.text().then(t => { throw new Error(`HTTP ${r.status}: ${t.slice(0, 300)}`); });
+    return r.json();
+  })
   .then(data => {
     if (data.error) { log.textContent += `✘ ${data.error}\n`; return; }
     streamJob(data.job_id, () => {});
