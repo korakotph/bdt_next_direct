@@ -675,7 +675,10 @@ def do_create_project(name: str, template_prefix: str, emit, server_url: str = "
     emit("✔ docker-compose.yaml พร้อม")
 
     emit("▶ Build Next.js image (อาจใช้เวลาหลายนาที)")
-    compose_run(["build", "--no-cache", "nextjs"], emit, prefix=prefix, compose_file=compose_path)
+    rc = compose_run(["build", "--no-cache", "nextjs"], emit, prefix=prefix, compose_file=compose_path)
+    if rc != 0:
+        emit("⚠ Build ขัดข้อง (อาจเกิด connection lost) กำลัง retry...")
+        compose_run(["up", "-d", "--build", "nextjs"], emit, prefix=prefix, compose_file=compose_path)
 
     emit("▶ เริ่ม PostgreSQL")
     compose_run(["up", "-d", "postgres"], emit, prefix=prefix, compose_file=compose_path)
@@ -690,7 +693,7 @@ def do_create_project(name: str, template_prefix: str, emit, server_url: str = "
     emit("▶ เริ่ม containers ทั้งหมด")
     compose_run(["up", "-d", "--no-build", "directus", "adminer"], emit,
                 prefix=prefix, compose_file=compose_path)
-    compose_run(["up", "-d", "nextjs"], emit,
+    compose_run(["up", "-d", "--build", "nextjs"], emit,
                 prefix=prefix, compose_file=compose_path)
 
     emit("▶ ตั้งค่า Reverse Proxy")
