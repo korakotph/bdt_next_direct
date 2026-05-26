@@ -457,6 +457,9 @@ def _patch_nextjs_directus_url(emit, prefix: str, server_url: str):
     if changed:
         emit("▶ rebuild + restart nextjs (อาจใช้เวลา 1-2 นาที)")
         compose_run(["up", "-d", "--build", "nextjs"], emit, prefix=prefix)
+    else:
+        emit("▶ start nextjs")
+        compose_run(["up", "-d", "nextjs"], emit, prefix=prefix)
     emit(f"▶ re-connect containers → {CADDY_NETWORK}")
     for c in [f"{prefix}_nextjs", f"{prefix}_directus", f"{prefix}_adminer"]:
         _network_connect(c, emit)
