@@ -642,6 +642,10 @@ def do_create_project(name: str, template_prefix: str, emit, server_url: str = "
     emit(f"   Template  : {template_prefix}  ({template_dir}/next-app)")
     emit(f"   Instance  : {instance_dir}")
 
+    emit("▶ เคลียร์ Docker images และ build cache ที่ไม่ได้ใช้")
+    stream_cmd(["docker", "image", "prune", "-f"], emit)
+    stream_cmd(["docker", "builder", "prune", "-f"], emit)
+
     emit("▶ หา port ที่ว่าง")
     ports = find_free_ports([
         ("pg",      5433),
@@ -728,8 +732,9 @@ def do_delete_project(emit, prefix: str, delete_files: bool = False):
         else:
             emit(f"⚠ ไม่พบโฟลเดอร์ {project_dir}")
 
-    emit("▶ เคลียร์ Docker images ที่ไม่ได้ใช้")
+    emit("▶ เคลียร์ Docker images และ build cache ที่ไม่ได้ใช้")
     stream_cmd(["docker", "image", "prune", "-f"], emit)
+    stream_cmd(["docker", "builder", "prune", "-f"], emit)
 
     emit("═══ ลบโปรเจคเสร็จสมบูรณ์! ═══")
 
