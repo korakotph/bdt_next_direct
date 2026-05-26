@@ -1126,14 +1126,20 @@ def api_stream(job_id: str):
 
     def generate():
         cursor = 0
+        last_keepalive = time.time()
         while True:
             with _lock:
                 batch  = job["lines"][cursor:]
                 total  = len(job["lines"])
                 status = job["status"]
-            for line in batch:
-                yield f"data: {json.dumps(line)}\n\n"
-            cursor = total
+            if batch:
+                for line in batch:
+                    yield f"data: {json.dumps(line)}\n\n"
+                cursor = total
+                last_keepalive = time.time()
+            elif time.time() - last_keepalive > 15:
+                yield ": keepalive\n\n"
+                last_keepalive = time.time()
             if status != "running" and cursor == total:
                 yield f'data: {json.dumps("__DONE__")}\n\n'
                 return
