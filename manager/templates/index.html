@@ -518,7 +518,7 @@ function uploadImportFile(input) {
 
   const form = new FormData();
   form.append('file', file);
-  fetch(`http://${window.location.hostname}${BASE}/api/import/${encodeURIComponent(selectedProject)}`, {
+  fetch(`${BASE}/api/import/${encodeURIComponent(selectedProject)}`, {
     method: 'POST', body: form,
   })
   .then(r => r.json())
