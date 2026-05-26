@@ -725,6 +725,9 @@ def do_delete_project(emit, prefix: str, delete_files: bool = False):
         else:
             emit(f"⚠ ไม่พบโฟลเดอร์ {project_dir}")
 
+    emit("▶ เคลียร์ Docker images ที่ไม่ได้ใช้")
+    stream_cmd(["docker", "image", "prune", "-f"], emit)
+
     emit("═══ ลบโปรเจคเสร็จสมบูรณ์! ═══")
 
 
