@@ -671,7 +671,7 @@ def do_create_project(name: str, template_prefix: str, emit, server_url: str = "
     emit("✔ docker-compose.yaml พร้อม")
 
     emit("▶ Build Next.js image (อาจใช้เวลาหลายนาที)")
-    compose_run(["build", "nextjs"], emit, prefix=prefix, compose_file=compose_path)
+    compose_run(["build", "--no-cache", "nextjs"], emit, prefix=prefix, compose_file=compose_path)
 
     emit("▶ เริ่ม PostgreSQL")
     compose_run(["up", "-d", "postgres"], emit, prefix=prefix, compose_file=compose_path)
