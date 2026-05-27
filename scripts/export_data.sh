@@ -19,9 +19,9 @@ err()       { echo -e "   ${C_RED}✘  $1${C_RESET}"; }
 pause_exit() { read -rp $'\nกด Enter เพื่อออก...'; exit 1; }
 
 # ── Read container info from docker-compose.yaml ──────────────
-PG_CONTAINER="bdt_directus_db"
+PG_CONTAINER="bdt_next_direct_db"
 if [ -f "docker-compose.yaml" ]; then
-    _pg=$(grep 'container_name:' docker-compose.yaml | grep '_db\b' | awk '{print $2}' | head -1)
+    _pg=$(grep 'container_name:' docker-compose.yaml | grep '_db' | awk '{print $2}' | head -1 || true)
     [ -n "$_pg" ] && PG_CONTAINER="$_pg"
 fi
 
