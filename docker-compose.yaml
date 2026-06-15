@@ -49,6 +49,8 @@
       # ชื่อ cookie เฉพาะของ project — ป้องกัน session ชนกันเมื่อรัน Directus หลาย instance
       SESSION_COOKIE_NAME: "bdt_next_direct_session_token"
       REFRESH_TOKEN_COOKIE_NAME: "bdt_next_direct_refresh_token"
+
+      FILES_MAX_UPLOAD_SIZE: "1gb"
     volumes:
       - ./directus/uploads:/directus/uploads
       - ./directus/migrations:/directus/migrations
