@@ -45,7 +45,7 @@ export default function ExcelBlock({ item }) {
           
           {/* Excel Viewer */}
           <iframe
-            src={`https://view.officeapps.live.com/op/embed.aspx?src=${excelUrl}`}
+            src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(excelUrl)}`}
             className="w-full h-[80vh]"
             title={item.title || 'Excel'}
           />
